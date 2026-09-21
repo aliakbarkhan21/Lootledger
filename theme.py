@@ -2795,6 +2795,13 @@ div.st-key-clear_chat button {
 }
 [data-baseweb="modal"] [role="dialog"] code *,
 [data-testid="stDialog"] [role="dialog"] code * { color: var(--amber) !important; }
+/* The blanket colour above is what keeps Streamlit's own greys out of the
+   dialog, but it reaches the platform chip too — and a chip is dark ink ON a
+   bright ground, not the page's light ink. Left to the blanket rule, SB came
+   out near-white on cyan and stopped reading as the same token the board
+   draws. Named explicitly so it outranks the star. */
+[data-baseweb="modal"] [role="dialog"] .ll-plat,
+[data-testid="stDialog"] [role="dialog"] .ll-plat { color: var(--chip-ink) !important; }
 
 /* ================================================ data grids follow the mode */
 /* st.dataframe and st.data_editor render through glide-data-grid, which paints
@@ -2892,6 +2899,38 @@ div.st-key-clear_chat button {
    while the caption itself still wrapped to two — the container does not clip,
    so the overflow printed straight over the widget underneath. The gap above
    is the whole adjustment; the text keeps the box it needs. */
+
+/* The category a budget row is about, beside the field holding its figure.
+   It was an st.caption, which this stylesheet renders at --t-micro in
+   --ink-3 — so the name of the thing being capped sat two steps below the
+   number capping it and read as a footnote on its own row.
+
+   It carries the platform chip rather than only the word, because the board
+   already has a mark for every category and this is the same category: FD in
+   orange under Platform Load is FD in orange here. Recognising the row by the
+   same token in both places is the point of having the token. */
+.ll-cap-name {
+  display: flex; align-items: center; gap: var(--s2);
+  line-height: 1.3;
+}
+/* On the board .ll-plat takes its width from the grid column it sits in.
+   There is no grid here, so the chip states its own — wide enough for two
+   Barlow Condensed capitals and no wider.
+
+   The softer corner is deliberate and deliberately local. Every chip on the
+   board is a split-flap tile at --radius-tile, because it sits in a run of
+   them and the sharp corner is what makes the run read as a mechanical
+   strip. This one stands alone in a settings row next to rounded inputs and
+   a rounded button, where 2px reads as a stray hard edge rather than as part
+   of a system. --radius-sm is the radius those controls already use. */
+.ll-cap-name .ll-plat {
+  flex: 0 0 auto; width: 30px;
+  border-radius: var(--radius-sm);
+}
+.ll-cap-label {
+  font-size: var(--t-body); font-weight: 500; color: var(--ink);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
 
 /* ================================================ a composer that starts small */
 /* The field opened at the height of the buttons flanking it rather than the
