@@ -165,15 +165,6 @@ def next_starter(shown: list[int]) -> int:
     return cursor % total
 
 
-# ---- since you last looked --------------------------------------------
-# The monthly digest only fires on the first load of a new month, so for the
-# other thirty days opening the board told you nothing you did not already
-# know. This is the everyday version: what has been added since the last time
-# this browser session recorded a visit. Stored as a plain row id per ledger —
-# ids only ever increase, so "higher than last time" is exactly "new", with no
-# clock involved and nothing to go wrong across timezones.
-LAST_SEEN_KEY = "last_seen_ids"
-
 # How a debt started, in the words someone would actually use for it. The two
 # options differ in one respect only — whether cash moved when the debt was
 # created — but that difference decides whether cash on hand goes up, down or
@@ -217,43 +208,6 @@ DEBT_KIND_LABELS = {
     "lent": {db.CASH: "Cash", db.COVERED: "Covered", db.OWED: "Owed"},
     "borrowed": {db.CASH: "Cash", db.COVERED: "Covered"},
 }
-
-
-def _current_max_ids() -> dict:
-    getters = {"expenses": db.get_expenses, "transport": db.get_transport,
-               "income": db.get_income, "lent": db.get_lent,
-               "borrowed": db.get_borrowed}
-    out = {}
-    for name, fn in getters.items():
-        rows = fn()
-        out[name] = max((int(r["id"]) for r in rows), default=0)
-    return out
-
-
-def new_since_last_seen():
-    """Rows added since the last recorded visit, as (label, count, total)."""
-    try:
-        seen = json.loads(db.get_meta(LAST_SEEN_KEY) or "{}")
-    except Exception:
-        seen = {}
-    if not isinstance(seen, dict):
-        seen = {}
-    getters = {"expenses": ("spent", db.get_expenses),
-               "transport": ("transport", db.get_transport),
-               "income": ("earned", db.get_income),
-               "lent": ("lent out", db.get_lent),
-               "borrowed": ("borrowed", db.get_borrowed)}
-    fresh, first_visit = [], not seen
-    for name, (label, fn) in getters.items():
-        mark = int(seen.get(name, 0) or 0)
-        rows = [r for r in fn() if int(r["id"]) > mark]
-        if rows:
-            fresh.append((label, len(rows), sum(float(r["amount"]) for r in rows)))
-    return fresh, first_visit
-
-
-def mark_seen() -> None:
-    db.set_meta(LAST_SEEN_KEY, json.dumps(_current_max_ids()))
 
 
 # ---- chats ----------------------------------------------------------------
@@ -409,10 +363,9 @@ def _db_fingerprint() -> tuple:
     starts at 0 for each new one. Keyed on that alone, a browser session opened
     after a write was handed the entry cached under version 0 — the snapshot
     taken when the server first started. The board would then show records as
-    they were hours earlier, while the "since you last looked" strip, which
-    reads the database directly, showed the real ones. Since this launcher keeps
-    one server running for days, that window was wide open: close the tab,
-    reopen it, and the month looked wrong.
+    they were hours earlier. Since this launcher keeps one server running for
+    days, that window was wide open: close the tab, reopen it, and the month
+    looked wrong.
 
     The file's size and modification time are process-wide facts about the data
     itself, so every session agrees on them. `data_version` is kept alongside as
@@ -1070,27 +1023,6 @@ with stage:
     # panel above them pushed the real board below the fold on first run and
     # read as filler. The one action worth offering moved into the toolbar row
     # below, so nothing floats above the controls.
-    # ---- what changed since the last visit ------------------------------
-    fresh_rows, first_visit = new_since_last_seen()
-    if fresh_rows and not first_visit:
-        summary = " &middot; ".join(
-            f"{count} {label} {finance.money(total, 0)}"
-            for label, count, total in fresh_rows)
-        html('<div class="ll-since">',
-             f'<div class="ll-since-title">{icons.icon("clock", 14)}'
-             'Since you last looked</div>',
-             f'<div class="ll-since-body">{summary}</div></div>')
-        sc_a, _ = st.columns([1.5, 8.5])
-        with sc_a:
-            if st.button("Mark as seen", key="mark_seen", width="stretch"):
-                mark_seen()
-                st.rerun()
-    elif first_visit:
-        # Nothing to compare against yet; record the starting point quietly so
-        # the first real visit has a baseline instead of announcing the whole
-        # ledger as new.
-        mark_seen()
-
     if DEMO_ON:
         html('<div class="ll-demo">', icons.icon("info", 15),
              'Sample data &mdash; <span>these figures are generated for demonstration, '
@@ -1144,7 +1076,7 @@ with stage:
                 f'<div class="ll-setup-item"><b>{esc(t)}</b> {b}</div>'
                 for t, b in gaps)
             html('<div class="ll-setup">',
-                 f'<div class="ll-since-title">{icons.icon("alert", 14)}'
+                 f'<div class="ll-notice-title">{icons.icon("alert", 14)}'
                  f'{"Two settings" if len(gaps) > 1 else "One setting"} '
                  'would change what the board reports</div>',
                  rows, '</div>')

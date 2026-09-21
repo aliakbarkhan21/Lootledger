@@ -1930,21 +1930,17 @@ label.ll-row-more:hover .ll-row-more-label { color: var(--amber); }
 }
 
 
-/* ---- what changed since the last visit ---- */
-.ll-since {
-  border: 1px solid var(--rule-2); border-left: 2px solid var(--amber);
-  border-radius: var(--radius); background: var(--shade-soft);
-  padding: var(--s3) var(--s4); margin-bottom: var(--s3);
-}
-/* The board naming what it has not been told. Same idiom as .ll-since, in the
-   departure tone rather than amber, because this is not news — it is a figure
-   on screen being reported as more certain than it is. */
+/* ---- the board naming what it has not been told ---- */
+/* Not news and not a notice that can be dismissed by reading it: a figure on
+   screen is being reported as more certain than it is, and that stays true
+   until the setting behind it is filled in. So it sits in the page flow, in
+   the departure tone rather than amber. */
 .ll-setup {
   border: 1px solid var(--rule-2); border-left: 2px solid var(--departure);
   border-radius: var(--radius); background: var(--shade-soft);
   padding: var(--s3) var(--s4); margin-bottom: var(--s2);
 }
-.ll-setup .ll-since-title .ll-icon { color: var(--departure); }
+.ll-setup .ll-notice-title .ll-icon { color: var(--departure); }
 .ll-setup-item {
   font-size: var(--t-small); color: var(--ink-2); line-height: 1.55;
   padding: 4px 0;
@@ -1953,13 +1949,12 @@ label.ll-row-more:hover .ll-row-more-label { color: var(--amber); }
 .ll-setup-item b { color: var(--ink); font-weight: 600; }
 .st-key-setup_open, .st-key-setup_hide { margin-bottom: var(--s3); }
 
-.ll-since-title {
+.ll-notice-title {
   font-family: var(--font-board); font-size: var(--t-micro); font-weight: 700;
   letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-3);
   display: flex; align-items: center; gap: 7px; margin-bottom: 4px;
 }
-.ll-since-title .ll-icon { color: var(--amber); }
-.ll-since-body { font-size: var(--t-small); color: var(--ink); line-height: 1.5; }
+.ll-notice-title .ll-icon { color: var(--amber); }
 
 /* ---- bot with no API key: a stated condition, not a dead panel ---- */
 .ll-nokey {
