@@ -2941,27 +2941,80 @@ def settings_dialog():
     st.markdown("**Budgets**")
     st.caption("A monthly cap per category. Platform load shows spent-vs-cap once one is set.")
     budgets = db.get_budgets()
-    bc1, bc2, bc3 = st.columns([1.3, 1, 0.7])
-    with bc1:
-        budget_cat = st.selectbox("Category", db.CATEGORIES, key="budget_cat",
-                                  label_visibility="collapsed")
-    with bc2:
-        # Keyed on the chosen category so switching categories shows that
-        # category's own cap instead of carrying over whatever was last typed —
-        # the same stale-widget-state trap as the import column mapping above.
-        budget_amt = st.number_input(
-            f"Monthly cap ({CURRENCY})", min_value=0.0, step=500.0, format="%.2f",
-            value=float(finance.to_display(budgets.get(budget_cat, 0.0))),
-            key=f"budget_amt_{budget_cat}", label_visibility="collapsed")
-    with bc3:
-        if st.button("Save", key="save_budget", width="stretch"):
-            if budget_amt > 0:
-                db.set_budget(budget_cat, to_pkr(budget_amt))
-            else:
-                db.delete_budget(budget_cat)
-            st.rerun()
-    if budgets:
-        st.caption(" · ".join(f"{c}: {finance.money(v, 0)}/mo" for c, v in sorted(budgets.items())))
+
+    # The caps already set, each one editable where it is written. This used to
+    # be a single line of text under the form — "Subscriptions: Rs. 2,500/mo" —
+    # which reads as a report, not a control: the only way to change that cap
+    # was to go back to the selectbox, pick Subscriptions, and notice that the
+    # amount field had quietly pre-filled itself with the current figure. The
+    # cap you want to change is the one already on screen, so that is the one
+    # that takes the edit. Same shape as the Recurring list below it.
+    for cat in sorted(budgets):
+        bx1, bx2, bx3 = st.columns([1.3, 1, 0.7], vertical_alignment="center")
+        with bx1:
+            st.caption(cat)
+        with bx2:
+            # to_display turns the stored rupees into whatever currency is on
+            # screen, so the number this widget holds is only meaningful for
+            # the currency it was built under — the key carries it for the same
+            # reason the add-row's key carries its category.
+            shown = round(finance.to_display(budgets[cat]), 2)
+            edited = st.number_input(
+                f"{cat} cap ({CURRENCY})", min_value=0.0, step=500.0,
+                format="%.2f", value=shown, label_visibility="collapsed",
+                key=f"budget_edit_{cat}_{CURRENCY}")
+        with bx3:
+            removed = st.button("✕", key=f"del_budget_{cat}", width="stretch",
+                                help=f"Remove the {cat} cap")
+        # Compared in DISPLAY units rather than rupees. A cap round-tripped out
+        # through to_display and back through to_pkr does not land on the rupee
+        # it started from under a non-PKR board — Rs. 2,500 shows as $9.03 and
+        # comes back as 2,501.31 — so comparing the stored figure would rewrite
+        # every budget on sight for no reason but having opened this dialog
+        # while reading in dollars. What the user typed is what is checked.
+        if removed or (edited <= 0 and shown > 0):
+            db.delete_budget(cat)
+        elif abs(edited - shown) > 0.005:
+            db.set_budget(cat, to_pkr(edited))
+        else:
+            continue
+        # Without this the rerun below takes the dialog down with it: settings
+        # opens off a button press, and a button does not return True twice.
+        st.session_state._open_settings = True
+        st.rerun()
+
+    # Only the categories still without one. Offering all eight here made the
+    # form a second, competing way to edit a cap that the list above already
+    # owns, and "Save" over an existing figure read as ambiguous next to it.
+    uncapped = [c for c in db.CATEGORIES if c not in budgets]
+    if uncapped:
+        # The key carries the option set, not just the category: Streamlit
+        # keeps a selectbox's choice in session_state, and that choice leaves
+        # this list the moment a cap is saved for it. Rebuilding the widget is
+        # what stops it holding a category it can no longer offer.
+        uncapped_key = hashlib.sha1("|".join(uncapped).encode()).hexdigest()[:8]
+        bc1, bc2, bc3 = st.columns([1.3, 1, 0.7], vertical_alignment="center")
+        with bc1:
+            budget_cat = st.selectbox("Category", uncapped,
+                                      key=f"budget_cat_{uncapped_key}",
+                                      label_visibility="collapsed")
+        with bc2:
+            budget_amt = st.number_input(
+                f"Monthly cap ({CURRENCY})", min_value=0.0, step=500.0,
+                format="%.2f", value=0.0, label_visibility="collapsed",
+                key=f"budget_amt_{budget_cat}")
+        with bc3:
+            if st.button("Save", key="save_budget", width="stretch"):
+                if budget_amt > 0:
+                    db.set_budget(budget_cat, to_pkr(budget_amt))
+                    st.session_state._open_settings = True
+                    st.rerun()
+                else:
+                    st.warning("A cap needs an amount above zero.")
+    elif not budgets:
+        st.caption("No categories to cap yet.")
+    else:
+        st.caption("Every category has a cap.")
 
     st.divider()
     st.markdown("**Merge a category**")
