@@ -1,4 +1,25 @@
 [server]
+# Rerun the open session when a source file is saved.
+#
+# Not a convenience. app.py is exec'd from disk on every run, so its edits are
+# always live — but theme.py is IMPORTED, and Python caches imported modules in
+# sys.modules, so a later `import theme` is a dict lookup rather than a re-read
+# of the file. Streamlit handles this by queueing changed modules for eviction
+# from sys.modules and flushing the queue at the start of the next script run;
+# the queue, however, lives on the watcher, and the watcher belongs to the
+# session that was open when the file was saved. Reload the tab and that
+# session may be rebuilt rather than resumed, in which case the new session's
+# queue is empty while sys.modules still holds the stale module. The stylesheet
+# then silently stays as it was, which reads as CSS that will not apply.
+#
+# A rerun inside the SAME session is what flushes the queue, and this is what
+# schedules one. The other route to it — the "Source file changed" prompt and
+# the R shortcut — is closed by toolbarMode = "viewer" below, on purpose.
+#
+# The cost: every save reruns every open session, a phone included. Nothing on
+# disk changes during ordinary use, so in practice this only fires while the
+# app is being worked on.
+runOnSave = true
 enableCORS = false
 enableXsrfProtection = false
 maxUploadSize = 500

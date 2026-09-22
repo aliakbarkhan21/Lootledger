@@ -564,11 +564,10 @@ h4 a[href^="#"], h5 a[href^="#"], h6 a[href^="#"] { display: none !important; }
   display: flex !important; flex-direction: column !important; flex: 1 1 auto !important;
 }
 /* Trimming this band's height still left it occupying a row above the
-   masthead. Taking it out of flow entirely and floating it into the sidebar's
-   top-right corner reclaims that space outright — the title rises to the top
-   of the panel and the arrow sits clear of it, in the corner, rather than on
-   the line the title wants. Height must stay auto (not zero): the control is
-   this element's child, and collapsing the box clips the arrow away. */
+   masthead. Taking it out of flow entirely reclaims that space outright — the
+   title rises to the top of the panel. Where the band then goes is set further
+   down, with the toggle tile it carries. Height must stay auto (not zero): the
+   control is this element's child, and collapsing the box clips it away. */
 [data-testid="stSidebarHeader"] {
   background: transparent !important;
   position: absolute !important; top: 0 !important; right: 0 !important;
@@ -607,6 +606,154 @@ h4 a[href^="#"], h5 a[href^="#"], h6 a[href^="#"] { display: none !important; }
 [data-testid="stExpandSidebarButton"]:hover {
   background: var(--panel-2) !important;
   border-color: var(--rule-2) !important;
+  color: var(--amber) !important;
+}
+
+/* ---- the toggle as a tile on the panel's moving edge ------------------- */
+/* Both halves of this control used to sit in a top corner: the expand arrow in
+   Streamlit's header band, the collapse arrow in the sidebar's own. A top
+   corner is where browser chrome lives, which is exactly what they read as —
+   part of the window rather than part of the board.
+
+   Pinned to the middle of whichever edge the panel currently presents, they
+   read instead as one handle that travels with the panel: against the left of
+   the glass when the panel is shut, on the panel's own right edge when it is
+   open. Same tile, same height, so the eye can follow it across the toggle.
+
+   It is drawn as a TAB of the panel rather than a button laid over it: the
+   panel's own fill, the panel's own edge rule carried round its three free
+   sides, no border on the side it grows from, and an amber lip on its free
+   edge. Open or shut, it is the same object — a tab standing out of whatever
+   the left edge currently is. */
+
+/* Streamlit's own icon is hidden; the chevron is drawn by ::after below. */
+[data-testid="stExpandSidebarButton"] > *,
+[data-testid="stSidebarCollapseButton"] button > * { display: none !important; }
+/* The mark is DRAWN, not typeset. It was a guillemet set in the board font,
+   and measured off the render that came out as a 6x6px smudge sitting 1.5px
+   below centre in a 23x61 tile. Guillemets are punctuation — cut to sit inside
+   a line of text at the weight of a comma — so no font-size makes one behave
+   like an arrow; it only makes a bigger comma.
+
+   Two borders on an empty box, turned 45 degrees, is a chevron whose size,
+   stroke weight and colour are all stated here instead of inherited from a
+   typeface's idea of a quotation mark. currentColor keeps it on the same hover
+   transition as the tile around it. */
+[data-testid="stExpandSidebarButton"]::after,
+[data-testid="stSidebarCollapseButton"] button::after {
+  content: "";
+  display: block; box-sizing: border-box;
+  width: 9px; height: 9px;
+  border: 0 solid currentColor;
+  /* Its own transition. currentColor resolves on this element, so without one
+     the chevron snapped to amber while the tile behind it was still fading. */
+  transition: border-color 120ms ease;
+}
+/* Centring the BOX does not centre the mark. The ink is an L in one corner, so
+   its centre of mass is off-corner, and turning the box carries that centre
+   about 2px along the tile's width — which is the whole of why the old glyph
+   also sat askew. The translate puts it back. It is written to the left of the
+   rotate because CSS applies a transform list right to left: the box turns
+   first, then shifts along the tile's own axes rather than the turned ones. */
+[data-testid="stExpandSidebarButton"]::after {
+  border-top-width: 2px; border-right-width: 2px;
+  transform: translateX(-2px) rotate(45deg);
+}
+[data-testid="stSidebarCollapseButton"] button::after {
+  border-top-width: 2px; border-left-width: 2px;
+  transform: translateX(2px) rotate(-45deg);
+}
+
+/* The shared tab. 18 x 64: the gutter between the sidebar's edge and the
+   board's first card measures 24px, so an 18px tab stands out of the panel with
+   6px of gutter still showing beyond it — enough that it reads as belonging to
+   the panel and not as a bridge laid across to the board.
+
+   Sizes are stated with min-* beside them because Streamlit sizes these
+   buttons in its own stylesheet, and a bare width loses to its min-width. */
+[data-testid="stExpandSidebarButton"],
+[data-testid="stSidebarCollapseButton"] button {
+  display: flex !important;
+  align-items: center !important; justify-content: center !important;
+  width: 18px !important; min-width: 18px !important;
+  height: 64px !important; min-height: 64px !important;
+  padding: 0 !important;
+  background: var(--panel) !important;
+  /* The sidebar's edge rule is 1px of --rule-2; the tab's outline is that same
+     rule, so the panel's edge runs out along the top of the tab, down its free
+     side and back in along the bottom without a change of weight or colour. */
+  border: 1px solid var(--rule-2) !important;
+  border-left: 0 !important;
+  border-right: 2px solid var(--amber) !important;
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0 !important;
+  box-shadow: 4px 0 10px -6px var(--board-shadow) !important;
+  color: var(--ink-2) !important;
+  transition: color 120ms ease, background 120ms ease,
+              border-color 120ms ease !important;
+}
+
+/* Collapsed: the panel is gone and the left edge of the glass is the edge, so
+   the tab stands out of that, halfway down.
+   The transform:none is load-bearing, not tidying — a transformed ancestor
+   becomes the containing block for a fixed descendant, and either of these
+   carrying one would drop the tab straight back into the header band it is
+   trying to leave. */
+[data-testid="stHeader"], [data-testid="stToolbar"] { transform: none !important; }
+[data-testid="stExpandSidebarButton"] {
+  position: fixed !important; left: 0 !important; top: 50% !important;
+  transform: translateY(-50%) !important;
+  z-index: 30 !important;
+}
+
+/* Open: the tab stands out of the sidebar's right edge. left:100% is measured
+   from the sidebar's padding box, which ends on the inside of its 1px edge
+   rule — so the tab begins ON that rule and paints over it for its own height.
+   That gap in the rule is the join: with no left border and the panel's fill,
+   the tab is continuous with the panel instead of sitting against it.
+
+   It was centred ON the seam before, half over the panel and half over the
+   gutter, and read as neither: a separate box with the panel's edge running
+   under it and its amber lip floating alone in the gutter.
+
+   The stSidebarContent line is what lets it out of the panel at all. That
+   element is Streamlit's scroller — position:relative with overflow:auto — and
+   while it is positioned it is the containing block for this header, so
+   anything past its edge is clipped as overflow. Made static, the containing
+   block becomes stSidebar, which does not clip (its own resize grip already
+   hangs 6px outside it), and a scroller never clips an absolute child whose
+   containing block lies outside it. It also stops the tab riding the
+   sidebar's scroll: top:50% is half the panel, not half its scrolled content. */
+[data-testid="stSidebarContent"] { position: static !important; }
+[data-testid="stSidebarHeader"] {
+  top: 50% !important; left: 100% !important; right: auto !important;
+  transform: translateY(-50%) !important;
+  padding: 0 !important; margin: 0 !important;
+  /* Above the resize grip, which shares this stretch of the edge at
+     Streamlit's sidebarMobile layer (999995) — without this the grip takes the
+     click and a press on the tab starts a drag. Still well below modal
+     (1000059), so dialogs cover it. */
+  z-index: 999996 !important;
+}
+/* The header is a flex row of logo spacer + button. With the spacer showing or
+   the button's 8px left margin in place, the tab would start that far out from
+   the edge instead of on it. */
+[data-testid="stSidebarHeader"] [data-testid="stLogoSpacer"] { display: none !important; }
+[data-testid="stSidebarCollapseButton"] { margin: 0 !important; }
+/* Collapsed, the sidebar is translated off to the left but still rendered, and
+   this tab stands outside its edge — it would be left in the window at x=0,
+   stacked on the expand tab. display:none rather than visibility, because the
+   button inside is forced visibility:visible above and would override it. */
+[data-testid="stSidebar"][aria-expanded="false"] [data-testid="stSidebarHeader"] {
+  display: none !important;
+}
+
+/* Restated after the shape, because the shared hover rule further up sets
+   border-color as a shorthand and would paint the amber lip back to rule ink. */
+[data-testid="stExpandSidebarButton"]:hover,
+[data-testid="stSidebarCollapseButton"] button:hover {
+  background: var(--panel-2) !important;
+  border-color: var(--rule-2) !important;
+  border-right-color: var(--amber) !important;
   color: var(--amber) !important;
 }
 [data-testid="stSidebar"] [data-testid="stVerticalBlock"] { gap: 10px !important; }
@@ -2945,6 +3092,30 @@ div.st-key-clear_chat button {
 .ll-cap-label {
   font-size: var(--t-body); font-weight: 500; color: var(--ink);
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+/* The row is built with vertical_alignment="center" and still does not line
+   up: measured off the rendered dialog, the cap field and the delete button
+   both centre on y=30.5 while the chip centres on 38.5 and the category name
+   on 39. The label column agrees with itself; the two control columns agree
+   with each other; the two halves are 8px apart.
+
+   Streamlit centres each column's contents inside the column, so an 8px
+   offset means one side's content box carries about 16px of empty space the
+   other does not, and centring a box faithfully centres the whitespace along
+   with it. Rather than hunt that padding through Streamlit's own sheet and
+   pin this row to whichever wrapper currently owns it, the correction is
+   stated where it can be read: the controls come down by the measured 8px.
+
+   position/top rather than a margin on purpose. A margin would grow the
+   column, and a taller column re-centres — 8px of margin would buy only 4px
+   of movement and leave the number looking arbitrary. This shifts paint only,
+   so the figure above is the figure applied. Every row moves together, so the
+   spacing between consecutive rows is unchanged. */
+[data-testid="stDialog"] [class*="st-key-budget_edit_"],
+[data-testid="stDialog"] [class*="st-key-del_budget_"] {
+  position: relative;
+  top: 8px;
 }
 
 /* ================================================ a composer that starts small */
