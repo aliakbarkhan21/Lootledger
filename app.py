@@ -779,8 +779,13 @@ with st.sidebar:
 
     # ---- record a movement -------------------------------------------------
     html(cap("Record a movement"))
+    # No "Transport" here. The transport ledger itself is untouched — its table,
+    # its rows, the Records tab that lists them and the fold into Transportation
+    # on the board all still work — but a bare fare with no description was a
+    # second, thinner way to write an expense, and the Expense form's
+    # Transportation platform already says the same thing with a note attached.
     kind = st.selectbox("Movement",
-                        ["Expense", "Transport", "Income", "Owed to me",
+                        ["Expense", "Income", "Owed to me",
                          "Lent out", "Borrowed"],
                         label_visibility="collapsed")
 
@@ -808,16 +813,6 @@ with st.sidebar:
                     st.rerun()
                 else:
                     st.warning("Needs a description and an amount above zero.")
-
-        elif kind == "Transport":
-            amount = st.number_input(f"Fare ({CURRENCY})", min_value=0.0, step=50.0, format="%.2f")
-            if st.form_submit_button("Add departure", width="stretch", type="primary"):
-                if amount > 0:
-                    db.add_transport(str(when), to_pkr(amount))
-                    _touch_data()
-                    st.rerun()
-                else:
-                    st.warning("Needs an amount above zero.")
 
         elif kind == "Income":
             src = st.text_input("Source", placeholder="Monthly salary")

@@ -548,10 +548,17 @@ h4 a[href^="#"], h5 a[href^="#"], h6 a[href^="#"] { display: none !important; }
   position: relative !important;   /* anchors the floated collapse control */
 }
 [data-testid="stSidebar"] > div { background: transparent !important; }
+/* The column reaches within 24px of the viewport floor rather than 40px, and
+   pays out 8px of bottom padding rather than 16px. Both numbers exist to keep
+   the credit off the very edge of the glass; together they were leaving a
+   finger's width of dead panel below it. The reserve stays non-zero on
+   purpose: min-height is what decides whether this column overflows its
+   scroller, and a column sized to the full 100vh would find the sidebar's own
+   chrome and hand the panel a scrollbar. */
 [data-testid="stSidebarUserContent"] {
-  padding: 10px var(--s4) var(--s4) !important;
+  padding: 10px var(--s4) 8px !important;
   display: flex !important; flex-direction: column !important;
-  min-height: calc(100vh - 40px) !important;
+  min-height: calc(100vh - 24px) !important;
 }
 [data-testid="stSidebarUserContent"] > div:first-child {
   display: flex !important; flex-direction: column !important; flex: 1 1 auto !important;
@@ -631,9 +638,17 @@ h4 a[href^="#"], h5 a[href^="#"], h6 a[href^="#"] { display: none !important; }
    full 207px of content width to hold "LOOT · LEDGER" on one line at this size,
    so there is no room to sit alongside it — reserving the arrow's column drops
    the largest fitting size to 2.1rem, smaller than this was before it grew.
-   Passing underneath keeps the size and removes the collision outright. The
-   bottom margin is trimmed to pay most of the height back. */
-.ll-mast { margin-top: 28px; margin-bottom: var(--s2); }
+   Passing underneath keeps the size and removes the collision outright. */
+/* Everything under the wordmark hangs off this one number: the first section
+   label zeroes its own top margin in the sidebar (see .ll-cap:first-child), so
+   the only thing separating "RECORD A MOVEMENT" from the title is what this
+   box gives it, plus the column's 10px flex gap.
+
+   PADDING, not margin. .ll-mast is the sole child of Streamlit's markdown
+   wrappers, which carry no padding or border of their own, so a bottom margin
+   here collapses up through them instead of adding height where it is wanted.
+   Padding cannot collapse, which is why doubling the margin moved nothing. */
+.ll-mast { margin-top: 28px; margin-bottom: 0; padding-bottom: 34px; }
 .ll-mast-name {
   font-family: var(--font-board) !important;
   font-size: 2.4rem !important; font-weight: 700 !important; line-height: 0.92 !important;
