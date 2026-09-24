@@ -10,10 +10,45 @@ sentence, a spreadsheet, or a photo of a receipt.
 
 Built by [Muhammad Ali Akbar](https://www.linkedin.com/in/muhammad-ali-akbar-khan-7b37b8197).
 
-![The Loot Ledger journal page: four summary figures over the month's double-entry ledger](docs/board.png)
+![The Loot Ledger journal page by night: the entry slip docked on the left, the month's figures and its double-entry ledger on the right](docs/board.png)
 
-<sub>Shown with generated sample data — the banner says so on screen. No real
-records appear in any screenshot.</sub>
+<sub>Every screenshot is taken with generated sample data — the banner says so
+on screen. No real records appear in any of them.</sub>
+
+---
+
+## What's new in v3
+
+Version 3 moves the board off Streamlit onto its own FastAPI + React page and
+rebuilds it as the **Ledger Journal**: a book on a desk, a paper page by day
+and a lamplit one by night.
+
+- **An entry slip that stays on the desk.** *Record a movement* is docked
+  beside the book and stays in view while you scroll, so an entry is written
+  with the ledger in front of you. It says which column it will post to before
+  you add it, stamps what it entered, and folds away on a hinge into a
+  bookmark tab.
+- **A date picker drawn in the book's own ink** instead of the browser's
+  white one, with Today and Yesterday, and the whole month reachable from the
+  keyboard.
+- **Panels that open like pages.** The Ledgers, Debts and Import section drops
+  open under its bar and folds back up; the entry slip swings on its hinge; the
+  Finance Bot slides in and out like a drawer.
+- **A log that keeps its place.** The month's ledger scrolls inside its own
+  frame with its column heads and ruled-off totals pinned, so a long month never
+  pushes the figures around.
+- **A day turns over where it stands.** Click a date in Spending Rhythm and that
+  one square lifts and flips to show what left the account that day — nothing
+  else on the page moves.
+- **Book tabs that go somewhere.** Board, Ledgers and Obligations stand against
+  the page's red margin rule and take you to their part of the page.
+- **Every control answers.** Buttons lift like fresh ink and press in like a wax
+  seal; donut slices and their rows light each other; debt cards lift and find
+  that person's open rows when clicked; keyboard focus draws one gold ring.
+- **A new mark.** The gold italic LL seal before the title, and a matching app
+  icon for the browser tab, the home screen and the Windows shortcut.
+
+![Obligations and the panels beneath them: capacity, platform load, where it came from, spending rhythm](docs/panels.png)
 
 ---
 
@@ -26,6 +61,16 @@ ledger lists every movement with its platform (category), date and amount in a
 Debit or Credit column, with totals ruled off at the foot. A status lamp reports
 the period as on track, running warm, over budget, or no service. Click any
 line to remove it; a repayment line un-settles its debt instead of deleting it.
+
+<p align="center">
+  <img src="docs/entry-slip.png" alt="The entry slip with its date picker open" width="49%">
+  <img src="docs/day-card.png" alt="A day in Spending Rhythm turned over onto its breakdown" width="49%">
+</p>
+
+**Recording a movement.** Expense, income, owed to me, lent out or borrowed,
+from the slip docked beside the page. For a loan it asks how it happened — cash
+handed over, or something paid on someone's behalf — and says what that does to
+your cash before you commit.
 
 **Real carryover.** Months are not islands. Each month opens on the previous
 month's closing balance, so a good month visibly funds the next one. An
@@ -44,14 +89,16 @@ spendable cash.
 **Light and dark.** A paper page by day and a lamplit one by night — the same
 book, not a different product. The choice is remembered and carried in the URL.
 
+![The same page by day](docs/board-light.png)
+
 **Five display currencies.** PKR, USD, GBP, EUR and AED, converted on the way to
 the screen only. Records stay stored in rupees exactly as entered, so switching
 back restores the original figures precisely. Rates refresh once a day and fall
 back to the last known set when offline.
 
-**Budgets and pacing.** A monthly cap per category, drawn as a capacity bar on
-the Platform Load panel, plus how much of everything available has gone out and
-your usual daily pace.
+**Budgets and pacing.** A monthly cap per category, drawn as a bar under that
+category on the Platform Load panel, plus how much of everything available has
+gone out and your usual daily pace.
 
 **Trends.** The Platform Load panel switches between *Share* — the donut for the
 open month — and *Trend*, a sparkline per category with its total set against
@@ -64,15 +111,18 @@ the two figures it is made of.
 
 **Where it came from.** The mirror of Platform Load: a ring of the month's
 income by source, drawn in amber rather than category colours because a
-source is whoever paid you, not a category.
+source is whoever paid you, not a category. Each source is set against its own
+usual amount once it has a month before this one.
 
 **When it went.** The month as a grid of days, each tinted by what left that
 day, with a total per week in the margin. Click a day for what it went on.
 
+![Ledgers, debts and import, open on Debts: a card per person over the two debt tables](docs/debts.png)
+
 **Debts by person.** One card per person with both directions netted, so
-someone you have both lent to and borrowed from shows as a single number.
-Unsettled debts past 30 days are called out, with a one-click reminder drafted
-by the bot.
+someone you have both lent to and borrowed from shows as a single number. Click
+a card to find their open rows below. Unsettled debts past 30 days are called
+out, with a one-click reminder drafted by the bot.
 
 **It tells you what it has not been told.** An unset opening balance does not
 look unset — it looks like you have less money than you do. The page names the
@@ -87,14 +137,14 @@ once their day arrives, or skipped for the month.
 
 ![The Finance Bot open beside the journal](docs/finance-bot.png)
 
-**The Finance Bot.** Streams its replies and holds live tool access:
-`log_expense`, `log_transport`, `log_income`, `log_lent`, `log_borrowed`,
-`settle_debt`, plus read tools (`month_summary`, `list_open_debts`) so it can
-answer about months that are not on screen. It cites the figures it used.
-Conversations are kept as named chats and survive a restart. The free tier
-meters requests per model per day, so the bot walks a chain of models rather
-than failing when one runs dry. It also writes a short digest of last month on
-the first visit of a new one.
+**The Finance Bot.** Opens from the ✦ button or Ctrl K. Streams its replies and
+holds live tool access: `log_expense`, `log_transport`, `log_income`,
+`log_lent`, `log_borrowed`, `settle_debt`, plus read tools (`month_summary`,
+`list_open_debts`) so it can answer about months that are not on screen. It
+cites the figures it used. Conversations are kept as named chats and survive a
+restart. The free tier meters requests per model per day, so the bot walks a
+chain of models rather than failing when one runs dry. It also writes a short
+digest of last month on the first visit of a new one.
 
 **CSV and Excel import.** Drop in a sheet and every block of columns goes to the
 ledger it belongs to — spending, income, lent and borrowed all land in one pass.
@@ -112,6 +162,14 @@ records, and can be restored from Settings.
 **Sample data.** Three months of generated records so the page can be seen with
 data in it. Labelled with a banner the whole time it is loaded, and one click to
 clear. Sample rows are never mixed into real ones.
+
+<p align="center">
+  <img src="docs/phone.png" alt="Loot Ledger on a phone" width="320">
+</p>
+
+**On a phone.** The entry slip folds to a bar above the page and opens downward
+like a drawer, the ledger folds its Debit and Credit columns into one signed
+amount, and the page installs to the home screen as a standalone app.
 
 ---
 
@@ -226,7 +284,8 @@ sample deployment needs a host that runs a Python web server, with
 | `demo.py` | Labelled sample data. |
 | `tests/` | API tests against a throwaway database. |
 | `concepts/` | The three design directions the Ledger Journal was chosen from. |
-| `make_icon.py` | Builds every app icon from one source image. |
+| `static/icon-source.html` | The source of the LL mark; the shipped icons are cut from it. |
+| `make_icon.py` | Builds every app icon from one source image, and holds the ICO writer. |
 | `PRODUCT.md` | Product truth: users, constraints, principles. |
 | `DESIGN.md` | The previous (Departure Board) design system, kept for reference. |
 
@@ -242,5 +301,6 @@ sample deployment needs a host that runs a Python web server, with
 - Wide screen first, phone supported: on a phone the ledger folds its Debit and
   Credit columns into one signed amount and the Finance Bot opens as a
   full-width drawer.
+- Every animation honours the system's reduce-motion setting.
 - Transport is both its own ledger and a spending category; the two are summed
   into one "Transportation" platform for charts.
