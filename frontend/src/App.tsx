@@ -7,6 +7,12 @@ import Toolbar from './components/Toolbar'
 import EntryForm from './components/EntryForm'
 import SummaryBand from './components/SummaryBand'
 import LedgerTable from './components/LedgerTable'
+import PlatformLoad from './components/PlatformLoad'
+import Capacity from './components/Capacity'
+import Obligations from './components/Obligations'
+import IncomeSource from './components/IncomeSource'
+import SpendingCalendar from './components/SpendingCalendar'
+import RunStrip from './components/RunStrip'
 import { useBoard, usePeriods } from './api/hooks'
 import { useUi } from './state/ui'
 
@@ -39,6 +45,40 @@ function BoardPage() {
         currency={board.currency}
         search={search}
       />
+
+      <div className="folio-heading">Obligations</div>
+      <Obligations figures={board.figures} currency={board.currency} />
+
+      <div className="panel-row" style={{ marginTop: 24 }}>
+        <PlatformLoad
+          byCategory={board.by_category}
+          trend={board.trend.category}
+          budgets={board.budgets}
+          currency={board.currency}
+        />
+        <Capacity
+          burnPct={board.capacity.burn_pct}
+          usualDailyOutflow={board.capacity.usual_daily_outflow}
+          isAllTime={board.period.is_all_time}
+          currency={board.currency}
+        />
+      </div>
+
+      <div className="panel-row" style={{ marginTop: 24 }}>
+        <IncomeSource bySource={board.income_by_source} trend={board.trend.income} currency={board.currency} />
+        {board.calendar ? (
+          <SpendingCalendar calendar={board.calendar} periodKey={board.period.key} currency={board.currency} />
+        ) : (
+          <div className="panel">
+            <div className="panel-head"><h3>Spending Rhythm</h3></div>
+            <p className="panel-empty">All Time has no single month's shape to show.</p>
+          </div>
+        )}
+      </div>
+
+      <div className="folio-heading">Last 12 Months</div>
+      <RunStrip months={board.run_strip} currency={board.currency} />
+
       <footer style={{ marginTop: 48, fontSize: '0.74rem', color: 'var(--ink-soft)', textAlign: 'center' }}>
         Built by{' '}
         <a href="https://www.linkedin.com/in/muhammad-ali-akbar-khan-7b37b8197" target="_blank" rel="noreferrer">

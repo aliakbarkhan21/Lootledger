@@ -531,3 +531,292 @@ td.amt.debit { color: var(--debit); }
   border-color: var(--rule-red);
   color: var(--rule-red);
 }
+
+/* ============================================================ panel grid */
+.panel-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 28px;
+  margin-top: 4px;
+}
+
+.panel {
+  border: 1px solid var(--rule-green);
+  background: var(--paper-2);
+  padding: 16px 18px;
+}
+
+.panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.panel-head h3 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.panel-empty {
+  color: var(--ink-soft);
+  font-size: 0.82rem;
+}
+
+.panel-note {
+  font-size: 0.76rem;
+  color: var(--ink-soft);
+  margin: 8px 0 0;
+}
+
+.obligations {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+
+.obligations .k {
+  font-family: var(--font-display);
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--ink-soft);
+  margin-bottom: 4px;
+}
+
+.obligations .v {
+  font-weight: 700;
+  font-family: var(--font-mono);
+}
+
+.obligations .note {
+  font-size: 0.72rem;
+  color: var(--ink-soft);
+}
+
+/* -------- toggle switch (Share / Trend) -------- */
+.toggle-switch {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.72rem;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+
+.toggle-switch input {
+  display: none;
+}
+
+.toggle-track {
+  width: 30px;
+  height: 16px;
+  background: var(--paper-3);
+  border: 1px solid var(--rule-green);
+  border-radius: 10px;
+  position: relative;
+  display: inline-block;
+}
+
+.toggle-thumb {
+  position: absolute;
+  top: 1px;
+  left: 1px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--gold);
+  transition: transform 140ms ease;
+}
+
+.toggle-switch input:checked + .toggle-track .toggle-thumb {
+  transform: translateX(14px);
+}
+
+/* -------- platform load / income source -------- */
+.platform-share {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.platform-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  flex: 1;
+  min-width: 0;
+}
+
+.platform-list li {
+  margin-bottom: 8px;
+}
+
+.platform-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 0.82rem;
+}
+
+.platform-row-note {
+  font-size: 0.7rem;
+  color: var(--ink-soft);
+}
+
+.platform-row .up { color: var(--credit); }
+.platform-row .down { color: var(--debit); }
+
+.cap-track {
+  height: 4px;
+  background: var(--paper-3);
+  margin-top: 4px;
+}
+
+.cap-fill {
+  height: 100%;
+  background: var(--credit);
+}
+
+.cap-fill.warm { background: var(--gold); }
+.cap-fill.over { background: var(--debit); }
+
+/* -------- capacity -------- */
+.capacity-track {
+  position: relative;
+  height: 10px;
+  background: var(--paper-3);
+  border: 1px solid var(--rule-green);
+}
+
+.capacity-fill {
+  height: 100%;
+  background: var(--credit);
+}
+
+.capacity-fill.warm { background: var(--gold); }
+.capacity-fill.over { background: var(--debit); }
+
+.capacity-mark {
+  position: absolute;
+  top: -2px;
+  bottom: -2px;
+  width: 1px;
+  background: var(--ink-faint);
+}
+
+/* -------- spending calendar -------- */
+.cal-dow {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr) 56px;
+  font-size: 0.68rem;
+  color: var(--ink-soft);
+  text-align: center;
+  margin-bottom: 4px;
+}
+
+.cal-week {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr) 56px;
+  gap: 3px;
+  margin-bottom: 3px;
+}
+
+.cal-cell {
+  aspect-ratio: 1;
+  border: 1px solid var(--rule-green);
+  font-size: 0.66rem;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  padding: 3px;
+  cursor: pointer;
+  position: relative;
+}
+
+.cal-cell.empty {
+  border: none;
+  cursor: default;
+}
+
+.cal-cell.future {
+  background: var(--paper);
+  color: var(--ink-faint);
+  cursor: default;
+}
+
+.cal-cell.flipped {
+  background: var(--paper);
+  align-items: center;
+  justify-content: center;
+}
+
+.cal-day-num {
+  color: var(--ink-soft);
+}
+
+.cal-flip-back {
+  font-size: 0.6rem;
+  text-align: center;
+  color: var(--ink);
+  line-height: 1.4;
+}
+
+.cal-week-total {
+  font-size: 0.68rem;
+  color: var(--ink-soft);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+/* -------- run strip -------- */
+.run-strip {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  height: 120px;
+}
+
+.run-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+}
+
+.run-bar-track {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  align-items: flex-end;
+}
+
+.run-bar {
+  width: 60%;
+  margin: 0 auto;
+  background: var(--rule-green);
+}
+
+.run-col.current .run-bar {
+  background: var(--gold);
+}
+
+.run-short {
+  font-size: 0.64rem;
+  color: var(--ink-soft);
+  margin-top: 4px;
+}
+
+.run-closing {
+  font-size: 0.6rem;
+  color: var(--ink-faint);
+}
+
+@media (max-width: 900px) {
+  .panel-row { grid-template-columns: 1fr; }
+}
