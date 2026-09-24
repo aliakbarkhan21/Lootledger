@@ -1,0 +1,44 @@
+/* Ledger Journal design tokens — extended from concepts/02-ledger-journal.html
+   with a dark "night ledger" reading (lamplight on the same book, not a
+   different product) for the light/dark toggle the original board has. */
+
+:root {
+  --paper: #e9efe0;
+  --paper-2: #e2e9d6;
+  --paper-3: #d9e1c9;
+  --rule-green: #7f9a72;
+  --rule-red: #b5493d;
+  --ink: #243522;
+  --ink-soft: #4c5d46;
+  --ink-faint: #7c8a75;
+  --gold: #9c7a2e;
+  --credit: #2f6b3f;
+  --debit: #b5493d;
+  --shadow: rgba(36, 53, 34, 0.18);
+  --desk: #c9cdb8;
+  --spine: linear-gradient(90deg, #5c6e50, #748a67);
+  --focus-ring: #9c7a2e;
+}
+
+:root[data-theme='dark'] {
+  --paper: #1b2118;
+  --paper-2: #212a1d;
+  --paper-3: #283322;
+  --rule-green: #3f5c3a;
+  --rule-red: #7a3b32;
+  --ink: #dde6d4;
+  --ink-soft: #a3b39a;
+  --ink-faint: #6c7c64;
+  --gold: #c9a04a;
+  --credit: #6fbf7e;
+  --debit: #e2887c;
+  --shadow: rgba(0, 0, 0, 0.55);
+  --desk: #0e1210;
+  --spine: linear-gradient(90deg, #202a1c, #2c3824);
+  --focus-ring: #c9a04a;
+}
+
+:root {
+  --font-display: 'Spectral', Georgia, serif;
+  --font-mono: 'Courier Prime', 'Courier New', monospace;
+}
