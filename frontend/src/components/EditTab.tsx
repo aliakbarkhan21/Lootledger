@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { Currency, LedgerRow } from '../api/types'
 import { useCategories, useDeleteRow, useLedger, useUpdateRow } from '../api/hooks'
 import { formatDisplayDate, formatMoney, toDisplay } from '../lib/money'
+import DatePicker from './DatePicker'
 
 const LEDGER_LABELS = {
   expenses: 'Expenses',
@@ -130,9 +131,19 @@ export default function EditTab({ currency }: { currency: Currency }) {
     if (f === 'paid_back') {
       return <input type="checkbox" checked={!!value} onChange={(e) => set(e.target.checked)} />
     }
+    if (f === 'date' || f === 'settled_date') {
+      return (
+        <DatePicker
+          value={String(value ?? '')}
+          onChange={(iso) => set(iso)}
+          label={heading(f, currency)}
+          clearable={f === 'settled_date'}
+        />
+      )
+    }
     return (
       <input
-        type={f === 'date' || f === 'settled_date' ? 'date' : f === 'amount' ? 'number' : 'text'}
+        type={f === 'amount' ? 'number' : 'text'}
         step={f === 'amount' ? '0.01' : undefined}
         min={f === 'amount' ? 0 : undefined}
         value={String(value)}

@@ -72,11 +72,14 @@
   min-height: 100vh;
   display: flex;
   justify-content: center;
+  align-items: flex-start;
+  gap: 22px;
   padding: 40px 20px 80px;
 }
 
 .book {
-  width: min(1280px, 100%);
+  flex: 0 1 1280px;
+  min-width: 0;
   background: var(--paper);
   box-shadow: 0 30px 60px var(--shadow), 0 2px 0 rgba(255, 255, 255, 0.15) inset;
   position: relative;
@@ -97,8 +100,12 @@
   position: absolute;
   left: 44px;
   top: 56px;
+  /* The gutter from the spine to the page's red margin rule (the page's 40px
+     margin plus the rule's 22px): the tabs stand against the rule. */
+  width: 62px;
   display: flex;
   flex-direction: column;
+  align-items: flex-end;
   gap: 12px;
   z-index: 2;
 }
@@ -174,6 +181,9 @@
   border-top: 1px dashed var(--rule-green);
 }
 
+/* Where the book's Obligations tab lands: a little air above the heading. */
+#obligations { scroll-margin-top: 20px; }
+
 /* ============================================================ masthead */
 .masthead {
   display: flex;
@@ -187,11 +197,13 @@
   font-family: var(--font-display);
   font-weight: 700;
   font-style: italic;
-  font-size: 2.1rem;
+  font-size: 3rem;
+  line-height: 1.05;
   color: var(--ink);
 }
 
 .folio-no {
+  margin-left: auto; /* stays on the right when a phone wraps it under the title */
   font-family: var(--font-display);
   font-size: 0.82rem;
   color: var(--ink-soft);
@@ -209,6 +221,46 @@
   color: var(--ink-soft);
   margin-top: 4px;
 }
+
+/* The mark set before the title, sized to the title and greeting together. */
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
+}
+
+.brand-seal {
+  position: relative;
+  flex: none;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at 35% 30%, var(--paper-3), var(--paper-2) 70%);
+  border: 1.5px solid var(--gold);
+  /* An inner hairline ring, a little in from the outer one. */
+  box-shadow: inset 0 0 0 4px var(--paper-2),
+              inset 0 0 0 5px color-mix(in srgb, var(--gold) 55%, transparent),
+              0 6px 14px -8px var(--shadow);
+}
+
+.brand-ll {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-style: italic;
+  font-size: 2.3rem;
+  line-height: 1;
+  letter-spacing: -0.06em;
+  color: var(--gold);
+  -webkit-text-stroke: 0.6px var(--gold);
+  /* The italic leans right and the tight tracking pulls left: nudge back to centre. */
+  margin: 3px 0 0 0;
+}
+
 
 /* ============================================================ banners */
 .banners {
@@ -317,109 +369,6 @@
   background: var(--paper-2);
   color: var(--ink);
   font-family: var(--font-mono);
-}
-
-/* ============================================================ entry form */
-.entry-form {
-  margin-top: 14px;
-}
-
-.entry-form-toggle {
-  background: none;
-  border: 1px dashed var(--rule-green);
-  color: var(--ink-soft);
-  padding: 8px 14px;
-  font-size: 0.82rem;
-  font-family: var(--font-mono);
-  width: 100%;
-  text-align: left;
-  cursor: pointer;
-}
-
-.entry-form-toggle:hover {
-  border-color: var(--gold);
-  color: var(--gold);
-}
-
-.entry-form-body {
-  margin-top: 10px;
-  padding: 12px;
-  background: var(--paper-2);
-  border: 1px solid var(--rule-green);
-}
-
-.entry-form-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.entry-how {
-  border: none;
-  padding: 0;
-  margin: 12px 0 0;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-}
-
-.entry-how legend {
-  font-family: var(--font-display);
-  font-size: 0.72rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--ink-soft);
-  margin-bottom: 6px;
-}
-
-.entry-how label {
-  display: flex;
-  gap: 8px;
-  align-items: flex-start;
-  border: 1px solid var(--rule-green);
-  background: var(--paper);
-  padding: 8px 10px;
-  cursor: pointer;
-}
-
-.entry-how label.picked { border-color: var(--gold); }
-.entry-how input { accent-color: var(--gold); margin-top: 3px; }
-.how-label { display: block; font-family: var(--font-display); font-size: 0.88rem; }
-.how-effect { display: block; font-size: 0.74rem; color: var(--ink-soft); margin-top: 2px; line-height: 1.4; }
-
-.entry-caption {
-  font-family: var(--font-display);
-  font-style: italic;
-  font-size: 0.82rem;
-  color: var(--ink-soft);
-  margin: 10px 0 0;
-}
-
-.entry-form-body .notice { margin: 10px 0 0; }
-
-@media (max-width: 700px) {
-  .entry-how { grid-template-columns: 1fr; }
-}
-
-.entry-form-grid select,
-.entry-form-grid input {
-  padding: 7px 9px;
-  border: 1px solid var(--rule-green);
-  background: var(--paper);
-  color: var(--ink);
-  font-family: var(--font-mono);
-  font-size: 0.82rem;
-  flex: 1 1 140px;
-}
-
-.entry-form-grid button {
-  border: none;
-  background: var(--gold);
-  color: var(--paper);
-  padding: 8px 16px;
-  font-weight: 700;
-  font-size: 0.82rem;
-  flex: 0 0 auto;
 }
 
 /* ============================================================ summary band */
@@ -585,12 +534,25 @@ td.amt.debit { color: var(--debit); }
 }
 
 /* ============================================================ panel grid */
-.panel-row {
+/* Two columns whose cards keep their own height: the share panels stack on
+   the left beside the calendar, so none is stretched to match a taller
+   neighbour and left half empty. */
+.panel-cols {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 28px;
-  margin-top: 4px;
+  align-items: start;
+  margin-top: 24px;
 }
+
+.panel-col {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  min-width: 0;
+}
+
+.panel.capacity { margin-top: 24px; }
 
 .panel {
   border: 1px solid var(--rule-green);
@@ -659,12 +621,18 @@ td.amt.debit { color: var(--debit); }
 }
 
 .toggle-switch input {
-  display: none;
+  /* Hidden but still focusable, so the switch works from the keyboard. */
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+  pointer-events: none;
 }
 
 .toggle-track {
-  width: 30px;
-  height: 16px;
+  flex: none;
+  width: 34px;
+  height: 18px;
   background: var(--paper-3);
   border: 1px solid var(--rule-green);
   border-radius: 10px;
@@ -674,8 +642,8 @@ td.amt.debit { color: var(--debit); }
 
 .toggle-thumb {
   position: absolute;
-  top: 1px;
-  left: 1px;
+  top: 2px;
+  left: 2px;
   width: 12px;
   height: 12px;
   border-radius: 50%;
@@ -684,7 +652,7 @@ td.amt.debit { color: var(--debit); }
 }
 
 .toggle-switch input:checked + .toggle-track .toggle-thumb {
-  transform: translateX(14px);
+  transform: translateX(16px);
 }
 
 /* -------- platform load / income source -------- */
@@ -722,15 +690,24 @@ td.amt.debit { color: var(--debit); }
 .platform-row .up { color: var(--credit); }
 .platform-row .down { color: var(--debit); }
 
+/* The cap bar and its note sit under the category name, indented past the
+   swatch, with air above the bar and below the note before the next row. */
 .cap-track {
   height: 4px;
+  margin: 6px 0 4px 15px;
   background: var(--paper-3);
-  margin-top: 4px;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.cap-track + .platform-row-note {
+  margin: 0 0 4px 15px;
 }
 
 .cap-fill {
   height: 100%;
   background: var(--credit);
+  border-radius: 2px;
 }
 
 .cap-fill.warm { background: var(--gold); }
@@ -760,62 +737,90 @@ td.amt.debit { color: var(--debit); }
   background: var(--ink-faint);
 }
 
-/* -------- spending calendar -------- */
-.cal-dow {
+/* -------- spending calendar --------
+   A clicked day lifts out of the month: the card is absolutely positioned in
+   its own square cell and sized in day-units (inside a square cell 100% is one
+   day wide AND one day tall), so it grows over the weeks and turns over
+   without taking any part in layout. Nothing else on the page moves. */
+.cal {
+  max-width: 540px;
+}
+
+.cal-dow,
+.cal-week {
   display: grid;
-  grid-template-columns: repeat(7, 1fr) 72px;
+  grid-template-columns: repeat(7, minmax(0, 1fr)) 84px;
+  gap: 3px;
+}
+
+/* A little air between the last day and the week's total. */
+.cal-dow-sum,
+.cal-week-total { padding-left: 12px; }
+
+.cal-dow {
   font-size: 0.68rem;
   color: var(--ink-soft);
   text-align: center;
   margin-bottom: 4px;
 }
 
-.cal-week {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr) 72px;
-  gap: 3px;
-  margin-bottom: 3px;
-}
+.cal-dow-sum { text-align: right; }
+
+.cal-week { margin-bottom: 3px; }
 
 .cal-cell {
+  position: relative;
   aspect-ratio: 1;
-  border: 1px solid var(--rule-green);
-  font-size: 0.66rem;
+  min-width: 0;
+}
+
+.cal-day {
+  position: absolute;
+  inset: 0;
   display: flex;
   align-items: flex-start;
   justify-content: flex-end;
-  padding: 3px;
-  cursor: pointer;
-  position: relative;
-}
-
-.cal-cell.empty {
-  border: none;
-  cursor: default;
-}
-
-.cal-cell.future {
+  padding: 3px 4px;
+  border: 1px solid var(--rule-green);
   background: var(--paper);
-  color: var(--ink-faint);
-  cursor: default;
-}
-
-.cal-cell.flipped {
-  background: var(--paper);
-  align-items: center;
-  justify-content: center;
-}
-
-.cal-day-num {
-  color: var(--ink-soft);
-}
-
-.cal-flip-back {
-  font-size: 0.6rem;
-  text-align: center;
   color: var(--ink);
-  line-height: 1.4;
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  line-height: 1;
 }
+
+.cal-day.quiet { color: var(--ink-soft); }
+.cal-day.today { box-shadow: inset 0 0 0 1.5px var(--ink); }
+
+.cal-day.future {
+  border-style: dashed;
+  color: var(--ink-faint);
+  background: transparent;
+  opacity: 0.7;
+}
+
+.cal-day.live {
+  cursor: pointer;
+  transition: transform 140ms var(--ease), box-shadow 140ms var(--ease), border-color 140ms var(--ease);
+}
+
+.cal-day.live:hover {
+  transform: translateY(-2px);
+  border-color: var(--ink-soft);
+  box-shadow: var(--lift), var(--glow);
+  z-index: 1;
+}
+
+.cal-day.live.today:hover { box-shadow: inset 0 0 0 1.5px var(--ink), var(--lift), var(--glow); }
+
+.cal-day.live:active {
+  transform: translateY(1px);
+  box-shadow: var(--press);
+  transition-duration: 60ms;
+}
+
+.cal-day.live:disabled { cursor: default; }
+.cal-day.live:disabled:hover { transform: none; box-shadow: none; border-color: var(--rule-green); }
 
 .cal-week-total {
   white-space: nowrap;
@@ -824,6 +829,191 @@ td.amt.debit { color: var(--debit); }
   display: flex;
   align-items: center;
   justify-content: flex-end;
+}
+
+.cal-dow,
+.cal-week-total { transition: opacity 240ms var(--ease); }
+.cal.has-open .cal-dow,
+.cal.has-open .cal-week-total { opacity: 0.35; }
+
+/* The open day paints over the cells after it in the DOM. */
+.cal-cell.is-open,
+.cal-cell.is-closing { z-index: 6; }
+.cal-cell.is-open > .cal-day,
+.cal-cell.is-closing > .cal-day { visibility: hidden; }
+
+.day-card {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  perspective: 1400px;
+}
+
+.cal-cell.is-open .day-card { animation: day-lift 300ms var(--ease) both; }
+.cal-cell.is-closing .day-card { animation: day-lower 300ms var(--ease) 250ms both; }
+
+@keyframes day-lift {
+  from { left: 0; top: 0; width: 100%; height: 100%; }
+  to {
+    left: calc(-1 * var(--col) * (100% + 3px));
+    top: calc(-1 * var(--row) * (100% + 3px));
+    width: calc(7 * (100% + 3px) - 3px);
+    height: calc(var(--rows) * (100% + 3px) - 3px);
+  }
+}
+
+@keyframes day-lower {
+  from {
+    left: calc(-1 * var(--col) * (100% + 3px));
+    top: calc(-1 * var(--row) * (100% + 3px));
+    width: calc(7 * (100% + 3px) - 3px);
+    height: calc(var(--rows) * (100% + 3px) - 3px);
+  }
+  to { left: 0; top: 0; width: 100%; height: 100%; }
+}
+
+.day-flip {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+}
+
+/* Out: the card travels first, then turns. Back: it turns first, then lands. */
+.cal-cell.is-open .day-flip { animation: day-turn 340ms var(--ease) 260ms both; }
+.cal-cell.is-closing .day-flip { animation: day-unturn 300ms var(--ease) both; }
+
+@keyframes day-turn {
+  from { transform: rotateX(0deg); }
+  to { transform: rotateX(180deg); }
+}
+
+@keyframes day-unturn {
+  from { transform: rotateX(180deg); }
+  to { transform: rotateX(0deg); }
+}
+
+.day-face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.day-tile {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--ink-soft);
+  background: var(--paper);
+  font-family: var(--font-mono);
+  font-size: 2rem;
+  color: var(--ink);
+  box-shadow: var(--lift-2);
+}
+
+.cal-cell.is-open .day-tile { animation: day-tile-grow 300ms var(--ease) both; }
+.cal-cell.is-closing .day-tile { animation: day-tile-shrink 300ms var(--ease) 250ms both; }
+
+@keyframes day-tile-grow {
+  from { font-size: 0.66rem; box-shadow: none; }
+  to { font-size: 2rem; box-shadow: var(--lift-2); }
+}
+
+@keyframes day-tile-shrink {
+  from { font-size: 2rem; box-shadow: var(--lift-2); }
+  to { font-size: 0.66rem; box-shadow: none; }
+}
+
+/* Opaque: the month is directly behind this face. Turned about the
+   horizontal axis, so the day flips upward like a card. */
+.day-back {
+  transform: rotateX(180deg);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px 10px;
+  background: var(--paper);
+  border: 1px solid var(--ink-soft);
+  border-top: 3px double var(--rule-red);
+  box-shadow: var(--lift-2);
+  overflow: hidden;
+}
+
+.day-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--rule-green);
+}
+
+.day-when { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.day-when b { font-family: var(--font-display); font-style: italic; font-size: 0.98rem; white-space: nowrap; }
+.day-when span { font-size: 0.7rem; color: var(--ink-soft); }
+.day-total { font-family: var(--font-mono); font-weight: 700; color: var(--debit); white-space: nowrap; }
+.day-total.none { color: var(--ink-faint); }
+
+.day-list { flex: 1 1 auto; min-height: 0; overflow-y: auto; }
+
+.day-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 56px 36px auto;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 0;
+  border-bottom: 1px dashed var(--rule-green);
+  font-size: 0.78rem;
+}
+
+.day-row:last-child { border-bottom: none; }
+.day-row > .swatch-label { display: block; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.day-back { container-type: inline-size; }
+
+@container (max-width: 340px) {
+  .day-row { grid-template-columns: minmax(0, 1fr) 34px auto; gap: 8px; }
+  .day-row .day-bar { display: none; }
+  .day-when b { font-size: 0.88rem; white-space: normal; }
+}
+.day-bar { height: 4px; background: var(--paper-3); overflow: hidden; }
+.day-bar i { display: block; height: 100%; }
+.day-pct { text-align: right; color: var(--ink-soft); font-size: 0.72rem; }
+.day-amt { text-align: right; font-family: var(--font-mono); font-weight: 700; }
+
+.day-none {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-style: italic;
+  color: var(--ink-soft);
+}
+
+.day-close {
+  align-self: flex-start;
+  background: none;
+  border: none;
+  padding: 3px 0;
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+
+.day-close:hover { color: var(--ink); }
+
+@media (prefers-reduced-motion: reduce) {
+  .cal-cell.is-open .day-card,
+  .cal-cell.is-open .day-flip,
+  .cal-cell.is-open .day-tile { animation-duration: 1ms; animation-delay: 0ms; }
+  .cal-cell.is-closing .day-card,
+  .cal-cell.is-closing .day-flip,
+  .cal-cell.is-closing .day-tile { animation-duration: 1ms; animation-delay: 0ms; }
+  .cal-day.live, .cal-day.live:hover { transition: none; transform: none; }
 }
 
 /* -------- run strip -------- */
@@ -872,10 +1062,118 @@ td.amt.debit { color: var(--debit); }
 }
 
 @media (max-width: 900px) {
-  .panel-row { grid-template-columns: 1fr; }
+  .panel-cols { grid-template-columns: minmax(0, 1fr); }
 }
 
 /* ============================================================ ledgers / debts / import */
+.ldi { margin-top: 18px; }
+
+/* The fold: one ruled bar that opens the section beneath it. */
+.ldi-toggle {
+  width: 100%;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 10px 14px;
+  border: 1px solid var(--rule-green);
+  background: var(--paper-2);
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+  transition: transform 140ms var(--ease), box-shadow 140ms var(--ease), border-color 140ms var(--ease);
+}
+
+.ldi-chevron {
+  display: inline-block;
+  color: var(--gold);
+  font-size: 0.8rem;
+  transition: transform 180ms var(--ease);
+}
+
+.ldi.open .ldi-chevron { transform: rotate(90deg); }
+
+.ldi-title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.8rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.ldi-hint {
+  margin-left: auto;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+}
+
+.ldi-toggle:hover {
+  transform: translateY(-1px);
+  border-color: var(--gold);
+  box-shadow: var(--lift), var(--glow);
+}
+
+.ldi-toggle:hover .ldi-title { color: var(--gold); }
+
+.ldi-toggle:active {
+  transform: translateY(1px);
+  background: var(--paper-3);
+  box-shadow: var(--press);
+  transition-duration: 60ms;
+}
+
+.ldi.open .ldi-toggle { border-bottom-color: transparent; }
+
+/* The sheet drops open under the bar like a folded page let down from its top
+   edge: the space opens up while the page tips from a slight tilt to flat, and
+   folds back up the same way. The row track goes from 0fr to 1fr so the
+   height follows the content, whatever the sheet holds. */
+.ldi-body {
+  display: grid;
+  grid-template-rows: 0fr;
+  visibility: hidden;
+  transition: grid-template-rows 400ms var(--ease-shut), visibility 0s linear 400ms;
+}
+
+.ldi.open .ldi-body {
+  grid-template-rows: 1fr;
+  visibility: visible;
+  transition: grid-template-rows 560ms var(--ease-leaf), visibility 0s;
+}
+
+/* Clips the sheet while it opens; the side margins leave room for the hover
+   lift and focus ring of controls at its edges. */
+.ldi-clip {
+  min-height: 0;
+  overflow: hidden;
+  margin: 0 -8px;
+  padding: 0 8px;
+}
+
+.ldi-sheet {
+  padding-top: 10px;
+  transform-origin: 50% 0;
+  transform: perspective(1200px) rotateX(-16deg) translateY(-10px);
+  opacity: 0;
+  transition: transform 400ms var(--ease-shut), opacity 260ms ease 80ms;
+}
+
+.ldi.open .ldi-sheet {
+  transform: none;
+  opacity: 1;
+  transition: transform 620ms var(--ease-leaf), opacity 320ms ease 40ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ldi-toggle, .ldi-chevron, .ldi-body, .ldi.open .ldi-body, .ldi-sheet, .ldi.open .ldi-sheet { transition: none; }
+  .ldi-toggle:hover { transform: none; }
+}
+
+@media (max-width: 640px) {
+  .ldi-hint { display: none; }
+}
+
 .section-tabs {
   display: flex;
   gap: 0;
@@ -963,8 +1261,8 @@ table.ledger.grid input[type='date'] {
   max-width: 100%;
 }
 
-table.ledger.grid input[type='number'] { width: 110px; text-align: right; }
-table.ledger.grid input[type='text'] { width: 100%; min-width: 120px; }
+table.ledger.grid input[type='number'] { width: 96px; text-align: right; }
+table.ledger.grid input[type='text'] { width: 100%; min-width: 100px; }
 
 .tab-controls label.check {
   display: inline-flex;
@@ -1076,10 +1374,38 @@ td.row-actions .btn-link + .btn-link { margin-left: 6px; }
 }
 
 .person-card {
+  display: block;
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  color: var(--ink);
+  cursor: pointer;
   border: 1px solid var(--rule-green);
   border-left: 3px solid var(--ink-faint);
   background: var(--paper);
   padding: 10px 12px;
+  transition: transform 160ms var(--ease), box-shadow 160ms var(--ease),
+              border-color 160ms var(--ease), background-color 160ms var(--ease);
+}
+
+.person-card .person-net,
+.person-card .person-sub { display: block; }
+
+/* A card lifts off the page like the other controls; pressed, it sets back
+   into the paper, and finds that person's open rows in the tables below. */
+.person-card:hover {
+  transform: translateY(-2px);
+  border-top-color: var(--gold);
+  border-right-color: var(--gold);
+  border-bottom-color: var(--gold);
+  box-shadow: var(--lift-2), var(--glow);
+}
+
+.person-card:active {
+  transform: translateY(1px);
+  background: var(--paper-3);
+  box-shadow: var(--press);
+  transition-duration: 60ms;
 }
 
 .person-card.in { border-left-color: var(--credit); }
@@ -1343,20 +1669,35 @@ td.row-actions .btn-link + .btn-link { margin-left: 6px; }
   display: flex;
   flex-direction: column;
   z-index: 40;
-  animation: rail-in 180ms ease-out;
+  animation: rail-in 380ms var(--ease-leaf);
+}
+
+/* The rail slides in from the edge of the desk like a drawer, and slides back
+   out the same way when closed, fading as it goes. */
+.bot-rail.closing {
+  pointer-events: none;
+  animation: rail-out 300ms var(--ease-in) forwards;
 }
 
 @keyframes rail-in {
-  from { transform: translateX(24px); opacity: 0; }
+  from { transform: translateX(100%); opacity: 0.4; }
   to { transform: none; opacity: 1; }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .bot-rail { animation: none; }
+@keyframes rail-out {
+  from { transform: none; opacity: 1; }
+  to { transform: translateX(100%); opacity: 0.2; }
 }
 
-/* Wide screens have room for the book and the rail side by side. */
+@media (prefers-reduced-motion: reduce) {
+  .bot-rail, .bot-rail.closing { animation: none; }
+  .desk { transition: none; }
+}
+
+/* Wide screens have room for the book and the rail side by side; the book
+   moves over as the rail comes and goes, in step with it. */
 @media (min-width: 1720px) {
+  .desk { transition: padding-right 380ms var(--ease-leaf); }
   .desk.with-rail { padding-right: 440px; }
 }
 
@@ -1787,7 +2128,16 @@ table.ledger tfoot td.amt { font-family: var(--font-mono); font-size: 0.86rem; l
 
 .trend-note .up { color: var(--credit); }
 .trend-note .down { color: var(--debit); }
-.trend-row svg { flex: 0 0 auto; }
+/* Trend view: name, sparkline and change in fixed columns, so every
+   sparkline starts on the same vertical line whatever the name's length. */
+.platform-row.trend-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto 4.5rem;
+  gap: 14px;
+}
+
+.trend-row svg { display: block; }
+.trend-row > span:last-child { text-align: right; }
 
 /* Spending going up is the bad direction. */
 .platform-row .spend-up { color: var(--debit); }
@@ -1797,6 +2147,36 @@ table.ledger tfoot td.amt { font-family: var(--font-mono); font-size: 0.86rem; l
 
 /* ============================================================ phone width */
 .table-wrap { overflow-x: auto; }
+
+/* The month's log scrolls inside its own frame, so a long month never
+   stretches the page: the figures above and the panels below stay put. The
+   column heads and the ruled-off totals stay pinned while the rows move. */
+.table-wrap.log {
+  max-height: clamp(320px, 62vh, 640px);
+  overflow: auto;
+  border-top: 1px solid transparent;
+  border-bottom: 1px solid var(--rule-green);
+  scrollbar-width: thin;
+  scrollbar-color: var(--rule-green) transparent;
+  overscroll-behavior: contain;
+}
+
+.table-wrap.log table.ledger { margin-top: 0; }
+
+.table-wrap.log thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--paper);
+  padding-top: 8px;
+}
+
+.table-wrap.log tfoot td {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  background: var(--paper);
+}
 /* One signed amount column replaces Debit/Credit on a phone. */
 table.ledger .amt-one { display: none; }
 .period-picker { min-width: 0; max-width: 100%; }
@@ -1806,7 +2186,10 @@ table.ledger .amt-one { display: none; }
   .desk { padding: 0; }
   .book { border: none; box-shadow: none; }
   .page { padding: 20px 16px 40px; }
-  .wordmark { font-size: 1.6rem; }
+  .wordmark { font-size: 2.2rem; }
+  .brand { gap: 10px; }
+  .brand-seal { width: 56px; height: 56px; }
+  .brand-ll { font-size: 1.65rem; margin-top: 1px; }
   .toolbar .period-picker { flex: 1 1 100%; }
   .toolbar .period-picker select { width: 100%; }
   .toolbar input[type='search'] { min-width: 0; flex: 1 1 120px; }
@@ -1833,3 +2216,830 @@ table.ledger .amt-one { display: none; }
 .setup-body { flex: 1; min-width: 240px; }
 .setup-item { margin: 4px 0 0; font-size: 0.8rem; line-height: 1.5; color: var(--ink-soft); max-width: 90ch; }
 .setup-item b { color: var(--ink); font-family: var(--font-display); }
+
+/* Collapsed borders belong to the table grid and stay behind when a cell
+   sticks, leaving a gap the rows show through. Separate borders travel with
+   their cell, so the ruled head and the double-ruled totals move as one. */
+.table-wrap.log table.ledger {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+/* ============================================================ entry dock
+   The entry slip docked beside the book: always on screen, so a movement can
+   be logged while the ledger and the figures stay in view.
+
+   It folds on a hinge at the edge nearest the book. Opening, the desk makes
+   room and the leaf swings out flat from that edge like a page turned towards
+   you; folding, it swings back shut on the same hinge, the desk closes up and
+   the bookmark tab slides out in its place. */
+.entry-dock {
+  --dock-w: 292px;
+  position: sticky;
+  top: 24px;
+  z-index: 3;
+  flex: 0 0 var(--dock-w);
+  min-width: 0;
+  display: flex;
+  justify-content: flex-end;
+  transition: flex-basis 460ms var(--ease-leaf);
+}
+
+.entry-dock.is-folded {
+  flex-basis: 38px;
+  transition: flex-basis 380ms var(--ease-shut) 150ms;
+}
+
+.dock-leaf {
+  flex: 0 0 var(--dock-w);
+  width: var(--dock-w);
+  transform-origin: 100% 50%;
+  transition: transform 600ms var(--ease-leaf) 40ms, opacity 220ms ease 40ms, visibility 0s;
+}
+
+.entry-dock.is-folded .dock-leaf {
+  transform: perspective(1400px) rotateY(84deg);
+  opacity: 0;
+  visibility: hidden;
+  transition: transform 380ms var(--ease-in), opacity 200ms ease 180ms, visibility 0s linear 380ms;
+}
+
+.dock-paper {
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+  background: var(--paper);
+  border: 1px solid color-mix(in srgb, var(--rule-green) 70%, transparent);
+  border-top: 3px double var(--rule-red);
+  box-shadow: 0 22px 44px var(--shadow);
+  padding: 16px 18px 14px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--rule-green) transparent;
+}
+
+.dock-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-bottom: 10px;
+  margin-bottom: 12px;
+  border-bottom: 1.5px solid var(--ink);
+}
+
+.dock-head h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.dock-fold { width: 28px; height: 28px; font-size: 1.1rem; }
+
+.dock-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.dock-field {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.dock-field > span {
+  font-family: var(--font-display);
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+/* Written on the line, like an entry in the book. */
+.dock-field input,
+.dock-field select {
+  width: 100%;
+  padding: 6px 2px 5px;
+  border: none;
+  border-bottom: 1px solid var(--rule-green);
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 0.88rem;
+  transition: border-color 140ms var(--ease), box-shadow 140ms var(--ease), background-color 140ms var(--ease);
+}
+
+.dock-field input::placeholder { color: var(--ink-faint); font-style: italic; }
+
+.dock-field input:hover,
+.dock-field select:hover { border-bottom-color: var(--ink-soft); background-color: var(--paper-2); }
+
+.dock-field input:focus-visible,
+.dock-field select:focus-visible {
+  outline: none;
+  border-bottom-color: var(--gold);
+  background-color: var(--paper-2);
+  box-shadow: 0 1px 0 var(--gold);
+}
+
+.dock-field select option { background: var(--paper); color: var(--ink); }
+
+.dock-how {
+  border: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.dock-how legend {
+  font-family: var(--font-display);
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin-bottom: 4px;
+  padding: 0;
+}
+
+.dock-how label {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  border: 1px solid var(--rule-green);
+  background: var(--paper-2);
+  padding: 7px 9px;
+  cursor: pointer;
+  transition: transform 140ms var(--ease), box-shadow 140ms var(--ease), border-color 140ms var(--ease);
+}
+
+.dock-how label:hover { transform: translateY(-1px); box-shadow: var(--lift), var(--glow); border-color: var(--ink-soft); }
+.dock-how label:active { transform: translateY(1px); box-shadow: var(--press); }
+.dock-how label.picked { border-color: var(--gold); background: var(--paper); }
+.dock-how input { accent-color: var(--gold); margin-top: 3px; }
+.dock-how label:has(input:focus-visible) { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
+.how-label { display: block; font-family: var(--font-display); font-size: 0.86rem; }
+.how-effect { display: block; font-size: 0.72rem; color: var(--ink-soft); margin-top: 2px; line-height: 1.4; }
+
+.dock-caption {
+  margin: 0;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: var(--ink-soft);
+}
+
+.dock-posting {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 6px 8px;
+  border: 1px dashed var(--rule-green);
+  font-size: 0.76rem;
+  color: var(--ink-soft);
+}
+
+.dock-posting-k {
+  font-family: var(--font-display);
+  font-size: 0.64rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.dock-posting.debit { border-color: color-mix(in srgb, var(--debit) 55%, transparent); color: var(--debit); }
+.dock-posting.credit { border-color: color-mix(in srgb, var(--credit) 55%, transparent); color: var(--credit); }
+
+.dock-submit {
+  width: 100%;
+  padding: 10px 12px;
+  border: none;
+  background: var(--gold);
+  color: var(--paper);
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 0.86rem;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+}
+
+.dock-form .notice { margin: 0; }
+
+.dock-entered {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.76rem;
+  color: var(--ink-soft);
+}
+
+/* A rubber stamp, set down once. */
+.dock-stamp {
+  flex: 0 0 auto;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.7rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--credit);
+  border: 2px solid var(--credit);
+  padding: 2px 6px;
+  transform: rotate(-5deg);
+  animation: stamp-down 380ms var(--ease) both;
+}
+
+@keyframes stamp-down {
+  from { transform: rotate(-5deg) scale(1.6); opacity: 0; }
+  60% { transform: rotate(-5deg) scale(0.94); opacity: 1; }
+  to { transform: rotate(-5deg) scale(1); opacity: 1; }
+}
+
+.dock-foot {
+  margin: 14px 0 0;
+  padding-top: 10px;
+  border-top: 1px dashed var(--rule-green);
+  font-size: 0.72rem;
+  color: var(--ink-soft);
+}
+
+/* Folded away: a single bookmark tab down the edge of the desk. It sits over
+   the hinge, so the leaf seems to fold into it. */
+.dock-unfold {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: 38px;
+  padding: 12px 0;
+  border: none;
+  background: var(--gold);
+  color: #2b2007;
+  cursor: pointer;
+  border-radius: 4px 0 0 4px;
+  box-shadow: 0 10px 24px var(--shadow);
+}
+
+.dock-unfold-plus { font-size: 1.1rem; line-height: 1; font-weight: 700; }
+
+.dock-unfold-label {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.entry-dock.is-open .dock-unfold {
+  opacity: 0;
+  visibility: hidden;
+  transform: translateX(8px);
+  transition: opacity 120ms ease, transform 120ms ease, visibility 0s linear 120ms;
+}
+
+/* Only after a fold, not on page load: the tab slides out once the leaf is shut. */
+.entry-dock.is-folded.moved .dock-unfold { animation: tab-out 380ms var(--ease-leaf) 380ms backwards; }
+
+@keyframes tab-out {
+  from { opacity: 0; transform: translateX(12px); }
+}
+
+@media (max-width: 1180px) {
+  .entry-dock { --dock-w: 260px; }
+}
+
+/* Stacked above the book on a phone: the slip opens downward like a drawer. */
+@media (max-width: 900px) {
+  .desk { flex-direction: column; align-items: stretch; }
+  .entry-dock,
+  .entry-dock.is-folded { position: static; display: block; flex: none; width: 100%; transition: none; }
+  .dock-unfold { position: static; flex-direction: row; width: 100%; justify-content: center; border-radius: 4px; }
+  .dock-unfold-label { writing-mode: horizontal-tb; transform: none; }
+  .entry-dock.is-open .dock-unfold { display: none; }
+  .entry-dock.is-folded.moved .dock-unfold { animation-delay: 300ms; }
+  .dock-leaf,
+  .entry-dock.is-folded .dock-leaf {
+    width: auto;
+    display: grid;
+    transform: none;
+  }
+  .dock-leaf { grid-template-rows: 1fr; transition: grid-template-rows 460ms var(--ease-leaf), opacity 300ms ease, visibility 0s; }
+  .entry-dock.is-folded .dock-leaf {
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 340ms var(--ease-shut), opacity 200ms ease, visibility 0s linear 340ms;
+  }
+  .dock-clip { min-height: 0; overflow: hidden; }
+  .dock-paper { max-height: none; }
+}
+
+@media (max-width: 640px) {
+  .entry-dock,
+  .entry-dock.is-folded { margin: 12px 12px 0; width: auto; }
+}
+
+/* ============================================================ interaction states
+   Every control answers the pointer the same way: it lifts off the page like
+   fresh ink catching the light (a hairline of ink beneath, a soft shadow, a
+   faint gold halo) and presses back into the paper like a wax seal when
+   clicked. Keyboard focus draws the same gold ring everywhere. */
+.btn-link,
+.banner button,
+.icon-btn,
+.kbd-btn,
+.confirm-row button,
+.starter,
+.section-tab,
+.dock-unfold,
+.auth-card button,
+.btn-primary,
+.btn-danger,
+.dock-submit,
+.tab-controls input[type='file']::file-selector-button {
+  transition: transform 140ms var(--ease), box-shadow 140ms var(--ease),
+              border-color 140ms var(--ease), color 140ms var(--ease),
+              background-color 140ms var(--ease), filter 140ms var(--ease);
+}
+
+/* Outlined paper controls: ink-lift. */
+.btn-link:hover:not(:disabled),
+.banner button:hover:not(:disabled),
+.icon-btn:hover:not(:disabled),
+.kbd-btn:hover:not(:disabled),
+.confirm-row button:hover:not(:disabled),
+.starter:hover:not(:disabled),
+.tab-controls input[type='file']::file-selector-button:hover {
+  transform: translateY(-1px);
+  border-color: var(--gold);
+  color: var(--gold);
+  box-shadow: var(--lift), var(--glow);
+}
+
+.btn-link.danger:hover:not(:disabled),
+.confirm-row button.danger:hover:not(:disabled) {
+  border-color: var(--rule-red);
+  color: var(--rule-red);
+  box-shadow: var(--lift), 0 0 0 3px color-mix(in srgb, var(--rule-red) 14%, transparent);
+}
+
+.btn-link:active:not(:disabled),
+.banner button:active:not(:disabled),
+.icon-btn:active:not(:disabled),
+.kbd-btn:active:not(:disabled),
+.confirm-row button:active:not(:disabled),
+.starter:active:not(:disabled),
+.tab-controls input[type='file']::file-selector-button:active {
+  transform: translateY(1px);
+  background-color: var(--paper-3);
+  box-shadow: var(--press);
+  transition-duration: 60ms;
+}
+
+.icon-btn.active:hover:not(:disabled) { color: var(--paper); background-color: var(--gold); }
+
+/* Solid seals: gold (and the red erase) lift and brighten, then press in. */
+.btn-primary:hover:not(:disabled),
+.auth-card button:hover:not(:disabled),
+.dock-submit:hover:not(:disabled),
+.btn-danger:hover:not(:disabled) {
+  transform: translateY(-1px);
+  filter: brightness(1.06) saturate(1.05);
+  box-shadow: var(--lift), var(--glow);
+}
+
+.btn-primary:active:not(:disabled),
+.auth-card button:active:not(:disabled),
+.dock-submit:active:not(:disabled),
+.btn-danger:active:not(:disabled) {
+  transform: translateY(1px);
+  filter: brightness(0.9) saturate(1.1);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.35), inset 0 0 0 1px rgba(0, 0, 0, 0.12);
+  transition-duration: 60ms;
+}
+
+.dock-submit:disabled,
+.btn-primary:disabled { opacity: 0.55; cursor: default; }
+
+/* Section tabs lift out of the page edge; the open one stays put. */
+.section-tab:not(.active):hover {
+  transform: translateY(-2px);
+  color: var(--gold);
+  box-shadow: 0 -1px 0 var(--rule-green), var(--lift);
+}
+
+.section-tab:not(.active):active { transform: translateY(0); box-shadow: var(--press); }
+
+/* Book tabs slide further out of the spine. */
+.tab {
+  transition: transform 160ms var(--ease), box-shadow 160ms var(--ease), filter 160ms var(--ease);
+}
+
+/* Standing against the margin rule, a tab holds its place: it lifts off the
+   page on hover and presses back in. */
+.tab:hover {
+  box-shadow: 0 4px 12px -4px var(--shadow), var(--glow);
+  filter: brightness(1.08);
+}
+
+.tab:active { filter: brightness(0.94); box-shadow: var(--press); }
+
+.dock-unfold:hover { transform: translateX(-3px); filter: brightness(1.06); box-shadow: 0 12px 28px var(--shadow), var(--glow); }
+.dock-unfold:active { transform: translateX(0); filter: brightness(0.94); }
+
+@media (max-width: 900px) {
+  .dock-unfold:hover { transform: translateY(-1px); }
+}
+
+/* Ledger lines that can be acted on get an ink mark in the margin. */
+table.ledger:not(.grid) tbody tr:not(.empty) {
+  transition: background-color 120ms var(--ease), box-shadow 120ms var(--ease);
+}
+
+/* On the first cell, not the row: a table row does not paint a shadow in
+   every browser. */
+table.ledger:not(.grid) tbody tr:not(.empty) td:first-child { transition: box-shadow 120ms var(--ease); }
+table.ledger:not(.grid) tbody tr:not(.empty):hover td:first-child { box-shadow: inset 3px 0 0 var(--gold); }
+table.ledger:not(.grid) tbody tr:not(.empty):active { background: var(--paper-3); }
+table.ledger:not(.grid) tbody tr:not(.empty):active td { box-shadow: var(--press); }
+table.ledger:not(.grid) tbody tr:not(.empty):active td:first-child { box-shadow: inset 3px 0 0 var(--rule-red), var(--press); }
+
+/* Command palette rows. */
+.pal-item { transition: background-color 100ms var(--ease), box-shadow 100ms var(--ease); }
+.pal-item:active { box-shadow: inset 3px 0 0 var(--rule-red), var(--press); }
+
+/* The Share/Trend switch. */
+.toggle-switch:hover .toggle-track { border-color: var(--gold); box-shadow: var(--glow); }
+.toggle-switch input:focus-visible + .toggle-track { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
+.toggle-switch:active .toggle-thumb { transform: scale(0.85); }
+.toggle-switch input:checked + .toggle-track .toggle-thumb { transform: translateX(16px); }
+.toggle-switch:active input:checked + .toggle-track .toggle-thumb { transform: translateX(16px) scale(0.85); }
+
+/* Links. */
+a { color: var(--gold); text-decoration-color: color-mix(in srgb, var(--gold) 45%, transparent); text-underline-offset: 2px; }
+a:hover { text-decoration-color: var(--gold); }
+
+/* Form fields across tabs, settings and the rail. */
+.tab-controls select:hover,
+.map-grid select:hover,
+.settings-block select:hover,
+.settings-block input:hover,
+.bot-switch select:hover,
+.composer-row textarea:hover,
+.toolbar input[type='search']:hover,
+.period-picker select:hover,
+table.ledger.grid select:hover,
+table.ledger.grid input:hover { border-color: var(--ink-soft); }
+
+.tab-controls select:focus-visible,
+.map-grid select:focus-visible,
+.settings-block select:focus-visible,
+.settings-block input:focus-visible,
+.bot-switch select:focus-visible,
+.bot-menu input:focus-visible,
+.composer-row textarea:focus-visible,
+.toolbar input[type='search']:focus-visible,
+.period-picker select:focus-visible,
+table.ledger.grid select:focus-visible,
+table.ledger.grid input:focus-visible {
+  outline: none;
+  border-color: var(--gold);
+  box-shadow: var(--glow);
+}
+
+/* One focus ring for everything that can be tabbed to. */
+button:focus-visible,
+a:focus-visible,
+summary:focus-visible,
+input[type='checkbox']:focus-visible,
+input[type='radio']:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+table.ledger tbody tr:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: -2px; }
+
+/* Charts: a hovered slice lifts out of the ring and its row lights up, and
+   the reverse. */
+.donut-seg { transition: stroke-width 160ms var(--ease), opacity 160ms var(--ease); }
+.donut.has-hot .donut-seg { opacity: 0.35; }
+.donut.has-hot .donut-seg.hot { opacity: 1; stroke-width: 17; }
+
+.platform-list li {
+  transition: background-color 120ms var(--ease), box-shadow 120ms var(--ease);
+  margin-left: -6px;
+  margin-right: -6px;
+  padding: 2px 6px;
+}
+
+/* Narrow panels (the entry dock takes its share of a laptop screen): the
+   ring shrinks and the figures keep to one line rather than wrapping. */
+.panel { container-type: inline-size; }
+.platform-row > span:last-child { white-space: nowrap; flex: 0 0 auto; }
+.platform-row > .swatch-label { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; display: block; }
+.platform-row > .swatch-label .swatch { vertical-align: 0; }
+
+@container (max-width: 460px) {
+  .platform-share { gap: 12px; }
+  .platform-share .donut { width: 84px; height: 84px; }
+  .platform-row { font-size: 0.76rem; gap: 8px; }
+  .platform-row-note { font-size: 0.66rem; }
+}
+
+.platform-list li.hot {
+  background: var(--paper);
+  box-shadow: inset 2px 0 0 var(--gold), var(--lift);
+}
+
+.run-col .run-bar {
+  transform-origin: bottom;
+  transition: filter 140ms var(--ease), transform 140ms var(--ease), box-shadow 140ms var(--ease);
+}
+
+.run-col:hover .run-bar { filter: brightness(1.12); transform: scaleY(1.03); box-shadow: var(--lift), var(--glow); }
+.run-col:hover .run-short { color: var(--ink); }
+
+@media (prefers-reduced-motion: reduce) {
+  .btn-link, .banner button, .icon-btn, .kbd-btn, .confirm-row button, .starter,
+  .section-tab, .dock-unfold, .auth-card button, .btn-primary, .btn-danger,
+  .dock-submit, .tab, .dock-how label, .run-col .run-bar { transition: none; }
+  .btn-link:hover, .banner button:hover, .icon-btn:hover, .kbd-btn:hover,
+  .confirm-row button:hover, .starter:hover, .section-tab:hover, .btn-primary:hover,
+  .btn-danger:hover, .dock-submit:hover, .dock-how label:hover, .dock-unfold:hover,
+  .run-col:hover .run-bar { transform: none; }
+  .tab:hover { transform: rotate(180deg); }
+  .dock-stamp { animation: none; }
+  .entry-dock, .entry-dock.is-folded, .dock-leaf, .entry-dock.is-folded .dock-leaf,
+  .entry-dock.is-open .dock-unfold, .person-card { transition: none; }
+  .entry-dock.is-folded.moved .dock-unfold { animation: none; }
+  .person-card:hover { transform: none; }
+}
+
+/* ============================================================ ledgers sheet lists
+   Departures and Arrivals fit their column: nothing scrolls sideways, and the
+   rows scroll without a visible bar. A soft shade along the bottom edge says
+   more rows sit below, and lifts once the last one is in view. When the sheet
+   is too narrow to hold the two side by side, Arrivals moves under
+   Departures; narrower still, the platform tucks under each entry's detail. */
+.section-body { container: ldi-sheet / inline-size; }
+
+.side-scroll {
+  max-height: 520px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+  background:
+    linear-gradient(transparent, var(--paper-2) 50%) 0 100% / 100% 32px no-repeat local,
+    linear-gradient(to top, color-mix(in srgb, var(--shadow) 55%, transparent), transparent) 0 100% / 100% 14px no-repeat scroll;
+}
+
+.side-scroll::-webkit-scrollbar { display: none; }
+
+table.ledger.side { width: 100%; }
+table.ledger.side td.desc { overflow-wrap: anywhere; }
+
+.desc-sub {
+  display: none;
+  margin-top: 2px;
+  font-family: var(--font-mono);
+  font-style: normal;
+  font-size: 0.7rem;
+  color: var(--ink-soft);
+}
+
+@container ldi-sheet (max-width: 979px) {
+  .ledgers-grid { grid-template-columns: minmax(0, 1fr); gap: 26px; }
+  .side-scroll { max-height: 380px; }
+}
+
+@container ldi-sheet (max-width: 520px) {
+  table.ledger.side .cat { display: none; }
+  table.ledger.side .desc-sub { display: block; }
+}
+
+/* Every other scrolling grid keeps its bar, drawn thin in the book's green. */
+.grid-scroll:not(.side-scroll) { scrollbar-width: thin; }
+
+/* Separate borders travel with a stuck header cell (collapsed ones stay in
+   the table grid), so the ruled line under the heads stays put while the
+   rows scroll beneath it. */
+.grid-scroll table.ledger.grid {
+  border-collapse: separate;
+  border-spacing: 0;
+  margin-top: 0;
+}
+
+.grid-scroll table.ledger.grid thead th { padding-top: 6px; }
+
+/* A person's card, clicked, marks their open rows for a moment. */
+table.ledger.grid tbody tr.found td { animation: row-found 2.2s var(--ease) both; }
+table.ledger.grid tbody tr.found td:first-child { box-shadow: inset 3px 0 0 var(--gold); }
+
+@keyframes row-found {
+  0%, 35% { background-color: color-mix(in srgb, var(--gold) 24%, transparent); }
+  100% { background-color: transparent; }
+}
+
+/* ============================================================ date picker
+   The calendar drawn on the ledger's own paper, in place of the browser's
+   picker, which keeps its system colours whatever the page's theme. */
+.dp-field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  font-family: var(--font-mono);
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+
+.dp-placeholder { color: var(--ink-faint); font-style: italic; }
+.dp-glyph { flex: none; color: var(--gold); transition: transform 140ms var(--ease); }
+.dp-field:hover .dp-glyph,
+.dp-field.open .dp-glyph { transform: translateY(-1px) rotate(-6deg); }
+
+/* In the dock: written on the line, like the fields around it. */
+.dock-field .dp-field {
+  padding: 6px 2px 5px;
+  border: none;
+  border-bottom: 1px solid var(--rule-green);
+  background: transparent;
+  font-size: 0.88rem;
+  transition: border-color 140ms var(--ease), box-shadow 140ms var(--ease), background-color 140ms var(--ease);
+}
+
+.dock-field .dp-field:hover { border-bottom-color: var(--ink-soft); background-color: var(--paper-2); }
+
+.dock-field .dp-field.open,
+.dock-field .dp-field:focus-visible {
+  outline: none;
+  border-bottom-color: var(--gold);
+  background-color: var(--paper-2);
+  box-shadow: 0 1px 0 var(--gold);
+}
+
+/* In the edit grid: boxed, like the inputs beside it. */
+table.ledger.grid .dp-field {
+  white-space: nowrap;
+  gap: 6px;
+  padding: 5px 7px;
+  border: 1px solid var(--rule-green);
+  background: var(--paper);
+  font-size: 0.8rem;
+  transition: border-color 140ms var(--ease), box-shadow 140ms var(--ease);
+}
+
+table.ledger.grid .dp-field:hover,
+table.ledger.grid .dp-field.open { border-color: var(--gold); box-shadow: var(--glow); }
+
+.dp-pop {
+  position: fixed;
+  z-index: 80;
+  width: 272px;
+  padding: 12px 12px 10px;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-mono);
+  border: 1px solid color-mix(in srgb, var(--rule-green) 80%, transparent);
+  border-top: 3px double var(--rule-red);
+  box-shadow: var(--lift-2), 0 26px 50px -14px var(--shadow);
+  transform-origin: 50% 0;
+  animation: dp-drop 240ms var(--ease-leaf);
+}
+
+.dp-pop.above {
+  transform-origin: 50% 100%;
+  animation-name: dp-rise;
+}
+
+@keyframes dp-drop {
+  from { opacity: 0; transform: perspective(900px) rotateX(-14deg) translateY(-6px); }
+}
+
+@keyframes dp-rise {
+  from { opacity: 0; transform: perspective(900px) rotateX(14deg) translateY(6px); }
+}
+
+.dp-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-bottom: 8px;
+  margin-bottom: 4px;
+  border-bottom: 1.5px solid var(--ink);
+}
+
+.dp-title {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 700;
+  font-size: 1.02rem;
+}
+
+.dp-title span {
+  margin-left: 4px;
+  font-family: var(--font-mono);
+  font-style: normal;
+  font-weight: 400;
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+}
+
+.dp-nav { width: 28px; height: 28px; color: var(--gold); font-size: 1.1rem; line-height: 1; }
+
+.dp-dow,
+.dp-week {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 3px;
+}
+
+.dp-dow span {
+  padding: 4px 0;
+  text-align: center;
+  font-family: var(--font-display);
+  font-size: 0.64rem;
+  letter-spacing: 0.1em;
+  color: var(--ink-soft);
+}
+
+.dp-week { margin-top: 3px; }
+
+.dp-day {
+  aspect-ratio: 1;
+  padding: 0;
+  border: 1px solid color-mix(in srgb, var(--rule-green) 50%, transparent);
+  background: var(--paper-2);
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: transform 140ms var(--ease), box-shadow 140ms var(--ease), border-color 140ms var(--ease),
+              background-color 140ms var(--ease), color 140ms var(--ease), filter 140ms var(--ease);
+}
+
+.dp-day.ahead { color: var(--ink-faint); border-style: dashed; background: transparent; }
+.dp-day.today { box-shadow: inset 0 0 0 1.5px var(--ink); font-weight: 700; }
+
+.dp-day:hover {
+  transform: translateY(-1px);
+  border-color: var(--gold);
+  color: var(--gold);
+  box-shadow: var(--lift), var(--glow);
+}
+
+.dp-day:active {
+  transform: translateY(1px);
+  background: var(--paper-3);
+  box-shadow: var(--press);
+  transition-duration: 60ms;
+}
+
+/* The chosen day is sealed in gold. */
+.dp-day.picked {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: var(--paper);
+  font-weight: 700;
+  box-shadow: inset 0 -2px 0 color-mix(in srgb, var(--ink) 28%, transparent);
+}
+
+.dp-day.picked:hover { color: var(--paper); filter: brightness(1.08); box-shadow: var(--lift), var(--glow); }
+.dp-day.picked:active { filter: brightness(0.92); box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.35); }
+
+.dp-foot {
+  display: flex;
+  gap: 6px;
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--rule-green);
+}
+
+.dp-quick { font-family: var(--font-mono); font-size: 0.74rem; }
+.dp-quick.clear { margin-left: auto; }
+
+@media (prefers-reduced-motion: reduce) {
+  .dp-pop { animation: none; }
+  .dp-day, .dp-glyph { transition: none; }
+  .dp-day:hover, .dp-field:hover .dp-glyph, .dp-field.open .dp-glyph { transform: none; }
+  table.ledger.grid tbody tr.found td { animation: none; background-color: color-mix(in srgb, var(--gold) 20%, transparent); }
+}
+
+/* The edit grid fits a narrow sheet (the entry dock open on a laptop screen)
+   without scrolling sideways: row buttons are compact, a row open for editing
+   may stack Save over Cancel, and its date fields drop the calendar glyph. */
+table.ledger.grid td.row-actions .btn-link { padding: 4px 8px; }
+table.ledger.grid tr.editing td.row-actions { white-space: normal; }
+table.ledger.grid tr.editing td.row-actions .btn-link { margin: 2px 0 2px 6px; }
+
+@container ldi-sheet (max-width: 979px) {
+  table.ledger.grid .dp-glyph { display: none; }
+}

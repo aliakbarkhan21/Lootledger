@@ -4,7 +4,7 @@ import Book from './components/Book'
 import Masthead from './components/Masthead'
 import Banners from './components/Banners'
 import Toolbar from './components/Toolbar'
-import EntryForm from './components/EntryForm'
+import EntryDock from './components/EntryDock'
 import SummaryBand from './components/SummaryBand'
 import LedgerTable from './components/LedgerTable'
 import PlatformLoad from './components/PlatformLoad'
@@ -40,8 +40,14 @@ function BoardPage() {
     <>
       <Masthead periodLabel={board.period.label} />
       <Banners banners={board.banners} currency={board.currency} />
+      {/* Where the section always sat: above the controls, folded until wanted. */}
+      <LedgersDebtsImport
+        arrivals={board.arrivals}
+        departures={board.departures}
+        currency={board.currency}
+        periodKey={board.period.key}
+      />
       <Toolbar months={periods.months} current={periods.current} totalRows={totalRows} currency={board.currency} />
-      <EntryForm currencyCode={board.currency.code} />
       <SummaryBand figures={board.figures} currency={board.currency} />
       <LedgerTable
         arrivals={board.arrivals}
@@ -51,45 +57,44 @@ function BoardPage() {
         periodLabel={board.period.label}
       />
 
-      <div className="folio-heading">Obligations</div>
+      <div className="folio-heading" id="obligations">Obligations</div>
       <Obligations figures={board.figures} currency={board.currency} />
 
-      <div className="panel-row" style={{ marginTop: 24 }}>
-        <PlatformLoad
-          byCategory={board.by_category}
-          trend={board.trend.category}
-          budgets={board.budgets}
-          currency={board.currency}
-        />
-        <Capacity
-          burnPct={board.capacity.burn_pct}
-          usualDailyOutflow={board.capacity.usual_daily_outflow}
-          isAllTime={board.period.is_all_time}
-          currency={board.currency}
-        />
-      </div>
+      {/* Capacity is one bar and two lines, so it runs the full width. Below it,
+          the two share panels stack in one column beside the calendar: cards
+          keep their own height instead of being stretched to the calendar's. */}
+      <Capacity
+        burnPct={board.capacity.burn_pct}
+        usualDailyOutflow={board.capacity.usual_daily_outflow}
+        isAllTime={board.period.is_all_time}
+        currency={board.currency}
+      />
 
-      <div className="panel-row" style={{ marginTop: 24 }}>
-        <IncomeSource bySource={board.income_by_source} trend={board.trend.income} currency={board.currency} />
-        {board.calendar ? (
-          <SpendingCalendar calendar={board.calendar} periodKey={board.period.key} currency={board.currency} />
-        ) : (
-          <div className="panel">
-            <div className="panel-head"><h3>Spending Rhythm</h3></div>
-            <p className="panel-empty">All Time has no single month's shape to show.</p>
-          </div>
-        )}
+      <div className="panel-cols">
+        <div className="panel-col">
+          <PlatformLoad
+            byCategory={board.by_category}
+            trend={board.trend.category}
+            budgets={board.budgets}
+            currency={board.currency}
+          />
+          <IncomeSource bySource={board.income_by_source} trend={board.trend.income} currency={board.currency} />
+        </div>
+        <div className="panel-col">
+          {board.calendar ? (
+            <SpendingCalendar calendar={board.calendar} periodKey={board.period.key} currency={board.currency} />
+          ) : (
+            <div className="panel">
+              <div className="panel-head"><h3>Spending Rhythm</h3></div>
+              <p className="panel-empty">All Time has no single month's shape to show.</p>
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="folio-heading">Last 12 Months</div>
       <RunStrip months={board.run_strip} currency={board.currency} />
 
-      <LedgersDebtsImport
-        arrivals={board.arrivals}
-        departures={board.departures}
-        currency={board.currency}
-        periodKey={board.period.key}
-      />
 
       <CommandPalette months={periods.months} currency={board.currency} periodLabel={board.period.label} />
       <FinanceBot periodKey={board.period.is_all_time ? 'all' : board.period.key} periodLabel={board.period.label} />
@@ -107,7 +112,7 @@ function BoardPage() {
 export default function App() {
   return (
     <AuthGate>
-      <Book>
+      <Book dock={<EntryDock />}>
         <BoardPage />
       </Book>
       <SettingsDialog />

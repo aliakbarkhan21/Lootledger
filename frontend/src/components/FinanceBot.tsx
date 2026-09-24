@@ -28,6 +28,8 @@ const STARTER_POOL = [
 ]
 const STARTER_OPENING = [1, 2]
 const CHAT_NAME_MAX = 40
+// Matches rail-out in board.css: the rail stays mounted while it slides away.
+const RAIL_CLOSE_MS = 300
 const ACCEPT = '.csv,.png,.jpg,.jpeg'
 
 interface Pending {
@@ -76,6 +78,10 @@ async function readEvents(res: Response, onEvent: (e: Record<string, unknown>) =
 
 export default function FinanceBot({ periodKey, periodLabel }: { periodKey: string; periodLabel: string }) {
   const { botOpen, setBotOpen, botDraft, setBotDraft } = useUi()
+  // Mounted from opening until the closing slide has finished, so the rail
+  // leaves the way it came instead of vanishing.
+  const [mounted, setMounted] = useState(botOpen)
+  if (botOpen && !mounted) setMounted(true)
   const qc = useQueryClient()
   const invalidateBoard = useInvalidateBoard()
   const { data: status } = useBotStatus()
@@ -143,6 +149,13 @@ export default function FinanceBot({ periodKey, periodLabel }: { periodKey: stri
     setPending(null)
   }, [currentId, pending, periodKey, invalidateBoard, qc])
 
+  useEffect(() => {
+    if (botOpen || !mounted) return
+    const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+    const t = window.setTimeout(() => setMounted(false), reduced ? 0 : RAIL_CLOSE_MS)
+    return () => window.clearTimeout(t)
+  }, [botOpen, mounted])
+
   // "Draft reminder" on the Debts tab hands a message over and opens the rail.
   useEffect(() => {
     if (botOpen && botDraft && currentId && !pending) {
@@ -187,12 +200,13 @@ export default function FinanceBot({ periodKey, periodLabel }: { periodKey: stri
     activateChat.mutate(id)
   }
 
-  if (!botOpen) return null
+  if (!mounted) return null
+  const closing = !botOpen
   const current = chats.find((c) => c.id === currentId)
   const fallback = status && status.active_model !== status.model
 
   return (
-    <aside className="bot-rail" aria-label="Finance bot">
+    <aside className={`bot-rail ${closing ? 'closing' : ''}`} aria-label="Finance bot" inert={closing}>
       <div className="bot-head">
         <h2>Finance bot</h2>
         <button className="icon-btn" aria-label="Close the Finance Bot" onClick={() => setBotOpen(false)}>✕</button>

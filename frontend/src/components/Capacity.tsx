@@ -11,7 +11,7 @@ export default function Capacity({
 }) {
   const pct = Math.min(100, burnPct)
   return (
-    <div className="panel">
+    <div className="panel capacity">
       <div className="panel-head"><h3>Capacity</h3></div>
       <div className="capacity-track">
         <div className="capacity-mark" style={{ left: '70%' }} />

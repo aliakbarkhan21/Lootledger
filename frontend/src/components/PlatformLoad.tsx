@@ -14,6 +14,7 @@ export default function PlatformLoad({
   currency: Currency
 }) {
   const [view, setView] = useState<'share' | 'trend'>('share')
+  const [hot, setHot] = useState<number | null>(null)
   const total = byCategory.reduce((a, r) => a + r.amount, 0)
 
   return (
@@ -38,15 +39,23 @@ export default function PlatformLoad({
           <Donut
             values={byCategory.map((r) => r.amount)}
             colors={byCategory.map((r) => platformColor(r.category))}
+            names={byCategory.map((r) => r.category)}
+            hot={hot}
+            onHot={setHot}
             label="Spending by platform"
           />
           <ul className="platform-list">
-            {byCategory.map((r) => {
+            {byCategory.map((r, i) => {
               const share = total > 0 ? (r.amount / total) * 100 : 0
               const cap = budgets[r.category]
               const capPct = cap ? Math.min(100, (r.amount / cap) * 100) : null
               return (
-                <li key={r.category}>
+                <li
+                  key={r.category}
+                  className={hot === i ? 'hot' : ''}
+                  onMouseEnter={() => setHot(i)}
+                  onMouseLeave={() => setHot(null)}
+                >
                   <div className="platform-row">
                     <span className="swatch-label"><i className="swatch" style={{ background: platformColor(r.category) }} />{r.category}</span>
                     <span>{share.toFixed(0)}% · {formatMoney(r.amount, currency)}</span>

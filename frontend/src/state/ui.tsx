@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 
 type Theme = 'light' | 'dark'
+export type LdiTab = 'ledgers' | 'edit' | 'debts' | 'import'
 
 interface UiState {
   period: string
@@ -19,6 +20,13 @@ interface UiState {
    * reminder" on a debt card); the drawer consumes and clears it. */
   botDraft: string | null
   setBotDraft: (v: string | null) => void
+  /** Whether the Ledgers, debts and import section is expanded. */
+  ledgersOpen: boolean
+  setLedgersOpen: (v: boolean) => void
+  /** Which sheet of that section is showing — held here so the book's
+   * Obligations tab can open the section straight onto Debts. */
+  ldiTab: LdiTab
+  setLdiTab: (v: LdiTab) => void
 }
 
 const Ctx = createContext<UiState | null>(null)
@@ -36,6 +44,16 @@ function initialTheme(): Theme {
   return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
 }
 
+function initialLedgersOpen(): boolean {
+  // Folded by default, the way the section always opened: it is reached for,
+  // not read on every visit, and open it pushes the month down the page.
+  try {
+    return window.localStorage.getItem('ll-ledgers-open') === '1'
+  } catch {
+    return false
+  }
+}
+
 function initialPeriod(): string {
   const d = new Date()
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
@@ -49,6 +67,16 @@ export function UiProvider({ children }: { children: ReactNode }) {
   const [paletteOpen, setPaletteOpen] = useState(false)
   const [search, setSearch] = useState('')
   const [botDraft, setBotDraft] = useState<string | null>(null)
+  const [ledgersOpen, setLedgersOpen] = useState(initialLedgersOpen)
+  const [ldiTab, setLdiTab] = useState<LdiTab>('ledgers')
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem('ll-ledgers-open', ledgersOpen ? '1' : '0')
+    } catch {
+      /* ignore */
+    }
+  }, [ledgersOpen])
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme)
@@ -79,9 +107,9 @@ export function UiProvider({ children }: { children: ReactNode }) {
     () => ({
       period, setPeriod, theme, toggleTheme, botOpen, setBotOpen,
       settingsOpen, setSettingsOpen, paletteOpen, setPaletteOpen, search, setSearch,
-      botDraft, setBotDraft,
+      botDraft, setBotDraft, ledgersOpen, setLedgersOpen, ldiTab, setLdiTab,
     }),
-    [period, theme, toggleTheme, botOpen, settingsOpen, paletteOpen, search, botDraft],
+    [period, theme, toggleTheme, botOpen, settingsOpen, paletteOpen, search, botDraft, ledgersOpen, ldiTab],
   )
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>

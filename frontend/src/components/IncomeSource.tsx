@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import type { IncomeTrend, SourceTotal, Currency } from '../api/types'
 import { formatMoney } from '../lib/money'
 import Donut, { tint } from './Donut'
@@ -10,6 +11,7 @@ export default function IncomeSource({
   trend: IncomeTrend
   currency: Currency
 }) {
+  const [hot, setHot] = useState<number | null>(null)
   const total = bySource.reduce((a, r) => a + r.amount, 0)
   if (bySource.length === 0) {
     return (
@@ -23,7 +25,14 @@ export default function IncomeSource({
     <div className="panel">
       <div className="panel-head"><h3>Where It Came From</h3></div>
       <div className="platform-share">
-        <Donut values={bySource.map((r) => r.amount)} tinted label="Income by source" />
+        <Donut
+          values={bySource.map((r) => r.amount)}
+          tinted
+          label="Income by source"
+          names={bySource.map((r) => r.source)}
+          hot={hot}
+          onHot={setHot}
+        />
         <ul className="platform-list">
           {bySource.map((r, i) => {
             const share = total > 0 ? (r.amount / total) * 100 : 0
@@ -31,7 +40,12 @@ export default function IncomeSource({
             const pct = trend.vs_avg[r.source]
             const hasHistory = pct !== null && pct !== undefined
             return (
-              <li key={r.source}>
+              <li
+                key={r.source}
+                className={hot === i ? 'hot' : ''}
+                onMouseEnter={() => setHot(i)}
+                onMouseLeave={() => setHot(null)}
+              >
                 <div className="platform-row">
                   <span className="swatch-label"><i className="swatch" style={{ background: tint(i, bySource.length) }} />{r.source}</span>
                   <span>{share.toFixed(0)}% · {formatMoney(r.amount, currency)}</span>
@@ -42,7 +56,7 @@ export default function IncomeSource({
                       <Sparkline values={values} width={72} height={14} color="var(--gold)" />
                       <span className={pct >= 0 ? 'up' : 'down'}>{pct >= 0 ? '▲' : '▼'} {Math.abs(pct).toFixed(0)}% vs usual</span>
                     </>
-                  ) : 'not enough history yet'}
+                  ) : 'first month on record'}
                 </div>
               </li>
             )

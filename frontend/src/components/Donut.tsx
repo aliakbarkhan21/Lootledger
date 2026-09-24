@@ -10,16 +10,22 @@ export function tint(i: number, n: number): string {
  * isn't a taxonomy and shouldn't read in categorical hues), or in each
  * platform's own fixed ink otherwise (spending categories). */
 export default function Donut({
-  values, colors, tinted = false, size = 108, label = 'Share',
+  values, colors, tinted = false, size = 108, label = 'Share', names, hot = null, onHot,
 }: {
   values: number[]
   colors?: string[]
   tinted?: boolean
   size?: number
   label?: string
+  /** Per-slice labels, used for the hover title. */
+  names?: string[]
+  /** The slice lifted out of the ring, shared with the list beside it. */
+  hot?: number | null
+  onHot?: (i: number | null) => void
 }) {
   const total = values.reduce((a, b) => a + b, 0)
-  const r = size / 2 - 8
+  // Room inside the box for a hovered slice to thicken without clipping.
+  const r = size / 2 - 10
   const cx = size / 2
   const cy = size / 2
   const circumference = 2 * Math.PI * r
@@ -31,6 +37,9 @@ export default function Donut({
     return (
       <circle
         key={i}
+        className={`donut-seg ${hot === i ? 'hot' : ''}`}
+        onMouseEnter={() => onHot?.(i)}
+        onMouseLeave={() => onHot?.(null)}
         cx={cx}
         cy={cy}
         r={r}
@@ -40,12 +49,18 @@ export default function Donut({
         strokeDasharray={`${dash} ${circumference - dash}`}
         strokeDashoffset={-starts[i]}
         transform={`rotate(-90 ${cx} ${cy})`}
-      />
+      >
+        {names?.[i] && <title>{`${names[i]} — ${total > 0 ? Math.round((values[i] / total) * 100) : 0}%`}</title>}
+      </circle>
     )
   })
 
   return (
-    <svg width={size} height={size} role="img" aria-label={label} style={{ flex: '0 0 auto' }}>
+    <svg
+      className={`donut ${hot !== null ? 'has-hot' : ''}`}
+      width={size} height={size} viewBox={`0 0 ${size} ${size}`}
+      role="img" aria-label={label} style={{ flex: '0 0 auto' }}
+    >
       <circle cx={cx} cy={cy} r={r} fill="none" stroke="var(--paper-3)" strokeWidth={12} />
       {segments}
     </svg>

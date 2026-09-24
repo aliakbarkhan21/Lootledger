@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { api } from '../api/client'
 import type { Currency, LedgerRow } from '../api/types'
@@ -67,7 +67,7 @@ function RemoveConfirm({
   )
 }
 
-function DebtTable({ table, currency }: { table: Table; currency: Currency }) {
+function DebtTable({ table, currency, found }: { table: Table; currency: Currency; found: string | null }) {
   const { data: rows } = useLedger(table)
   const settle = useSettleDebt()
   const updateRow = useUpdateRow()
@@ -124,7 +124,14 @@ function DebtTable({ table, currency }: { table: Table; currency: Currency }) {
           </thead>
           <tbody>
             {list.map((row) => (
-              <tr key={row.id} className={confirmId === row.id ? 'removing' : row.paid_back ? 'settled' : ''}>
+              <tr
+                key={row.id}
+                className={[
+                  confirmId === row.id ? 'removing' : row.paid_back ? 'settled' : '',
+                  // Named the way finance.people_ledger() groups them.
+                  found !== null && !row.paid_back && (nameOf(row, table).trim() || 'Unnamed') === found ? 'found' : '',
+                ].join(' ')}
+              >
                 <td className="date">{formatDisplayDate(row.date)}</td>
                 <td className="desc">{nameOf(row, table)}</td>
                 <td className="amt">{formatMoney(row.amount, currency)}</td>
@@ -162,6 +169,21 @@ function DebtTable({ table, currency }: { table: Table; currency: Currency }) {
 
 export default function DebtsTab({ currency }: { currency: Currency }) {
   const { data: people } = usePeople()
+  // A card, clicked, finds that person's open rows in the tables below.
+  const [found, setFound] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (found === null) return
+    document.querySelector('#ldi-body tr.found')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    const t = window.setTimeout(() => setFound(null), 2400)
+    return () => window.clearTimeout(t)
+  }, [found])
+
+  function find(name: string) {
+    // Cleared first so a second click on the same card runs the mark again.
+    setFound(null)
+    requestAnimationFrame(() => setFound(name))
+  }
 
   return (
     <div>
@@ -184,14 +206,20 @@ export default function DebtsTab({ currency }: { currency: Currency }) {
                 `oldest ${p.oldest_days}d`,
               ].filter(Boolean)
               return (
-                <div className={`person-card ${tone}`} key={p.name}>
-                  <div className="person-name">
+                <button
+                  type="button"
+                  className={`person-card ${tone}`}
+                  key={p.name}
+                  title={`Find ${p.name}'s open entries below`}
+                  onClick={() => find(p.name)}
+                >
+                  <span className="person-name">
                     {p.name}
                     {p.both_ways && <span className="person-both">both ways</span>}
-                  </div>
-                  <div className="person-net">{verdict}</div>
-                  <div className="person-sub">{detail.join(' · ')}</div>
-                </div>
+                  </span>
+                  <span className="person-net">{verdict}</span>
+                  <span className="person-sub">{detail.join(' · ')}</span>
+                </button>
               )
             })}
           </div>
@@ -209,10 +237,10 @@ export default function DebtsTab({ currency }: { currency: Currency }) {
       </p>
 
       <div className="tab-subhead"><strong>Owed to you</strong></div>
-      <DebtTable table="lent" currency={currency} />
+      <DebtTable table="lent" currency={currency} found={found} />
 
       <div className="tab-subhead" style={{ marginTop: 28 }}><strong>You owe</strong></div>
-      <DebtTable table="borrowed" currency={currency} />
+      <DebtTable table="borrowed" currency={currency} found={found} />
     </div>
   )
 }

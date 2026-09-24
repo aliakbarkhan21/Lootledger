@@ -25,22 +25,26 @@ function Side({
       {rows.length === 0 ? (
         <p className="panel-empty">Nothing recorded for this period.</p>
       ) : (
-        <div className="grid-scroll">
-        <table className="ledger grid">
-          <thead>
-            <tr><th>Date</th><th>Detail</th><th>Platform</th><th className="num">Amount</th></tr>
-          </thead>
-          <tbody>
-            {rows.map((r) => (
-              <tr key={`${r.kind}-${r.id}`}>
-                <td className="date">{formatDisplayDate(r.date)}</td>
-                <td className="desc">{r.label}</td>
-                <td className="cat">{r.platform}</td>
-                <td className="amt">{formatMoney(r.amount, currency)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <div className="grid-scroll side-scroll">
+          <table className="ledger grid side">
+            <thead>
+              <tr><th>Date</th><th>Detail</th><th className="cat">Platform</th><th className="num">Amount</th></tr>
+            </thead>
+            <tbody>
+              {rows.map((r) => (
+                <tr key={`${r.kind}-${r.id}`}>
+                  <td className="date">{formatDisplayDate(r.date)}</td>
+                  <td className="desc">
+                    {r.label}
+                    {/* Takes over from the Platform column when the sheet is too narrow for it. */}
+                    <span className="desc-sub">{r.platform}</span>
+                  </td>
+                  <td className="cat">{r.platform}</td>
+                  <td className="amt">{formatMoney(r.amount, currency)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
     </div>
