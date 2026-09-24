@@ -151,6 +151,16 @@ def board(period: str | None = Query(default=None), ctx=Depends(board_context)):
             "receivable_count": snap.receivable_count, "payable_count": snap.payable_count,
             "net_worth": snap.net_worth, "has_activity": snap.has_activity,
             "top_category": {"category": top[0], "amount": top[1]} if top else None,
+            # The four headline figures are one equation — brought forward +
+            # arrivals - departures = on hand — which only holds if arrivals
+            # means every rupee in, settlements included (and the same for
+            # departures). inflow/outflow above are earned/spent only.
+            "arrivals_total": snap.inflow + snap.row.lent_returned + snap.row.borrowed_in,
+            "departures_total": snap.outflow + snap.row.lent_out + snap.row.borrowed_repaid,
+            "settled_in": snap.row.lent_returned + snap.row.borrowed_in,
+            "arrivals_count": len(snap.arrivals),
+            "departures_count": len(snap.departures),
+            "prev_label": finance.month_label(snap.prev_key) if snap.prev_key else None,
         },
         "arrivals": df_records(snap.arrivals),
         "departures": df_records(snap.departures),

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { CategoryTotal, CategoryTrend, Currency } from '../api/types'
 import { formatMoney } from '../lib/money'
 import Donut from './Donut'
+import { platformColor } from '../lib/platforms'
 import Sparkline from './Sparkline'
 
 export default function PlatformLoad({
@@ -34,7 +35,11 @@ export default function PlatformLoad({
 
       {byCategory.length > 0 && view === 'share' && (
         <div className="platform-share">
-          <Donut values={byCategory.map((r) => r.amount)} />
+          <Donut
+            values={byCategory.map((r) => r.amount)}
+            colors={byCategory.map((r) => platformColor(r.category))}
+            label="Spending by platform"
+          />
           <ul className="platform-list">
             {byCategory.map((r) => {
               const share = total > 0 ? (r.amount / total) * 100 : 0
@@ -43,13 +48,18 @@ export default function PlatformLoad({
               return (
                 <li key={r.category}>
                   <div className="platform-row">
-                    <span>{r.category}</span>
+                    <span className="swatch-label"><i className="swatch" style={{ background: platformColor(r.category) }} />{r.category}</span>
                     <span>{share.toFixed(0)}% · {formatMoney(r.amount, currency)}</span>
                   </div>
                   {capPct !== null && (
-                    <div className="cap-track">
-                      <div className={`cap-fill ${capPct >= 90 ? 'over' : capPct >= 70 ? 'warm' : ''}`} style={{ width: `${capPct}%` }} />
-                    </div>
+                    <>
+                      <div className="cap-track" title={`Cap ${formatMoney(cap, currency, 0)} a month`}>
+                        <div className={`cap-fill ${capPct >= 90 ? 'over' : capPct >= 70 ? 'warm' : ''}`} style={{ width: `${capPct}%` }} />
+                      </div>
+                      <div className="platform-row-note">
+                        {formatMoney(r.amount, currency, 0)} of {formatMoney(cap, currency, 0)} cap
+                      </div>
+                    </>
                   )}
                 </li>
               )
@@ -64,10 +74,10 @@ export default function PlatformLoad({
             const pct = trend.vs_avg[cat]
             return (
               <li key={cat}>
-                <div className="platform-row">
-                  <span>{cat}</span>
-                  <Sparkline values={values} />
-                  <span className={pct !== null && pct !== undefined ? (pct >= 0 ? 'up' : 'down') : ''}>
+                <div className="platform-row trend-row">
+                  <span className="swatch-label"><i className="swatch" style={{ background: platformColor(cat) }} />{cat}</span>
+                  <Sparkline values={values} color={platformColor(cat)} />
+                  <span className={pct !== null && pct !== undefined ? (pct >= 0 ? 'spend-up' : 'spend-down') : ''}>
                     {pct === null || pct === undefined ? '—' : `${pct >= 0 ? '▲' : '▼'} ${Math.abs(pct).toFixed(0)}%`}
                   </span>
                 </div>

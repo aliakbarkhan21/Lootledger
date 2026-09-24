@@ -48,6 +48,7 @@ function BoardPage() {
         departures={board.departures}
         currency={board.currency}
         search={search}
+        periodLabel={board.period.label}
       />
 
       <div className="folio-heading">Obligations</div>

@@ -9,6 +9,7 @@ import {
   useSetOpeningBalance, useSettings,
 } from '../api/hooks'
 import { formatMoney, toDisplay } from '../lib/money'
+import { platformColor } from '../lib/platforms'
 import { useUi } from '../state/ui'
 
 function errText(e: unknown): string {
@@ -49,7 +50,7 @@ function BudgetRow({ category, cap, currency }: { category: string; cap: number;
 
   return (
     <div className="settings-row">
-      <span className="settings-row-label">{category}</span>
+      <span className="settings-row-label swatch-label"><i className="swatch" style={{ background: platformColor(category) }} />{category}</span>
       <input
         type="number" min={0} step={500} value={value}
         aria-label={`${category} cap (${currency.code})`}

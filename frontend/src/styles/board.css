@@ -341,14 +341,64 @@
   color: var(--gold);
 }
 
-.entry-form-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+.entry-form-body {
   margin-top: 10px;
   padding: 12px;
   background: var(--paper-2);
   border: 1px solid var(--rule-green);
+}
+
+.entry-form-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.entry-how {
+  border: none;
+  padding: 0;
+  margin: 12px 0 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.entry-how legend {
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin-bottom: 6px;
+}
+
+.entry-how label {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  border: 1px solid var(--rule-green);
+  background: var(--paper);
+  padding: 8px 10px;
+  cursor: pointer;
+}
+
+.entry-how label.picked { border-color: var(--gold); }
+.entry-how input { accent-color: var(--gold); margin-top: 3px; }
+.how-label { display: block; font-family: var(--font-display); font-size: 0.88rem; }
+.how-effect { display: block; font-size: 0.74rem; color: var(--ink-soft); margin-top: 2px; line-height: 1.4; }
+
+.entry-caption {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+  margin: 10px 0 0;
+}
+
+.entry-form-body .notice { margin: 10px 0 0; }
+
+@media (max-width: 700px) {
+  .entry-how { grid-template-columns: 1fr; }
 }
 
 .entry-form-grid select,
@@ -490,12 +540,12 @@ td.amt.debit { color: var(--debit); }
 
 .ledgers-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 32px;
 }
 
 @media (max-width: 900px) {
-  .ledgers-grid { grid-template-columns: 1fr; }
+  .ledgers-grid { grid-template-columns: minmax(0, 1fr); }
   .summary { grid-template-columns: repeat(2, 1fr); }
   .page { margin-left: 0; padding-left: 24px; }
   .page::before { display: none; }
@@ -713,7 +763,7 @@ td.amt.debit { color: var(--debit); }
 /* -------- spending calendar -------- */
 .cal-dow {
   display: grid;
-  grid-template-columns: repeat(7, 1fr) 56px;
+  grid-template-columns: repeat(7, 1fr) 72px;
   font-size: 0.68rem;
   color: var(--ink-soft);
   text-align: center;
@@ -722,7 +772,7 @@ td.amt.debit { color: var(--debit); }
 
 .cal-week {
   display: grid;
-  grid-template-columns: repeat(7, 1fr) 56px;
+  grid-template-columns: repeat(7, 1fr) 72px;
   gap: 3px;
   margin-bottom: 3px;
 }
@@ -768,6 +818,7 @@ td.amt.debit { color: var(--debit); }
 }
 
 .cal-week-total {
+  white-space: nowrap;
   font-size: 0.68rem;
   color: var(--ink-soft);
   display: flex;
@@ -800,6 +851,7 @@ td.amt.debit { color: var(--debit); }
 
 .run-bar {
   width: 60%;
+  max-width: 56px;
   margin: 0 auto;
   background: var(--rule-green);
 }
@@ -1660,4 +1712,120 @@ td.row-actions .btn-link + .btn-link { margin-left: 6px; }
   padding: 8px 18px;
   font-size: 0.7rem;
   color: var(--ink-soft);
+}
+
+/* ============================================================ service line / notes */
+.service-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 18px;
+}
+
+.service-meta { font-size: 0.78rem; color: var(--ink-soft); }
+.summary .note b { color: var(--ink); font-weight: 700; }
+.summary .note .up { color: var(--debit); }
+.summary .note .down { color: var(--credit); }
+
+table.ledger tbody tr:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: -2px; }
+table.ledger tbody tr.empty { cursor: default; }
+table.ledger tbody tr.empty:hover { background: none; }
+
+.ledger-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 26px 0;
+  color: var(--ink-soft);
+  font-size: 0.84rem;
+}
+
+.ledger-empty strong { font-family: var(--font-display); font-style: italic; color: var(--ink); font-size: 1rem; }
+
+table.ledger tfoot td {
+  padding: 10px 6px 8px;
+  border-top: 1.5px solid var(--ink);
+  border-bottom: 3px double var(--ink);
+  font-family: var(--font-display);
+  font-size: 0.74rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+table.ledger tfoot td.amt { font-family: var(--font-mono); font-size: 0.86rem; letter-spacing: 0; text-transform: none; }
+
+.search-note {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 0.84rem;
+  color: var(--ink-soft);
+  margin: 6px 0;
+}
+
+/* -------- platform swatches -------- */
+.swatch {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  margin-right: 7px;
+  vertical-align: 1px;
+  flex: 0 0 auto;
+}
+
+.swatch-label { display: inline-flex; align-items: center; min-width: 0; }
+
+.trend-note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.trend-note .up { color: var(--credit); }
+.trend-note .down { color: var(--debit); }
+.trend-row svg { flex: 0 0 auto; }
+
+/* Spending going up is the bad direction. */
+.platform-row .spend-up { color: var(--debit); }
+.platform-row .spend-down { color: var(--credit); }
+
+.run-legend { margin: 0 0 12px; }
+
+/* ============================================================ phone width */
+.table-wrap { overflow-x: auto; }
+/* One signed amount column replaces Debit/Credit on a phone. */
+table.ledger .amt-one { display: none; }
+.period-picker { min-width: 0; max-width: 100%; }
+.period-picker select { max-width: 100%; }
+
+@media (max-width: 640px) {
+  .desk { padding: 0; }
+  .book { border: none; box-shadow: none; }
+  .page { padding: 20px 16px 40px; }
+  .wordmark { font-size: 1.6rem; }
+  .toolbar .period-picker { flex: 1 1 100%; }
+  .toolbar .period-picker select { width: 100%; }
+  .toolbar input[type='search'] { min-width: 0; flex: 1 1 120px; }
+  .summary .v { font-size: 0.98rem; }
+  .summary > div { padding: 12px 10px; }
+  table.ledger:not(.grid) th:nth-child(3),
+  table.ledger:not(.grid) td.cat { display: none; }
+  table.ledger:not(.grid) th:nth-child(4),
+  table.ledger:not(.grid) th:nth-child(5),
+  table.ledger:not(.grid) td.amt:not(.amt-one) { display: none; }
+  table.ledger:not(.grid) .amt-one { display: table-cell; }
+  table.ledger tbody td { padding: 7px 3px; font-size: 0.8rem; }
+  td.date { font-size: 0.7rem; }
+  .obligations { grid-template-columns: 1fr; }
+  .platform-share { flex-direction: column; align-items: center; }
+  .platform-list { width: 100%; }
+  .settings-form { grid-template-columns: 1fr; }
+  .section-tab { padding: 8px 10px; font-size: 0.74rem; }
+  .section-body { padding: 14px 12px; }
+  .modal-scrim { padding: 0; }
+  .modal { max-height: 100vh; }
 }

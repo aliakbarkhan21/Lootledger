@@ -25,6 +25,7 @@ function Side({
       {rows.length === 0 ? (
         <p className="panel-empty">Nothing recorded for this period.</p>
       ) : (
+        <div className="grid-scroll">
         <table className="ledger grid">
           <thead>
             <tr><th>Date</th><th>Detail</th><th>Platform</th><th className="num">Amount</th></tr>
@@ -40,6 +41,7 @@ function Side({
             ))}
           </tbody>
         </table>
+        </div>
       )}
     </div>
   )

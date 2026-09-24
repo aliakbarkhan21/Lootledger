@@ -48,6 +48,12 @@ export interface Figures {
   net_worth: number
   has_activity: boolean
   top_category: TopCategory | null
+  arrivals_total: number
+  departures_total: number
+  settled_in: number
+  arrivals_count: number
+  departures_count: number
+  prev_label: string | null
 }
 
 export interface CategoryTrend {

@@ -18,6 +18,19 @@
   --desk: #c9cdb8;
   --spine: linear-gradient(90deg, #5c6e50, #748a67);
   --focus-ring: #9c7a2e;
+
+  --plat-food: #b5623d;
+  --plat-games: #6f5a8f;
+  --plat-hangouts: #a4506e;
+  --plat-shopping: #9c7a2e;
+  --plat-subscriptions: #2f7a7a;
+  --plat-transportation: #3f6590;
+  --plat-utilities: #4f7d4a;
+  --plat-other: #7c8a75;
+  --plat-income: #237a41;
+  --plat-returned: #5f8f4e;
+  --plat-loan: #9c7a2e;
+  --plat-lent: #6f5a8f;
 }
 
 :root[data-theme='dark'] {
@@ -36,6 +49,19 @@
   --desk: #0e1210;
   --spine: linear-gradient(90deg, #202a1c, #2c3824);
   --focus-ring: #c9a04a;
+
+  --plat-food: #e08a63;
+  --plat-games: #a893c9;
+  --plat-hangouts: #d27f9c;
+  --plat-shopping: #c9a04a;
+  --plat-subscriptions: #5fb3b3;
+  --plat-transportation: #7fa3cf;
+  --plat-utilities: #86b67e;
+  --plat-other: #8f9d88;
+  --plat-income: #6fbf7e;
+  --plat-returned: #9cc98a;
+  --plat-loan: #c9a04a;
+  --plat-lent: #a893c9;
 }
 
 :root {
