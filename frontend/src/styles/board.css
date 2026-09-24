@@ -1090,3 +1090,152 @@ td.row-actions .btn-link + .btn-link { margin-left: 6px; }
 .aging-row .who { font-family: var(--font-display); font-style: italic; }
 .aging-row .amt { font-family: var(--font-mono); font-weight: 700; }
 .aging-row .days { color: var(--debit); text-align: right; font-family: var(--font-mono); }
+
+/* ============================================================ modal / settings */
+.modal-scrim {
+  position: fixed;
+  inset: 0;
+  background: color-mix(in srgb, var(--desk) 70%, rgba(0, 0, 0, 0.45));
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 48px 16px;
+  z-index: 50;
+  overflow-y: auto;
+}
+
+.modal {
+  width: min(620px, 100%);
+  max-height: calc(100vh - 96px);
+  display: flex;
+  flex-direction: column;
+  background: var(--paper);
+  border: 1px solid var(--rule-green);
+  box-shadow: 0 30px 70px var(--shadow);
+  position: relative;
+}
+
+.modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 24px 14px;
+  border-bottom: 2px solid var(--ink);
+}
+
+.modal-head h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+
+.modal-body {
+  padding: 8px 24px 28px;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.settings-summary {
+  font-size: 0.84rem;
+  margin: 14px 0 4px;
+}
+
+.settings-block {
+  border-top: 1px dashed var(--rule-green);
+  padding: 16px 0 6px;
+  margin-top: 12px;
+}
+
+.settings-block h3 {
+  margin: 0 0 6px;
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.settings-caption {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 0.84rem;
+  color: var(--ink-soft);
+  margin: 0 0 10px;
+  line-height: 1.5;
+}
+
+.settings-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.settings-row-label {
+  flex: 1;
+  font-size: 0.84rem;
+  min-width: 0;
+}
+
+.settings-arrow { color: var(--ink-soft); }
+
+.settings-block select,
+.settings-block input[type='number'],
+.settings-block input:not([type]),
+.settings-block input[type='text'] {
+  padding: 6px 8px;
+  border: 1px solid var(--rule-green);
+  background: var(--paper-2);
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  min-width: 0;
+}
+
+.settings-row select { flex: 1; }
+.settings-row input[type='number'] { width: 150px; flex: 0 0 150px; }
+
+.settings-block select.wide,
+.btn-link.wide,
+.btn-danger.wide {
+  display: block;
+  width: 100%;
+  text-align: center;
+  margin-bottom: 8px;
+  text-decoration: none;
+  padding: 7px 10px;
+}
+
+.settings-block label.check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.86rem;
+  margin-bottom: 6px;
+}
+
+.settings-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 12px;
+  margin: 10px 0;
+}
+
+.settings-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.74rem;
+  color: var(--ink-soft);
+}
+
+.btn-danger {
+  border: 1px solid var(--rule-red);
+  background: var(--rule-red);
+  color: #f6e9df;
+  font-weight: 700;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+.btn-danger:hover { filter: brightness(1.08); }

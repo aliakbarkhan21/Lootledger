@@ -14,6 +14,7 @@ import IncomeSource from './components/IncomeSource'
 import SpendingCalendar from './components/SpendingCalendar'
 import RunStrip from './components/RunStrip'
 import LedgersDebtsImport from './components/LedgersDebtsImport'
+import SettingsDialog from './components/SettingsDialog'
 import { useBoard, usePeriods } from './api/hooks'
 import { useUi } from './state/ui'
 
@@ -103,6 +104,7 @@ export default function App() {
       <Book>
         <BoardPage />
       </Book>
+      <SettingsDialog />
     </AuthGate>
   )
 }

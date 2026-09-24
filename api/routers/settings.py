@@ -5,6 +5,8 @@ budgets.py; recurring templates in recurring.py.
 """
 from __future__ import annotations
 
+from datetime import date
+
 from fastapi import APIRouter, Depends, HTTPException, Response
 
 import db
@@ -90,14 +92,22 @@ def restore_backup(body: RestoreIn):
     return {"ok": True}
 
 
+# Both demo actions are refused server-side, not just greyed out in the UI:
+# sample rows are never mixed into real records, and demo.clear() wipes every
+# ledger, so it may only run while the sample is all that is there.
 @router.post("/demo/seed")
 def seed_demo():
+    if not demo.is_active() and sum(db.row_counts().values()) > 0:
+        raise HTTPException(409, "Clear your real records first — sample rows are "
+                                 "never mixed into data you entered.")
     counts = demo.seed(3)
     return {"counts": counts}
 
 
 @router.post("/demo/clear")
 def clear_demo():
+    if not demo.is_active():
+        raise HTTPException(409, "No sample data is loaded.")
     demo.clear()
     return {"ok": True}
 
@@ -113,5 +123,6 @@ def export_csv():
     csv_text = importer.export_csv()
     return Response(
         content=csv_text, media_type="text/csv",
-        headers={"Content-Disposition": "attachment; filename=loot-ledger-export.csv"},
+        headers={"Content-Disposition":
+                 f"attachment; filename=loot-ledger-{date.today().isoformat()}.csv"},
     )

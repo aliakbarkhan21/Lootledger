@@ -92,6 +92,9 @@ export function useInvalidateBoard() {
     qc.invalidateQueries({ queryKey: ['people'] })
     qc.invalidateQueries({ queryKey: ['ledger'] })
     qc.invalidateQueries({ queryKey: ['backups'] })
+    // Erase/restore/demo-clear rewrite the meta table the chats live in.
+    qc.invalidateQueries({ queryKey: ['chats'] })
+    qc.invalidateQueries({ queryKey: ['chat'] })
   }
 }
 
