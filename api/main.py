@@ -3,11 +3,12 @@
 
     uvicorn api.main:app --reload
 
-from the repo root, or use the root-level `npm run dev` / `start.py`, which
-runs this alongside the Vite dev server as the app's "one command" start.
+from the repo root — or, normally, `python start.py`, which builds the page
+if needed and serves it from this same process.
 """
 from __future__ import annotations
 
+from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI
@@ -19,7 +20,14 @@ import db
 from api import access_policy
 from api.routers import auth, bot, board, budgets, importer, ledgers, recurring, settings
 
-app = FastAPI(title="Loot Ledger API")
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    db.init_db()
+    access_policy.seed_demo_if_empty()
+    yield
+
+
+app = FastAPI(title="Loot Ledger API", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -28,12 +36,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-
-@app.on_event("startup")
-def _startup() -> None:
-    db.init_db()
-    access_policy.seed_demo_if_empty()
 
 
 app.include_router(auth.router)
