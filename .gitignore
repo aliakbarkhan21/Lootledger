@@ -37,3 +37,8 @@ venv/
 # Local tooling notes. Not part of the product and not for the public repo.
 CLAUDE.md
 .claude/
+
+# --- local files that are not part of the app ----------------------------
+# Windows folder settings, and personal documents kept beside the project.
+desktop.ini
+*.pdf
