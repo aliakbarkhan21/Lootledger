@@ -18,12 +18,13 @@ Outputs, all from the same source:
     frontend/public/icon-512.png          web app manifest
     frontend/public/icon-512-maskable.png manifest, purpose=maskable
     frontend/public/apple-touch-icon.png  iOS home screen, 180px
-    static/app-icon.ico                   the Windows shortcut
+    static/ledger-icon.ico                the Windows shortcut
 
-The shortcut's icon is `app-icon.ico`, not the `lootledger.ico` this used
-to write. Windows caches a shortcut's icon against the pair (file path,
-index) and will keep serving the bitmap it already has for that pair even
-after the file underneath changes — re-saving the shortcut, bouncing its
+The shortcut's icon is `ledger-icon.ico` (before it, `app-icon.ico` and
+`lootledger.ico`): each new mark gets a new file name. Windows caches a
+shortcut's icon against the pair (file path, index) and will keep serving
+the bitmap it already has for that pair even after the file underneath
+changes — re-saving the shortcut, bouncing its
 IconLocation off another file and back, and ie4uinit -show all failed to
 shift it. Writing to a path the shell has never seen has no cache entry to
 beat.
@@ -282,8 +283,8 @@ def main() -> int:
     maskable(img).save(PUBLIC / "icon-512-maskable.png", format="PNG", optimize=True)
     print("  wrote frontend/public/icon-512-maskable.png  (512x512, 80% safe zone)")
 
-    write_ico(img, STATIC / "app-icon.ico")
-    print(f"  wrote static/app-icon.ico  ({', '.join(str(s) for s in ICO_SIZES)})")
+    write_ico(img, STATIC / "ledger-icon.ico")
+    print(f"  wrote static/ledger-icon.ico  ({', '.join(str(s) for s in ICO_SIZES)})")
     return 0
 
 
