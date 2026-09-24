@@ -5,12 +5,13 @@ Streamlit's file_uploader used to do for free.
 """
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
+from fastapi import APIRouter, Body, Depends, File, HTTPException, UploadFile
 
 import db
 import demo
 import importer as importer_lib
 
+from api.deps import currency_context
 from api.import_store import UploadedBytes, drop, get, new_upload, set_df, set_ledger_rows
 from api.routers.auth import require_access
 
@@ -19,6 +20,30 @@ router = APIRouter(prefix="/api/import", tags=["import"], dependencies=[Depends(
 
 def _wrapped(entry: dict) -> UploadedBytes:
     return UploadedBytes(entry["name"], entry["data"])
+
+
+def _section_payload(rows: list, mapping: dict, problems: list) -> dict:
+    # preview() formats amounts with finance.money, so callers depend on
+    # currency_context to read the file in the board's display currency.
+    preview_df = importer_lib.preview(rows)
+    return {
+        "mapping": mapping, "problems": problems, "row_count": len(rows),
+        "total": float(sum(r["amount"] for r in rows)),
+        "preview": preview_df.to_dict("records") if not preview_df.empty else [],
+    }
+
+
+@router.get("/schemas")
+def schemas():
+    return {
+        "none_label": importer_lib.NONE_LABEL,
+        "upload_types": importer_lib.UPLOAD_TYPES,
+        "schemas": {
+            key: {"label": spec["label"],
+                  "fields": {f: {"required": bool(v["required"])} for f, v in spec["fields"].items()}}
+            for key, spec in importer_lib.SCHEMAS.items()
+        },
+    }
 
 
 @router.post("/upload")
@@ -46,7 +71,7 @@ def parse(upload_id: str, sheet: str | None = None):
 
 
 @router.post("/detect")
-def detect(upload_id: str, prefer: str | None = None):
+def detect(upload_id: str, prefer: str | None = None, currency=Depends(currency_context)):
     entry = get(upload_id)
     if not entry or entry["df"] is None:
         raise HTTPException(404, "Upload has not been parsed yet.")
@@ -54,12 +79,7 @@ def detect(upload_id: str, prefer: str | None = None):
     out = {}
     for ledger, section in sections.items():
         set_ledger_rows(upload_id, ledger, section["rows"], section["mapping"], section["problems"])
-        preview_df = importer_lib.preview(section["rows"])
-        out[ledger] = {
-            "mapping": section["mapping"], "problems": section["problems"],
-            "row_count": len(section["rows"]),
-            "preview": preview_df.to_dict("records") if not preview_df.empty else [],
-        }
+        out[ledger] = _section_payload(section["rows"], section["mapping"], section["problems"])
     return out
 
 
@@ -74,7 +94,8 @@ def suggest_mapping(upload_id: str, ledger: str):
 
 
 @router.post("/mapping")
-def apply_mapping(upload_id: str, ledger: str, mapping: dict[str, str]):
+def apply_mapping(upload_id: str, ledger: str, mapping: dict[str, str] = Body(...),
+                  currency=Depends(currency_context)):
     entry = get(upload_id)
     if not entry or entry["df"] is None:
         raise HTTPException(404, "Upload has not been parsed yet.")
@@ -82,11 +103,7 @@ def apply_mapping(upload_id: str, ledger: str, mapping: dict[str, str]):
         raise HTTPException(404, f"No such ledger schema: {ledger!r}")
     rows, problems = importer_lib.build_rows(entry["df"], ledger, mapping)
     set_ledger_rows(upload_id, ledger, rows, mapping, problems)
-    preview_df = importer_lib.preview(rows)
-    return {
-        "mapping": mapping, "problems": problems, "row_count": len(rows),
-        "preview": preview_df.to_dict("records") if not preview_df.empty else [],
-    }
+    return _section_payload(rows, mapping, problems)
 
 
 @router.post("/commit/{upload_id}/{ledger}")

@@ -38,7 +38,7 @@ export default function SpendingCalendar({
         <span className="cal-week-label" />
       </div>
       {weeks.map((week, wi) => {
-        const weekTotal = week.reduce((sum, d) => sum + (d ? calendar.daily_outflow[d - 1] || 0 : 0), 0)
+        const weekTotal = week.reduce<number>((sum, d) => sum + (d ? calendar.daily_outflow[d - 1] || 0 : 0), 0)
         return (
           <div className="cal-week" key={wi}>
             {week.map((d, di) => {

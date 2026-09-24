@@ -132,3 +132,20 @@ def people():
     from api.deps import get_frames
     frames = get_frames()
     return finance.people_ledger(frames)
+
+
+@router.get("/debts/{table}/{row_id}/remove-effect")
+def remove_effect(table: str, row_id: int):
+    """What deleting one debt row would do to cash on hand, quoted by the
+    confirm step before anything is removed. The figure comes from
+    finance.debt_cash_contribution so the warning and the model agree."""
+    if table not in ("lent", "borrowed"):
+        raise HTTPException(404, f"No such debt table: {table!r}")
+    rows = db.get_lent() if table == "lent" else db.get_borrowed()
+    row = next((r for r in rows if int(r["id"]) == row_id), None)
+    if row is None:
+        raise HTTPException(404, "No such row.")
+    effect = -finance.debt_cash_contribution(
+        table, float(row["amount"]), db.clean_kind(row.get("kind")),
+        int(row.get("paid_back") or 0) == 1)
+    return {"effect": effect}

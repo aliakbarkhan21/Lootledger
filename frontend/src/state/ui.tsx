@@ -15,6 +15,10 @@ interface UiState {
   setPaletteOpen: (v: boolean) => void
   search: string
   setSearch: (v: string) => void
+  /** Text handed to the Finance Bot composer by another panel (e.g. "Draft
+   * reminder" on a debt card); the drawer consumes and clears it. */
+  botDraft: string | null
+  setBotDraft: (v: string | null) => void
 }
 
 const Ctx = createContext<UiState | null>(null)
@@ -44,6 +48,7 @@ export function UiProvider({ children }: { children: ReactNode }) {
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [paletteOpen, setPaletteOpen] = useState(false)
   const [search, setSearch] = useState('')
+  const [botDraft, setBotDraft] = useState<string | null>(null)
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme)
@@ -74,8 +79,9 @@ export function UiProvider({ children }: { children: ReactNode }) {
     () => ({
       period, setPeriod, theme, toggleTheme, botOpen, setBotOpen,
       settingsOpen, setSettingsOpen, paletteOpen, setPaletteOpen, search, setSearch,
+      botDraft, setBotDraft,
     }),
-    [period, theme, toggleTheme, botOpen, settingsOpen, paletteOpen, search],
+    [period, theme, toggleTheme, botOpen, settingsOpen, paletteOpen, search, botDraft],
   )
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>

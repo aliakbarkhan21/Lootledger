@@ -13,6 +13,7 @@ import Obligations from './components/Obligations'
 import IncomeSource from './components/IncomeSource'
 import SpendingCalendar from './components/SpendingCalendar'
 import RunStrip from './components/RunStrip'
+import LedgersDebtsImport from './components/LedgersDebtsImport'
 import { useBoard, usePeriods } from './api/hooks'
 import { useUi } from './state/ui'
 
@@ -78,6 +79,13 @@ function BoardPage() {
 
       <div className="folio-heading">Last 12 Months</div>
       <RunStrip months={board.run_strip} currency={board.currency} />
+
+      <LedgersDebtsImport
+        arrivals={board.arrivals}
+        departures={board.departures}
+        currency={board.currency}
+        periodKey={board.period.key}
+      />
 
       <footer style={{ marginTop: 48, fontSize: '0.74rem', color: 'var(--ink-soft)', textAlign: 'center' }}>
         Built by{' '}
