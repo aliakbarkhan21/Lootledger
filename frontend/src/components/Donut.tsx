@@ -24,11 +24,11 @@ export default function Donut({
   const cy = size / 2
   const circumference = 2 * Math.PI * r
 
-  let offset = 0
-  const segments = values.map((v, i) => {
-    const frac = total > 0 ? v / total : 0
-    const dash = frac * circumference
-    const seg = (
+  const dashes = values.map((v) => (total > 0 ? v / total : 0) * circumference)
+  const starts = dashes.map((_, i) => dashes.slice(0, i).reduce((a, d) => a + d, 0))
+  const segments = values.map((_, i) => {
+    const dash = dashes[i]
+    return (
       <circle
         key={i}
         cx={cx}
@@ -38,12 +38,10 @@ export default function Donut({
         stroke={tinted ? tint(i, values.length) : colors?.[i] ?? 'var(--plat-other)'}
         strokeWidth={12}
         strokeDasharray={`${dash} ${circumference - dash}`}
-        strokeDashoffset={-offset}
+        strokeDashoffset={-starts[i]}
         transform={`rotate(-90 ${cx} ${cy})`}
       />
     )
-    offset += dash
-    return seg
   })
 
   return (
