@@ -5,8 +5,8 @@ This is the FastAPI-native port of access.py's *policy* — access.py's own
 identical, just read through secrets_reader instead of st.secrets. Its
 *rendering* half (the st.form password screen, st.login()/st.user OIDC) was
 Streamlit page code, not logic, and is replaced by routers/auth.py plus a
-React sign-in screen. access.py itself is left in place, untouched, until the
-Streamlit app is removed.
+React sign-in screen. access.py went with the Streamlit app; its history is in
+git.
 """
 from __future__ import annotations
 

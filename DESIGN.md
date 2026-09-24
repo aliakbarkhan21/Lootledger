@@ -159,6 +159,12 @@ components:
     padding: "16px"
 ---
 
+> **Superseded.** This records the Departure Board design as it shipped in the
+> Streamlit app. The React rebuild uses the **Ledger Journal** direction chosen from
+> `concepts/` (see `concepts/CONCEPTS.md`); its tokens live in
+> `frontend/src/styles/tokens.css` and its components in `frontend/src/components/`.
+
+
 # Design System: Loot Ledger
 
 ## Overview

@@ -1,12 +1,12 @@
-"""The access gate: open / password / (best-effort) oidc.
+"""The access gate: open / password, and what to do about an [auth] block.
 
 Full OIDC sign-in (Streamlit's st.login()/st.user, backed by an [auth] block
-in secrets.toml) is not reimplemented here — that is a framework-managed
-feature with no FastAPI equivalent to port, and building a new OAuth flow is
-out of scope for this rewrite. If [auth] is configured, this falls back to
-the password gate when LOOT_LEDGER_PASSWORD is also set, and to open
-otherwise — so an owner is never locked out of their own local app by a gate
-this API can't perform, but a real OIDC sign-in screen is a known gap.
+in secrets.toml) is not reimplemented — it was a framework-managed feature
+with no FastAPI equivalent to port. An [auth] block still means its owner
+wanted a gate, so it never falls open: with LOOT_LEDGER_PASSWORD also set the
+password gate applies, and without one the board stays locked and the page
+says which setting to add. The owner fixes that in their own secrets file,
+so nobody is locked out for good.
 """
 from __future__ import annotations
 
@@ -27,7 +27,7 @@ _SESSIONS: set[str] = set()
 def effective_mode() -> str:
     raw = access_policy.mode()
     if raw == "oidc":
-        return "password" if setting("LOOT_LEDGER_PASSWORD") else "open"
+        return "password" if setting("LOOT_LEDGER_PASSWORD") else "blocked"
     return raw
 
 

@@ -58,12 +58,11 @@ Two things a generic expense tracker does not do:
   used on a phone regularly. The board keeps its one-strip thesis and reflows through
   container queries rather than a separate mobile layout; the Finance Bot opens as a
   right-edge overlay drawer under 680px instead of stacking beneath the board.
-- Installable to a phone home screen: a web app manifest and iOS meta tags are injected
-  into `<head>` from `pwa.html`, so "Add to Home Screen" launches it standalone.
-- Runs two ways: locally via `streamlit run app.py`, and deployed on Streamlit Community
-  Cloud from the `main` branch of `aliakbarkhan21/savingdashboard`. **No base path** —
-  `server.baseUrlPath` was removed because Community Cloud does its own routing and the
-  mismatch broke frontend asset loading outright.
+- Installable to a phone home screen: `frontend/index.html` carries the web app manifest
+  and iOS meta tags, so "Add to Home Screen" launches it standalone.
+- Runs locally via `python start.py` (FastAPI serving the API and the built React page on
+  :8501). The Streamlit Community Cloud deployment of the `main` branch cannot run this
+  version; a sample-board deployment now needs a host that runs a Python web server.
 - Currency is Pakistani Rupees, displayed as `Rs.` with thousands separators and two
   decimals. Dates are entered and displayed as DD/MM/YYYY; stored as ISO `YYYY-MM-DD`.
 - Data is a local SQLite file (`tracker.db`), which is gitignored. **Local and deployed
@@ -81,22 +80,23 @@ Two things a generic expense tracker does not do:
   on an empty database. The real ledger never leaves the laptop. Phone access to the real
   figures is by tunnelling to the laptop instance, not by copying data to the cloud — and
   because a tunnel puts that instance on the internet, `LOOT_LEDGER_PASSWORD` (or a full
-  `[auth]` OIDC block) puts a gate in front of it. See `access.py`; the gate runs before
-  anything renders, so no record reaches the browser unauthenticated.
-- Typefaces are self-hosted from `static/fonts` (Barlow and Barlow Condensed, latin
-  subset). Previously fetched from Google Fonts at runtime; when that request was slow or
-  filtered the whole product silently fell back to Arial Narrow and looked like a cheap
-  imitation of itself.
+  `[auth]` OIDC block) puts a gate in front of it. See `api/access_policy.py` and
+  `api/routers/auth.py`; every API route checks the session, so no record reaches the
+  browser unauthenticated. The `[auth]` OIDC flow was Streamlit's `st.login()` and is not
+  reimplemented: with an `[auth]` block present the API uses the password gate if one is
+  set, and stays locked otherwise — it never falls open.
+- Typefaces are self-hosted from `frontend/public/fonts` (Spectral and Courier Prime).
+  Fetching them at runtime from Google Fonts was tried before; when that request was slow
+  or filtered the whole product silently fell back to system fonts.
 - The Gemini API key lives in `.streamlit/secrets.toml` as `GEMINI_API_KEY`. The bot
   degrades to an explicit warning when the key is absent.
 
 ## Capabilities and Constraints
 
-**Stack (fixed, confirmed):** Streamlit + SQLite + `google-genai`, with pandas, Pillow and
-openpyxl for the import path. Confirmed decision to stay in Streamlit rather than move to
-a custom frontend, accepting its design ceiling. Custom CSS injection and same-origin
-`st.iframe` scripts are established, working techniques in this codebase and remain
-available.
+**Stack:** FastAPI + SQLite + `google-genai`, with pandas, Pillow and openpyxl for the
+import path, and a React + TypeScript page (Vite) in `frontend/`. The move off Streamlit
+changed the UI layer only: `db.py`, `finance.py`, `bot.py`, `importer.py`, `rates.py` and
+`demo.py` are called unchanged through the `api/` package.
 
 **No charting library.** Plotly was listed here but is imported nowhere; every graphic is
 hand-drawn — the category donut is inline SVG generated in `theme.donut_svg`, and the
@@ -247,7 +247,7 @@ Two rules came out of it, and both are load-bearing:
 
 ## Evidence on Hand
 
-- Working code: `app.py`, `db.py`, `.streamlit/config.toml`, `.streamlit/secrets.toml`.
+- Working code: `api/`, `frontend/`, `db.py`, `finance.py`, `bot.py`, `.streamlit/secrets.toml`.
 - A live, working Gemini API key and confirmed access to `gemini-3.6-flash`, verified
   this session including end-to-end tool-calling.
 - `finance_data.csv` (83 bytes) — a near-empty stub, not real historical data.
@@ -280,6 +280,6 @@ Two rules came out of it, and both are load-bearing:
 ## Accessibility & Inclusion
 
 No user-specific accessibility requirement was established. Baseline still applies: text
-contrast must hold in both light and dark themes (Streamlit exposes both and the current
-code branches on theme), and color must never be the only carrier of meaning — over-budget,
+contrast must hold in both light and dark themes (the page has both, toggled by
+`data-theme`), and color must never be the only carrier of meaning — over-budget,
 on-track, receivable, and payable states each need a label or icon alongside their hue.

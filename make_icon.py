@@ -13,12 +13,12 @@ below for why Pillow's own writer is not used.
 
 Outputs, all from the same source:
 
-    static/favicon-64.png        the browser tab (st.set_page_config)
-    static/icon-192.png          web app manifest
-    static/icon-512.png          web app manifest, and the PWA <link rel=icon>
-    static/icon-512-maskable.png manifest, purpose=maskable
-    static/apple-touch-icon.png  iOS home screen, 180px
-    static/app-icon.ico          the Windows shortcut
+    frontend/public/favicon-64.png        the browser tab
+    frontend/public/icon-192.png          web app manifest
+    frontend/public/icon-512.png          web app manifest
+    frontend/public/icon-512-maskable.png manifest, purpose=maskable
+    frontend/public/apple-touch-icon.png  iOS home screen, 180px
+    static/app-icon.ico                   the Windows shortcut
 
 The shortcut's icon is `app-icon.ico`, not the `lootledger.ico` this used
 to write. Windows caches a shortcut's icon against the pair (file path,
@@ -61,7 +61,8 @@ from pathlib import Path
 from PIL import Image, ImageDraw
 
 HERE = Path(__file__).parent
-STATIC = HERE / "static"
+STATIC = HERE / "static"                    # the Windows shortcut's .ico
+PUBLIC = HERE / "frontend" / "public"       # everything the page serves
 
 # The manifest's background_color, so the maskable pad is invisible against the
 # ground the launcher composites it on.
@@ -267,18 +268,19 @@ def main() -> int:
     img = crop_and_round(img)
 
     STATIC.mkdir(exist_ok=True)
+    PUBLIC.mkdir(parents=True, exist_ok=True)
     for name, size in PNGS.items():
         # apple-touch-icon stays a full-bleed opaque square: iOS cuts its own
         # mask, and transparent corners there composite against black, which is
         # a different shape from the one iOS is about to apply.
         opaque = (name == "apple-touch-icon.png")
         made = on_ground(img, size) if opaque else resized(img, size)
-        made.save(STATIC / name, format="PNG", optimize=True)
+        made.save(PUBLIC / name, format="PNG", optimize=True)
         note = "  [opaque, iOS masks it]" if opaque else ""
-        print(f"  wrote static/{name}  ({size}x{size}){note}")
+        print(f"  wrote frontend/public/{name}  ({size}x{size}){note}")
 
-    maskable(img).save(STATIC / "icon-512-maskable.png", format="PNG", optimize=True)
-    print("  wrote static/icon-512-maskable.png  (512x512, 80% safe zone)")
+    maskable(img).save(PUBLIC / "icon-512-maskable.png", format="PNG", optimize=True)
+    print("  wrote frontend/public/icon-512-maskable.png  (512x512, 80% safe zone)")
 
     write_ico(img, STATIC / "app-icon.ico")
     print(f"  wrote static/app-icon.ico  ({', '.join(str(s) for s in ICO_SIZES)})")

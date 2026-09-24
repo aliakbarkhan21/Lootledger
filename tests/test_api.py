@@ -171,3 +171,16 @@ def test_setup_notices_name_what_the_board_has_not_been_told(client):
     client.post("/api/settings/opening-balance", json={"value": 0})
     client.post("/api/budgets", json={"category": "Food", "monthly_cap": 100})
     assert _board(client)["banners"]["setup_gaps"] == []
+
+
+def test_an_auth_block_never_falls_open(client, monkeypatch):
+    from api import secrets_reader
+    monkeypatch.setattr(secrets_reader, "_load", lambda: {"auth": {"redirect_uri": "x"}})
+    assert client.get("/api/auth/status").json()["mode"] == "blocked"
+    assert client.get("/api/board").status_code == 401
+    monkeypatch.setattr(secrets_reader, "_load",
+                        lambda: {"auth": {"redirect_uri": "x"}, "LOOT_LEDGER_PASSWORD": "pw"})
+    assert client.get("/api/board").status_code == 401
+    assert client.post("/api/auth/login", json={"password": "nope"}).status_code == 401
+    assert client.post("/api/auth/login", json={"password": "pw"}).status_code == 200
+    assert client.get(f"/api/board?period={PERIOD}").status_code == 200

@@ -197,7 +197,7 @@ export interface Chat {
 }
 
 export interface AuthStatus {
-  mode: 'open' | 'password'
+  mode: 'open' | 'password' | 'blocked'
   raw_mode: 'open' | 'password' | 'oidc'
   unlocked: boolean
   demo: boolean

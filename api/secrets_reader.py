@@ -1,7 +1,7 @@
-"""Reads .streamlit/secrets.toml the same way Streamlit's st.secrets does, so
-GEMINI_API_KEY / LOOT_LEDGER_PASSWORD / LOOT_LEDGER_DEMO keep working from the
-same file for whichever of the old Streamlit app or this API happens to be
-running. Precedence matches access.setting(): secrets file first, then the
+"""Reads .streamlit/secrets.toml the way Streamlit's st.secrets did, so the
+GEMINI_API_KEY / LOOT_LEDGER_PASSWORD / LOOT_LEDGER_DEMO an existing install
+already has keep working from the same file after the move off Streamlit.
+Precedence is the old access.setting()'s: secrets file first, then the
 environment.
 """
 from __future__ import annotations
