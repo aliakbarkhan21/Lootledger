@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Loot Ledger — Concept 1: Terminal Board</title>
+<link rel="stylesheet" href="fonts/oswald.css">
+<link rel="stylesheet" href="fonts/space-mono.css">
+<style>
+  :root{
+    --void:#050705;
+    --panel:#0b100c;
+    --panel-2:#0f150f;
+    --amber:#ffb300;
+    --amber-dim:#7a5900;
+    --green:#39ff6a;
+    --green-dim:#0f5c26;
+    --ink:#c9d6c9;
+    --ink-dim:#5e6f5e;
+    --danger:#ff5c4d;
+    --line:#1c2a1c;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:var(--void);color:var(--ink);font-family:'Space Mono',monospace;}
+  body{
+    padding:40px;
+    min-height:100vh;
+    background:
+      radial-gradient(ellipse at 50% -10%, rgba(57,255,106,0.05), transparent 60%),
+      repeating-linear-gradient(0deg, rgba(0,0,0,0.35) 0px, rgba(0,0,0,0.35) 1px, transparent 1px, transparent 3px),
+      var(--void);
+  }
+  .wrap{max-width:1280px;margin:0 auto;}
+
+  /* Masthead */
+  .masthead{
+    display:flex;align-items:baseline;justify-content:space-between;
+    border-bottom:2px solid var(--amber-dim);
+    padding-bottom:18px;margin-bottom:28px;
+  }
+  .wordmark{
+    font-family:'Oswald',sans-serif;
+    font-weight:700;
+    font-size:2.4rem;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:var(--amber);
+    text-shadow:0 0 14px rgba(255,179,0,0.45);
+  }
+  .wordmark::before{content:"● ";color:var(--green);text-shadow:0 0 8px var(--green);}
+  .subline{
+    font-family:'Oswald',sans-serif;
+    font-size:0.82rem;
+    letter-spacing:0.2em;
+    text-transform:uppercase;
+    color:var(--ink-dim);
+  }
+  .clock{font-family:'Space Mono',monospace;color:var(--green);font-size:0.95rem;letter-spacing:0.05em;}
+  .clock .blink{animation:blink 1s steps(1) infinite;}
+  @keyframes blink{50%{opacity:0;}}
+
+  /* Split-flap summary strip */
+  .flap-strip{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:16px;
+    margin-bottom:32px;
+  }
+  .flap-card{
+    background:linear-gradient(180deg,var(--panel-2),var(--panel));
+    border:1px solid var(--line);
+    padding:16px 18px 18px;
+    position:relative;
+  }
+  .flap-card .label{
+    font-family:'Oswald',sans-serif;
+    font-size:0.72rem;
+    letter-spacing:0.18em;
+    text-transform:uppercase;
+    color:var(--ink-dim);
+    margin-bottom:10px;
+  }
+  .flap-figures{display:flex;gap:4px;}
+  .flap{
+    width:100%;
+    background:#000;
+    border:1px solid #1c1c1c;
+    border-radius:2px;
+    padding:10px 0;
+    text-align:center;
+    font-family:'Space Mono',monospace;
+    font-weight:700;
+    font-size:1.6rem;
+    color:var(--amber);
+    text-shadow:0 0 10px rgba(255,179,0,0.55);
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,0.03), 0 3px 6px rgba(0,0,0,0.6);
+    position:relative;
+    overflow:hidden;
+  }
+  .flap::after{
+    content:"";
+    position:absolute;left:0;right:0;top:50%;
+    height:1px;background:rgba(0,0,0,0.75);
+  }
+  .flap.green{color:var(--green);text-shadow:0 0 10px rgba(57,255,106,0.55);}
+  .flap-card.total .flap{font-size:1.15rem;padding:10px 2px;}
+  .flap-card .delta{
+    margin-top:10px;font-size:0.78rem;color:var(--green);
+  }
+  .flap-card .delta.down{color:var(--danger);}
+
+  /* Board panel: arrivals / departures */
+  .board{
+    background:var(--panel);
+    border:1px solid var(--line);
+    box-shadow:0 20px 50px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.03);
+  }
+  .board-head{
+    display:grid;grid-template-columns:110px 1fr 160px 140px;
+    padding:14px 22px;
+    font-family:'Oswald',sans-serif;
+    font-size:0.72rem;
+    letter-spacing:0.18em;
+    text-transform:uppercase;
+    color:var(--ink-dim);
+    border-bottom:1px solid var(--line);
+  }
+  .row{
+    display:grid;grid-template-columns:110px 1fr 160px 140px;
+    padding:13px 22px;
+    align-items:center;
+    border-bottom:1px solid var(--line);
+    font-size:0.92rem;
+    transition:background 120ms;
+  }
+  .row:hover{background:rgba(255,179,0,0.05);}
+  .row .date{color:var(--ink-dim);}
+  .row .desc{color:var(--ink);}
+  .row .cat{
+    font-family:'Oswald',sans-serif;
+    font-size:0.68rem;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    color:var(--ink-dim);
+    border:1px solid var(--line);
+    padding:3px 8px;
+    display:inline-block;
+    width:fit-content;
+  }
+  .row .amt{text-align:right;font-weight:700;}
+  .row .amt.in{color:var(--green);text-shadow:0 0 8px rgba(57,255,106,0.35);}
+  .row .amt.out{color:var(--amber);text-shadow:0 0 8px rgba(255,179,0,0.3);}
+
+  .board-foot{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:14px 22px;
+    font-family:'Oswald',sans-serif;
+    font-size:0.72rem;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--ink-dim);
+  }
+  .board-foot .status{color:var(--green);}
+  .board-foot .status::before{content:"▮ ";}
+
+  .scanline-note{
+    position:fixed;inset:0;pointer-events:none;
+    background:repeating-linear-gradient(0deg, rgba(255,255,255,0.015) 0px, transparent 1px, transparent 2px);
+    mix-blend-mode:overlay;
+  }
+</style>
+</head>
+<body>
+<div class="scanline-note"></div>
+<div class="wrap">
+  <div class="masthead">
+    <div>
+      <div class="wordmark">Loot Ledger</div>
+      <div class="subline">Concourse Ledger — All Accounts</div>
+    </div>
+    <div class="clock">24 SEP 2026 · 21:04<span class="blink">_</span></div>
+  </div>
+
+  <div class="flap-strip">
+    <div class="flap-card">
+      <div class="label">Opening Balance</div>
+      <div class="flap-figures">
+        <div class="flap">4</div><div class="flap">3</div><div class="flap">8</div><div class="flap">0</div>
+      </div>
+    </div>
+    <div class="flap-card">
+      <div class="label">Arrivals — In</div>
+      <div class="flap-figures">
+        <div class="flap green">5</div><div class="flap green">3</div><div class="flap green">2</div><div class="flap green">2</div>
+      </div>
+      <div class="delta">▲ 17.2% vs Aug</div>
+    </div>
+    <div class="flap-card">
+      <div class="label">Departures — Out</div>
+      <div class="flap-figures">
+        <div class="flap">2</div><div class="flap">0</div><div class="flap">7</div><div class="flap">9</div>
+      </div>
+      <div class="delta down">▼ 4.1% vs Aug</div>
+    </div>
+    <div class="flap-card total">
+      <div class="label">On the Board</div>
+      <div class="flap-figures">
+        <div class="flap green">7</div><div class="flap green">6</div><div class="flap green">2</div><div class="flap green">2</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="board">
+    <div class="board-head">
+      <div>Date</div><div>Description</div><div>Category</div><div style="text-align:right;">Amount</div>
+    </div>
+    <div id="rows"></div>
+    <div class="board-foot">
+      <div class="status">On Time — Budget Tracking Within Range</div>
+      <div>15 Entries · September 2026</div>
+    </div>
+  </div>
+</div>
+
+<script src="data.js"></script>
+<script>
+  const rows = document.getElementById('rows');
+  SAMPLE_TRANSACTIONS.forEach(t => {
+    const row = document.createElement('div');
+    row.className = 'row';
+    const amtClass = t.dir === 'in' ? 'in' : 'out';
+    const sign = t.dir === 'in' ? '+' : '−';
+    row.innerHTML = `
+      <div class="date">${t.date.slice(5)}</div>
+      <div class="desc">${t.desc}</div>
+      <div><span class="cat">${t.category}</span></div>
+      <div class="amt ${amtClass}">${sign}$${Math.abs(t.amount).toFixed(2)}</div>
+    `;
+    rows.appendChild(row);
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Loot Ledger — Concept 2: Ledger Journal</title>
+<link rel="stylesheet" href="fonts/spectral.css">
+<link rel="stylesheet" href="fonts/courier-prime.css">
+<style>
+  :root{
+    --paper:#e9efe0;
+    --paper-2:#e2e9d6;
+    --rule-green:#7f9a72;
+    --rule-red:#b5493d;
+    --ink:#243522;
+    --ink-soft:#4c5d46;
+    --gold:#9c7a2e;
+    --shadow:rgba(36,53,34,0.18);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:#c9cdb8;font-family:'Courier Prime',monospace;color:var(--ink);}
+  body{padding:48px 24px;min-height:100vh;}
+  .book{
+    max-width:1180px;margin:0 auto;
+    background:var(--paper);
+    box-shadow:0 30px 60px var(--shadow), 0 2px 0 rgba(255,255,255,0.4) inset;
+    position:relative;
+    border:1px solid #cfd7bf;
+  }
+  .spine{
+    position:absolute;left:0;top:0;bottom:0;width:56px;
+    background:linear-gradient(90deg,#5c6e50,#748a67);
+    box-shadow:inset -4px 0 10px rgba(0,0,0,0.25);
+  }
+  .tabs{position:absolute;left:56px;top:60px;display:flex;flex-direction:column;gap:14px;}
+  .tab{
+    writing-mode:vertical-rl;
+    transform:rotate(180deg);
+    background:var(--gold);
+    color:#2b2007;
+    font-family:'Spectral',serif;
+    font-weight:600;
+    font-size:0.72rem;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    padding:10px 6px;
+    border-radius:0 4px 4px 0;
+  }
+  .tab.active{background:var(--rule-red);color:#f6e9df;}
+
+  .page{margin-left:56px;padding:52px 56px 60px;position:relative;}
+  .page::before{
+    content:"";position:absolute;left:104px;top:0;bottom:0;width:1px;
+    background:var(--rule-red);opacity:0.55;
+  }
+
+  .masthead{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:6px;}
+  .wordmark{
+    font-family:'Spectral',serif;font-weight:700;font-style:italic;
+    font-size:2.3rem;color:var(--ink);
+  }
+  .folio{font-family:'Spectral',serif;font-size:0.85rem;color:var(--ink-soft);text-align:right;}
+  .folio .no{display:block;font-size:1.1rem;color:var(--gold);}
+
+  .ledger-line{
+    border:none;border-top:1px solid var(--rule-green);margin:18px 0 26px;
+  }
+
+  .summary{
+    display:grid;grid-template-columns:repeat(4,1fr);gap:0;
+    margin-bottom:34px;
+    border-top:2px solid var(--ink);border-bottom:2px solid var(--ink);
+  }
+  .summary div{padding:14px 18px;border-right:1px solid var(--rule-green);}
+  .summary div:last-child{border-right:none;}
+  .summary .k{font-family:'Spectral',serif;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.12em;color:var(--ink-soft);margin-bottom:6px;}
+  .summary .v{font-size:1.15rem;font-weight:700;}
+  .summary .v.credit{color:#2f6b3f;}
+  .summary .v.debit{color:var(--rule-red);}
+
+  table{width:100%;border-collapse:collapse;}
+  thead th{
+    text-align:left;
+    font-family:'Spectral',serif;
+    font-weight:600;
+    font-size:0.78rem;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    padding-bottom:10px;
+    border-bottom:1.5px solid var(--ink);
+  }
+  thead th.num{text-align:right;}
+  tbody tr td{
+    padding:10px 6px;
+    border-bottom:1px dashed var(--rule-green);
+    font-size:0.92rem;
+    vertical-align:baseline;
+  }
+  tbody tr:hover{background:var(--paper-2);}
+  td.date{color:var(--ink-soft);font-size:0.85rem;white-space:nowrap;}
+  td.entry-no{color:var(--gold);font-size:0.8rem;}
+  td.desc{font-family:'Spectral',serif;font-style:italic;color:var(--ink);}
+  td.cat{font-size:0.78rem;color:var(--ink-soft);}
+  td.amt{text-align:right;font-weight:700;white-space:nowrap;}
+  td.amt.credit{color:#2f6b3f;}
+  td.amt.debit{color:var(--rule-red);}
+
+  .page-foot{
+    margin-top:30px;display:flex;justify-content:space-between;
+    font-family:'Spectral',serif;font-size:0.78rem;color:var(--ink-soft);
+    border-top:1px solid var(--rule-green);padding-top:14px;
+  }
+  .stamp{
+    display:inline-block;border:2px solid var(--rule-red);color:var(--rule-red);
+    padding:2px 8px;transform:rotate(-4deg);font-family:'Spectral',serif;
+    font-weight:700;letter-spacing:0.08em;text-transform:uppercase;font-size:0.7rem;
+  }
+</style>
+</head>
+<body>
+<div class="book">
+  <div class="spine"></div>
+  <div class="tabs">
+    <div class="tab active">Sept</div>
+    <div class="tab">Budgets</div>
+    <div class="tab">Assistant</div>
+  </div>
+  <div class="page">
+    <div class="masthead">
+      <div class="wordmark">Loot Ledger</div>
+      <div class="folio">Journal Folio<span class="no">No. 09 — 2026</span></div>
+    </div>
+    <hr class="ledger-line">
+
+    <div class="summary">
+      <div><div class="k">Brought Forward</div><div class="v">$4,380.12</div></div>
+      <div><div class="k">Total Credits</div><div class="v credit">$5,322.14</div></div>
+      <div><div class="k">Total Debits</div><div class="v debit">$2,079.93</div></div>
+      <div><div class="k">Carried Forward</div><div class="v">$7,622.33</div></div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Entry</th><th>Date</th><th>Particulars</th><th>Account</th>
+          <th class="num">Debit</th><th class="num">Credit</th>
+        </tr>
+      </thead>
+      <tbody id="rows"></tbody>
+    </table>
+
+    <div class="page-foot">
+      <div>15 entries recorded this folio</div>
+      <div class="stamp">Balanced</div>
+    </div>
+  </div>
+</div>
+
+<script src="data.js"></script>
+<script>
+  const rows = document.getElementById('rows');
+  SAMPLE_TRANSACTIONS.forEach((t, i) => {
+    const tr = document.createElement('tr');
+    const entryNo = String(i + 1).padStart(3, '0');
+    const debit = t.dir === 'out' ? `$${Math.abs(t.amount).toFixed(2)}` : '';
+    const credit = t.dir === 'in' ? `$${Math.abs(t.amount).toFixed(2)}` : '';
+    tr.innerHTML = `
+      <td class="entry-no">${entryNo}</td>
+      <td class="date">${t.date.slice(5).replace('-', '/')}</td>
+      <td class="desc">${t.desc}</td>
+      <td class="cat">${t.category}</td>
+      <td class="amt debit">${debit}</td>
+      <td class="amt credit">${credit}</td>
+    `;
+    rows.appendChild(tr);
+  });
+</script>
+</body>
+</html>

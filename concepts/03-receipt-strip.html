@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Loot Ledger — Concept 3: Receipt Strip</title>
+<link rel="stylesheet" href="fonts/barlow-condensed.css">
+<link rel="stylesheet" href="fonts/cutive-mono.css">
+<style>
+  :root{
+    --backdrop:#1a1c22;
+    --paper:#f6f5ef;
+    --paper-shadow:#d8d6c8;
+    --ink:#232323;
+    --ink-soft:#6b6a63;
+    --accent:#c0392b;
+    --accent-2:#2f6b4f;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:var(--backdrop);color:var(--ink);}
+  body{
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    padding:56px 20px;
+    font-family:'Barlow Condensed',sans-serif;
+    background-image:radial-gradient(circle at 50% 0%, rgba(255,255,255,0.05), transparent 55%);
+  }
+  .desk-note{
+    position:fixed;top:24px;left:24px;
+    font-family:'Barlow Condensed',sans-serif;
+    font-size:0.75rem;letter-spacing:0.16em;text-transform:uppercase;
+    color:#6b7280;
+  }
+
+  .strip-wrap{width:420px;position:relative;}
+  .strip{
+    background:var(--paper);
+    box-shadow:0 30px 60px rgba(0,0,0,0.45);
+    padding:28px 26px 20px;
+    position:relative;
+  }
+  /* torn perforated edges */
+  .strip::before, .strip::after{
+    content:"";
+    position:absolute;left:0;right:0;height:14px;
+    background-image:radial-gradient(circle, var(--backdrop) 6px, transparent 7px);
+    background-size:20px 20px;
+    background-position:-4px center;
+  }
+  .strip::before{top:-7px;}
+  .strip::after{bottom:-7px;}
+
+  .brand{text-align:center;margin-bottom:4px;}
+  .brand .name{
+    font-family:'Cutive Mono',monospace;
+    font-size:1.5rem;letter-spacing:0.14em;text-transform:uppercase;
+  }
+  .brand .tag{
+    font-size:0.78rem;letter-spacing:0.22em;text-transform:uppercase;color:var(--ink-soft);
+    margin-top:2px;
+  }
+
+  .rule{border:none;border-top:1px dashed #b9b7a8;margin:14px 0;}
+  .rule.thick{border-top:2px solid var(--ink);}
+
+  .meta{
+    display:flex;justify-content:space-between;
+    font-size:0.85rem;color:var(--ink-soft);
+    margin-bottom:4px;
+  }
+
+  .totals{margin:14px 0 6px;}
+  .totals .line{display:flex;justify-content:space-between;font-size:0.95rem;padding:3px 0;}
+  .totals .line.grand{
+    font-family:'Cutive Mono',monospace;font-size:1.15rem;
+    border-top:1px solid var(--ink);margin-top:8px;padding-top:10px;
+  }
+  .totals .line .v.in{color:var(--accent-2);}
+  .totals .line .v.out{color:var(--accent);}
+
+  .items{margin-top:8px;}
+  .item{padding:8px 0;border-bottom:1px dotted #c7c5b6;}
+  .item-row{display:flex;justify-content:space-between;align-items:baseline;}
+  .item .desc{font-size:1.02rem;}
+  .item .cat{
+    font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink-soft);
+  }
+  .item .amt{font-family:'Cutive Mono',monospace;font-size:0.98rem;}
+  .item .amt.in{color:var(--accent-2);}
+  .item .amt.out{color:var(--accent);}
+  .item .date{font-size:0.72rem;color:var(--ink-soft);}
+
+  .barcode{
+    margin:20px auto 4px;height:46px;width:80%;
+    background:repeating-linear-gradient(90deg, var(--ink) 0px, var(--ink) 2px, transparent 2px, transparent 5px, var(--ink) 5px, var(--ink) 6px, transparent 6px, transparent 9px);
+  }
+  .barcode-label{
+    text-align:center;font-family:'Cutive Mono',monospace;font-size:0.72rem;
+    letter-spacing:0.3em;color:var(--ink-soft);margin-bottom:8px;
+  }
+  .thankyou{
+    text-align:center;font-size:0.82rem;color:var(--ink-soft);
+    letter-spacing:0.08em;text-transform:uppercase;margin-top:2px;
+  }
+</style>
+</head>
+<body>
+<div class="desk-note">Statement Strip — September 2026</div>
+<div class="strip-wrap">
+  <div class="strip">
+    <div class="brand">
+      <div class="name">Loot Ledger</div>
+      <div class="tag">Personal Account Statement</div>
+    </div>
+    <hr class="rule thick">
+    <div class="meta"><span>Period</span><span>Sep 01 – Sep 24, 2026</span></div>
+    <div class="meta"><span>Opening Bal.</span><span>$4,380.12</span></div>
+    <hr class="rule">
+
+    <div class="items" id="rows"></div>
+
+    <div class="totals">
+      <div class="line"><span>Total In</span><span class="v in">+$5,322.14</span></div>
+      <div class="line"><span>Total Out</span><span class="v out">−$2,079.93</span></div>
+      <div class="line grand"><span>Balance</span><span>$7,622.33</span></div>
+    </div>
+
+    <div class="barcode"></div>
+    <div class="barcode-label">* 15 ENTRIES * SEP 2026 *</div>
+    <div class="thankyou">Keep this strip for your records</div>
+  </div>
+</div>
+
+<script src="data.js"></script>
+<script>
+  const rows = document.getElementById('rows');
+  SAMPLE_TRANSACTIONS.forEach(t => {
+    const div = document.createElement('div');
+    div.className = 'item';
+    const amtClass = t.dir === 'in' ? 'in' : 'out';
+    const sign = t.dir === 'in' ? '+' : '−';
+    div.innerHTML = `
+      <div class="item-row">
+        <span class="desc">${t.desc}</span>
+        <span class="amt ${amtClass}">${sign}$${Math.abs(t.amount).toFixed(2)}</span>
+      </div>
+      <div class="item-row">
+        <span class="cat">${t.category}</span>
+        <span class="date">${t.date}</span>
+      </div>
+    `;
+    rows.appendChild(div);
+  });
+</script>
+</body>
+</html>
