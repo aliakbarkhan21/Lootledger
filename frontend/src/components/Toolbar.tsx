@@ -11,7 +11,7 @@ export default function Toolbar({
   totalRows: number
   currency: Currency
 }) {
-  const { period, setPeriod, theme, toggleTheme, botOpen, setBotOpen, setSettingsOpen, search, setSearch } = useUi()
+  const { period, setPeriod, theme, toggleTheme, botOpen, setBotOpen, setSettingsOpen, setPaletteOpen, search, setSearch } = useUi()
   const seedDemo = useSeedDemo()
 
   return (
@@ -38,6 +38,9 @@ export default function Toolbar({
           {seedDemo.isPending ? 'Loading…' : 'Load sample data'}
         </button>
       )}
+      <button className="kbd-btn" title="Command palette (Ctrl/Cmd+K)" onClick={() => setPaletteOpen(true)}>
+        Ctrl K
+      </button>
       <button className="icon-btn" title="Toggle theme" onClick={toggleTheme}>
         {theme === 'light' ? '☾' : '☀'}
       </button>

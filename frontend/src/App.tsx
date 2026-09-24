@@ -16,6 +16,7 @@ import RunStrip from './components/RunStrip'
 import LedgersDebtsImport from './components/LedgersDebtsImport'
 import SettingsDialog from './components/SettingsDialog'
 import FinanceBot from './components/FinanceBot'
+import CommandPalette from './components/CommandPalette'
 import { useBoard, usePeriods } from './api/hooks'
 import { useUi } from './state/ui'
 
@@ -89,6 +90,7 @@ function BoardPage() {
         periodKey={board.period.key}
       />
 
+      <CommandPalette months={periods.months} currency={board.currency} periodLabel={board.period.label} />
       <FinanceBot periodKey={board.period.is_all_time ? 'all' : board.period.key} periodLabel={board.period.label} />
 
       <footer style={{ marginTop: 48, fontSize: '0.74rem', color: 'var(--ink-soft)', textAlign: 'center' }}>
