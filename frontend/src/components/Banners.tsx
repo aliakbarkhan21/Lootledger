@@ -22,7 +22,8 @@ export default function Banners({ banners, currency }: { banners: BannersType; c
     }
   }, [banners.digest.needs_generation, generateDigest])
 
-  const showHint = !banners.setup_hint_hidden && (!banners.opening_balance_set || !banners.budgets_set)
+  const gaps = banners.setup_gaps
+  const showHint = gaps.length > 0
   const digest = banners.digest.text
   const due = banners.recurring_due
   const dueTotal = due.reduce((sum, r) => sum + r.amount, 0)
@@ -33,17 +34,22 @@ export default function Banners({ banners, currency }: { banners: BannersType; c
     <div className="banners">
       {banners.demo_active && (
         <div className="banner demo">
-          <span>This board is showing generated sample data, not your real records.</span>
+          <span>
+            <strong>Sample data</strong> — these figures are generated for demonstration, not real records.
+            Clear them from Settings.
+          </span>
         </div>
       )}
       {showHint && (
         <div className="banner warn">
-          <span>
-            Settings would change what the board reports —{' '}
-            {!banners.opening_balance_set && 'opening balance is unset'}
-            {!banners.opening_balance_set && !banners.budgets_set && ', '}
-            {!banners.budgets_set && 'no category budgets set'}.
-          </span>
+          <div className="setup-body">
+            <div className="banner-title">
+              {gaps.length > 1 ? 'Two settings' : 'One setting'} would change what the board reports
+            </div>
+            {gaps.map((g) => (
+              <p className="setup-item" key={g.title}><b>{g.title}</b> {g.body}</p>
+            ))}
+          </div>
           <div className="banner-actions">
             <button onClick={() => setSettingsOpen(true)}>Open Settings</button>
             <button onClick={() => dismissHint.mutate()}>Not now</button>

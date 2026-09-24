@@ -101,6 +101,7 @@ export interface Banners {
   budgets_set: boolean
   digest: { label: string; text: string | null; needs_generation: boolean }
   recurring_due: RecurringItem[]
+  setup_gaps: { title: string; body: string }[]
 }
 
 export interface BoardResponse {

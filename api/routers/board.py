@@ -184,10 +184,46 @@ def board(period: str | None = Query(default=None), ctx=Depends(board_context)):
             "opening_balance_set": db.get_meta("opening_balance") is not None,
             "budgets_set": bool(db.get_budgets()),
             "digest": _digest(series),
+            "setup_gaps": _setup_gaps(frames, snap),
             "recurring_due": _due_recurring(),
         },
         "counts": counts,
     }
+
+
+def _setup_gaps(frames, snap) -> list[dict]:
+    """The settings this board is running without, in app.py's own words. An
+    unset opening balance does not read as "unset", it reads as "you have
+    less money than you do", so the board says what it has not been told.
+    Each notice clears itself once the setting is filled."""
+    if (frames.total_rows == 0 or demo.is_active()
+            or db.get_meta("setup_hint_hidden") == "1"):
+        return []
+    gaps = []
+    if not (db.get_meta("opening_balance") or "").strip():
+        # An income row named like a carried balance is the workaround people
+        # reach for when this setting is missing, and it does real damage.
+        carried = [
+            str(r["source"]) for r in frames.income.to_dict("records")
+            if any(w in str(r.get("source", "")).lower()
+                   for w in ("carry forward", "carried", "brought forward",
+                             "b/f", "opening balance"))
+        ]
+        body = ("The board opens its first month at zero, so cash on hand reads "
+                "lower than it is and every month after inherits the same shortfall.")
+        if carried:
+            body += (f" There is already an income row called “{carried[0]}” "
+                     "doing that job — banked as income it inflates that month’s "
+                     "arrivals and savings rate instead of seeding the months that follow.")
+        gaps.append({"title": "Opening balance is not set", "body": body})
+    if not db.get_budgets() and snap.by_category is not None and not snap.by_category.empty:
+        gaps.append({
+            "title": "No category budgets",
+            "body": ("Platform load draws a cap bar under any category that has one, and "
+                     "the status lamp reads the same 70% and 90% thresholds. Without a "
+                     "single cap set, both are running on the overall figure alone."),
+        })
+    return gaps
 
 
 def _digest(series) -> dict:

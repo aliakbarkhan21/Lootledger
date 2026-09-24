@@ -160,3 +160,14 @@ def test_bot_without_a_key_streams_the_notice_and_stores_the_turn(client):
     assert events[-1]["type"] == "done"
     chat = client.get("/api/bot/chats/1").json()
     assert [m["role"] for m in chat["messages"]] == ["user", "assistant"]
+
+
+def test_setup_notices_name_what_the_board_has_not_been_told(client):
+    client.post("/api/income", json={"date": DAY, "source": "Carried forward", "amount": 900})
+    client.post("/api/expenses", json={"date": DAY, "description": "Tea", "category": "Food", "amount": 50})
+    gaps = _board(client)["banners"]["setup_gaps"]
+    assert [g["title"] for g in gaps] == ["Opening balance is not set", "No category budgets"]
+    assert "“Carried forward”" in gaps[0]["body"]
+    client.post("/api/settings/opening-balance", json={"value": 0})
+    client.post("/api/budgets", json={"category": "Food", "monthly_cap": 100})
+    assert _board(client)["banners"]["setup_gaps"] == []
