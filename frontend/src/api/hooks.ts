@@ -270,42 +270,43 @@ export function useDismissDigest() {
 
 // ---------------------------------------------------------------- chat CRUD (non-streaming)
 
-export function useCreateChat() {
+function useInvalidateChats() {
   const qc = useQueryClient()
-  return useMutation({
-    mutationFn: (title?: string) => api.post<Chat>('/bot/chats', { title }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['chats'] }),
-  })
+  return () => {
+    qc.invalidateQueries({ queryKey: ['chats'] })
+    qc.invalidateQueries({ queryKey: ['chat'] })
+  }
+}
+
+export function useCreateChat() {
+  const invalidate = useInvalidateChats()
+  return useMutation({ mutationFn: () => api.post<Chat>('/bot/chats'), onSuccess: invalidate })
 }
 
 export function useActivateChat() {
-  const qc = useQueryClient()
-  return useMutation({
-    mutationFn: (id: string) => api.post(`/bot/chats/${id}/activate`),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['chats'] }),
-  })
+  const invalidate = useInvalidateChats()
+  return useMutation({ mutationFn: (id: string) => api.post(`/bot/chats/${id}/activate`), onSuccess: invalidate })
 }
 
 export function useRenameChat() {
-  const qc = useQueryClient()
+  const invalidate = useInvalidateChats()
   return useMutation({
     mutationFn: (p: { id: string; title: string }) => api.patch(`/bot/chats/${p.id}`, { title: p.title }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['chats'] }),
+    onSuccess: invalidate,
   })
 }
 
 export function useDeleteChat() {
-  const qc = useQueryClient()
-  return useMutation({
-    mutationFn: (id: string) => api.del(`/bot/chats/${id}`),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['chats'] }),
-  })
+  const invalidate = useInvalidateChats()
+  return useMutation({ mutationFn: (id: string) => api.del(`/bot/chats/${id}`), onSuccess: invalidate })
 }
 
 export function useClearChat() {
-  const qc = useQueryClient()
-  return useMutation({
-    mutationFn: (id: string) => api.post(`/bot/chats/${id}/clear`),
-    onSuccess: (_d, id) => qc.invalidateQueries({ queryKey: ['chat', id] }),
-  })
+  const invalidate = useInvalidateChats()
+  return useMutation({ mutationFn: (id: string) => api.post(`/bot/chats/${id}/clear`), onSuccess: invalidate })
+}
+
+export function useGenerateDigest() {
+  const invalidate = useInvalidateBoard()
+  return useMutation({ mutationFn: () => api.post('/bot/digest/generate'), onSuccess: invalidate, onError: invalidate })
 }

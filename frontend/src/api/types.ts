@@ -93,7 +93,7 @@ export interface Banners {
   setup_hint_hidden: boolean
   opening_balance_set: boolean
   budgets_set: boolean
-  digest: { period: string | null; text: string | null; dismissed_for: string | null }
+  digest: { label: string; text: string | null; needs_generation: boolean }
   recurring_due: RecurringItem[]
 }
 
@@ -175,21 +175,18 @@ export interface BackupInfo {
 export interface ChatSummary {
   id: string
   title: string
-  updated: number
   message_count: number
 }
 
 export interface ChatMessage {
   role: 'user' | 'assistant'
   content: string
-  attachment_text?: string
 }
 
 export interface Chat {
   id: string
   title: string
   messages: ChatMessage[]
-  updated: number
 }
 
 export interface AuthStatus {

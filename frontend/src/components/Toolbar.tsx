@@ -1,13 +1,15 @@
-import type { PeriodOption } from '../api/types'
+import type { Currency, PeriodOption } from '../api/types'
+import { formatMoneyCompact } from '../lib/money'
 import { useSeedDemo } from '../api/hooks'
 import { useUi } from '../state/ui'
 
 export default function Toolbar({
-  months, current, totalRows,
+  months, current, totalRows, currency,
 }: {
   months: PeriodOption[]
   current: string
   totalRows: number
+  currency: Currency
 }) {
   const { period, setPeriod, theme, toggleTheme, botOpen, setBotOpen, setSettingsOpen, search, setSearch } = useUi()
   const seedDemo = useSeedDemo()
@@ -18,7 +20,7 @@ export default function Toolbar({
         <select value={period} onChange={(e) => setPeriod(e.target.value)} aria-label="Period">
           {months.map((m) => (
             <option key={m.key} value={m.key}>
-              {m.label} — {m.outflow.toLocaleString(undefined, { maximumFractionDigits: 0 })} out
+              {m.label} — {currency.symbol} {formatMoneyCompact(m.outflow, currency)} out
               {m.key === current ? ' (this month)' : ''}
             </option>
           ))}

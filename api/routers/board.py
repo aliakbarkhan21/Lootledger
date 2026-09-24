@@ -173,15 +173,27 @@ def board(period: str | None = Query(default=None), ctx=Depends(board_context)):
             "setup_hint_hidden": db.get_meta("setup_hint_hidden") == "1",
             "opening_balance_set": db.get_meta("opening_balance") is not None,
             "budgets_set": bool(db.get_budgets()),
-            "digest": {
-                "period": db.get_meta("digest_period"),
-                "text": db.get_meta("digest_text"),
-                "dismissed_for": db.get_meta("digest_dismissed_for"),
-            },
+            "digest": _digest(series),
             "recurring_due": _due_recurring(),
         },
         "counts": counts,
     }
+
+
+def _digest(series) -> dict:
+    """app.py's monthly-digest rules: only when last month had any activity
+    and it has not been dismissed this month. Generation is one Gemini call on
+    the first load of a new month, deferred so it never holds the board up —
+    here the page fires /api/bot/digest/generate when `needs_generation`."""
+    current = _today_key()
+    last = finance.shift_month(current, -1)
+    row = series.get(last)
+    eligible = (db.get_meta("digest_dismissed_for") != current
+                and bool(row and (row.inflow or row.outflow)))
+    needs_generation = eligible and db.get_meta("digest_period") != current
+    text = db.get_meta("digest_text") if eligible and not needs_generation else None
+    return {"label": finance.month_label(last), "text": text or None,
+            "needs_generation": needs_generation}
 
 
 @router.post("/banners/setup-hint/dismiss")

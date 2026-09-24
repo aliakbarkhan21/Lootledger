@@ -1,18 +1,33 @@
-import type { Banners as BannersType } from '../api/types'
-import { useDismissDigest, useDismissSetupHint, useRecurringBulk } from '../api/hooks'
+import { useEffect, useRef } from 'react'
+import type { Banners as BannersType, Currency } from '../api/types'
+import { useDismissDigest, useDismissSetupHint, useGenerateDigest, useRecurringBulk } from '../api/hooks'
+import { formatMoney } from '../lib/money'
 import { useUi } from '../state/ui'
 
-export default function Banners({ banners }: { banners: BannersType }) {
+export default function Banners({ banners, currency }: { banners: BannersType; currency: Currency }) {
   const { setSettingsOpen } = useUi()
   const dismissHint = useDismissSetupHint()
   const dismissDigest = useDismissDigest()
+  const generateDigest = useGenerateDigest()
   const recurring = useRecurringBulk()
+  const asked = useRef(false)
+
+  // The month's digest is one Gemini call on the first load of a new month.
+  // Fired after the board has painted, so it never holds the page up; the
+  // server marks the month as attempted before calling out, so it runs once.
+  useEffect(() => {
+    if (banners.digest.needs_generation && !asked.current) {
+      asked.current = true
+      generateDigest.mutate()
+    }
+  }, [banners.digest.needs_generation, generateDigest])
 
   const showHint = !banners.setup_hint_hidden && (!banners.opening_balance_set || !banners.budgets_set)
-  const showDigest = banners.digest.text && banners.digest.period && banners.digest.dismissed_for !== banners.digest.period
-  const dueCount = banners.recurring_due.length
+  const digest = banners.digest.text
+  const due = banners.recurring_due
+  const dueTotal = due.reduce((sum, r) => sum + r.amount, 0)
 
-  if (!banners.demo_active && !showHint && !showDigest && !dueCount) return null
+  if (!banners.demo_active && !showHint && !digest && !due.length) return null
 
   return (
     <div className="banners">
@@ -35,20 +50,35 @@ export default function Banners({ banners }: { banners: BannersType }) {
           </div>
         </div>
       )}
-      {showDigest && (
-        <div className="banner">
-          <span>{banners.digest.text}</span>
+      {digest && (
+        <div className="banner digest">
+          <div>
+            <div className="banner-title">{banners.digest.label} digest</div>
+            <div className="banner-text">{digest}</div>
+          </div>
           <div className="banner-actions">
             <button onClick={() => dismissDigest.mutate()}>Dismiss</button>
           </div>
         </div>
       )}
-      {dueCount > 0 && (
-        <div className="banner">
-          <span>{dueCount} recurring {dueCount === 1 ? 'entry is' : 'entries are'} due this month.</span>
+      {due.length > 0 && (
+        <div className="banner recur">
+          <div className="recur-body">
+            <div className="banner-title">
+              {due.length} recurring due this month
+              <span className="recur-total">{formatMoney(dueTotal, currency, 0)}</span>
+            </div>
+            {due.map((r) => (
+              <div className="recur-item" key={r.id}>
+                <span>{r.label}</span>
+                <span className="sub">{r.category || (r.kind === 'income' ? 'Income' : 'Expense')}</span>
+                <span className="amt">{formatMoney(r.amount, currency, 0)}</span>
+              </div>
+            ))}
+          </div>
           <div className="banner-actions">
-            <button onClick={() => recurring.mutate('log-all')}>Log all</button>
-            <button onClick={() => recurring.mutate('skip-all')}>Not this month</button>
+            <button onClick={() => recurring.mutate('log-all')} disabled={recurring.isPending}>Log all</button>
+            <button onClick={() => recurring.mutate('skip-all')} disabled={recurring.isPending}>Not this month</button>
           </div>
         </div>
       )}

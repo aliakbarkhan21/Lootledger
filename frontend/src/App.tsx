@@ -15,6 +15,7 @@ import SpendingCalendar from './components/SpendingCalendar'
 import RunStrip from './components/RunStrip'
 import LedgersDebtsImport from './components/LedgersDebtsImport'
 import SettingsDialog from './components/SettingsDialog'
+import FinanceBot from './components/FinanceBot'
 import { useBoard, usePeriods } from './api/hooks'
 import { useUi } from './state/ui'
 
@@ -37,8 +38,8 @@ function BoardPage() {
   return (
     <>
       <Masthead periodLabel={board.period.label} />
-      <Banners banners={board.banners} />
-      <Toolbar months={periods.months} current={periods.current} totalRows={totalRows} />
+      <Banners banners={board.banners} currency={board.currency} />
+      <Toolbar months={periods.months} current={periods.current} totalRows={totalRows} currency={board.currency} />
       <EntryForm currencyCode={board.currency.code} />
       <SummaryBand figures={board.figures} currency={board.currency} />
       <LedgerTable
@@ -87,6 +88,8 @@ function BoardPage() {
         currency={board.currency}
         periodKey={board.period.key}
       />
+
+      <FinanceBot periodKey={board.period.is_all_time ? 'all' : board.period.key} periodLabel={board.period.label} />
 
       <footer style={{ marginTop: 48, fontSize: '0.74rem', color: 'var(--ink-soft)', textAlign: 'center' }}>
         Built by{' '}

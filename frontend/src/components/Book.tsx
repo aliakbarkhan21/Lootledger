@@ -10,7 +10,7 @@ const TABS = [
 export default function Book({ children }: { children: ReactNode }) {
   const { botOpen, setBotOpen } = useUi()
   return (
-    <div className="desk">
+    <div className={`desk ${botOpen ? 'with-rail' : ''}`}>
       <div className="book">
         <div className="spine" />
         <div className="tabs">

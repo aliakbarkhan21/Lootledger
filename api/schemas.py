@@ -106,36 +106,5 @@ class LoginIn(BaseModel):
     password: str
 
 
-class ChatCreateIn(BaseModel):
-    title: Optional[str] = None
-
-
 class ChatRenameIn(BaseModel):
     title: str
-
-
-class ImageAttachmentIn(BaseModel):
-    data_base64: str
-    mime_type: str = "image/jpeg"
-
-
-class ChatMessageIn(BaseModel):
-    text: str = ""
-    images: list[ImageAttachmentIn] = Field(default_factory=list)
-    attachment_text: Optional[str] = None
-    # Whatever period is open on screen right now, so the bot's system
-    # context ("ON SCREEN: ...") matches what the user is actually looking
-    # at rather than always the calendar-current month.
-    period: Optional[str] = None
-
-
-class ImportCommitIn(BaseModel):
-    ledger: str
-    rows: list[dict]
-    replace: bool = False
-
-
-class ImportDetectIn(BaseModel):
-    upload_id: str
-    sheet: Optional[str] = None
-    prefer: Optional[str] = None
