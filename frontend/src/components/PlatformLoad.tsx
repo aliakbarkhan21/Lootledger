@@ -16,6 +16,7 @@ export default function PlatformLoad({
   const [view, setView] = useState<'share' | 'trend'>('share')
   const [hot, setHot] = useState<number | null>(null)
   const total = byCategory.reduce((a, r) => a + r.amount, 0)
+  const totalText = formatMoney(total, currency)
 
   return (
     <div className="panel">
@@ -36,14 +37,21 @@ export default function PlatformLoad({
 
       {byCategory.length > 0 && view === 'share' && (
         <div className="platform-share">
-          <Donut
-            values={byCategory.map((r) => r.amount)}
-            colors={byCategory.map((r) => platformColor(r.category))}
-            names={byCategory.map((r) => r.category)}
-            hot={hot}
-            onHot={setHot}
-            label="Spending by platform"
-          />
+          <div className="platform-donut-col">
+            <Donut
+              values={byCategory.map((r) => r.amount)}
+              colors={byCategory.map((r) => platformColor(r.category))}
+              names={byCategory.map((r) => r.category)}
+              hot={hot}
+              onHot={setHot}
+              label="Spending by platform"
+            />
+            {/* The figure is sized to its own length so it always fits the donut's width. */}
+            <div className="platform-total" style={{ '--chars': totalText.length } as React.CSSProperties}>
+              <div className="k">Total spent</div>
+              <div className="v">{totalText}</div>
+            </div>
+          </div>
           <ul className="platform-list">
             {byCategory.map((r, i) => {
               const share = total > 0 ? (r.amount / total) * 100 : 0

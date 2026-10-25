@@ -84,6 +84,8 @@ export interface RunStripMonth {
   is_current: boolean
 }
 
+export type RecurringStatus = 'logged' | 'not_logged' | 'upcoming'
+
 export interface RecurringItem {
   id: number
   label: string
@@ -92,6 +94,8 @@ export interface RecurringItem {
   amount: number
   day_of_month: number
   last_logged: string | null
+  /** Where it stands this month; only on the Recurring list, not the due banner. */
+  status?: RecurringStatus
 }
 
 export interface Banners {

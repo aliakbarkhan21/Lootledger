@@ -16,6 +16,7 @@ import rates
 
 from api.deps import currency_context, get_frames, to_pkr
 from api.routers.auth import require_access
+from api.routers.recurring import recurring_with_status
 from api.schemas import BoolFlagIn, CurrencyIn, OpeningBalanceIn, RestoreIn
 
 router = APIRouter(prefix="/api/settings", tags=["settings"],
@@ -33,7 +34,7 @@ def read_settings(currency=Depends(currency_context)):
         "currencies": {code: {"symbol": sym, "label": label}
                        for code, (sym, label, _) in rates.CURRENCIES.items()},
         "budgets": db.get_budgets(),
-        "recurring": db.get_recurring(),
+        "recurring": recurring_with_status(),
         "demo_active": demo.is_active(),
     }
 

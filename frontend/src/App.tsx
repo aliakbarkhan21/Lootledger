@@ -12,6 +12,7 @@ import Capacity from './components/Capacity'
 import Obligations from './components/Obligations'
 import IncomeSource from './components/IncomeSource'
 import SpendingCalendar from './components/SpendingCalendar'
+import RecurringPanel from './components/RecurringPanel'
 import RunStrip from './components/RunStrip'
 import LedgersDebtsImport from './components/LedgersDebtsImport'
 import SettingsDialog from './components/SettingsDialog'
@@ -91,6 +92,8 @@ function BoardPage() {
           )}
         </div>
       </div>
+
+      <RecurringPanel currency={board.currency} />
 
       <div className="folio-heading">Last 12 Months</div>
       <RunStrip months={board.run_strip} currency={board.currency} />

@@ -81,6 +81,11 @@ class RecurringIn(BaseModel):
     day_of_month: int = Field(ge=1, le=31)
 
 
+class RecurringResolveIn(BaseModel):
+    log_ids: list[int] = Field(default_factory=list)
+    skip_ids: list[int] = Field(default_factory=list)
+
+
 class MergeCategoryIn(BaseModel):
     from_category: str
     to_category: str

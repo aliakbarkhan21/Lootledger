@@ -1,6 +1,6 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { Banners as BannersType, Currency } from '../api/types'
-import { useDismissDigest, useDismissSetupHint, useGenerateDigest, useRecurringBulk } from '../api/hooks'
+import { useDismissDigest, useDismissSetupHint, useGenerateDigest, useRecurringBulk, useRecurringResolve } from '../api/hooks'
 import { formatMoney } from '../lib/money'
 import { useUi } from '../state/ui'
 
@@ -10,6 +10,9 @@ export default function Banners({ banners, currency }: { banners: BannersType; c
   const dismissDigest = useDismissDigest()
   const generateDigest = useGenerateDigest()
   const recurring = useRecurringBulk()
+  const resolve = useRecurringResolve()
+  // Rows the user has unticked; everything due starts ticked.
+  const [unticked, setUnticked] = useState<Set<number>>(new Set())
   const asked = useRef(false)
 
   // The month's digest is one Gemini call on the first load of a new month.
@@ -26,7 +29,26 @@ export default function Banners({ banners, currency }: { banners: BannersType; c
   const showHint = gaps.length > 0
   const digest = banners.digest.text
   const due = banners.recurring_due
-  const dueTotal = due.reduce((sum, r) => sum + r.amount, 0)
+  const dueKey = due.map((r) => r.id).join(',')
+  const pending = recurring.isPending || resolve.isPending
+
+  // A new due list (after any action, or a refetch) starts with everything ticked.
+  useEffect(() => { setUnticked(new Set()) }, [dueKey])
+
+  const picked = useMemo(() => due.filter((r) => !unticked.has(r.id)), [due, unticked])
+  const pickedTotal = picked.reduce((sum, r) => sum + r.amount, 0)
+  const toggle = (id: number) =>
+    setUnticked((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  const logSelected = () =>
+    resolve.mutate({
+      log_ids: picked.map((r) => r.id),
+      skip_ids: due.filter((r) => unticked.has(r.id)).map((r) => r.id),
+    })
 
   if (!banners.demo_active && !showHint && !digest && !due.length) return null
 
@@ -71,20 +93,34 @@ export default function Banners({ banners, currency }: { banners: BannersType; c
         <div className="banner recur">
           <div className="recur-body">
             <div className="banner-title">
-              {due.length} recurring due this month
-              <span className="recur-total">{formatMoney(dueTotal, currency, 0)}</span>
+              {picked.length} of {due.length} selected
+              <span className="recur-total">{formatMoney(pickedTotal, currency, 0)}</span>
+              <span className="recur-what">recurring due this month</span>
             </div>
             {due.map((r) => (
-              <div className="recur-item" key={r.id}>
-                <span>{r.label}</span>
+              <label className="recur-item" key={r.id}>
+                <input
+                  type="checkbox"
+                  checked={!unticked.has(r.id)}
+                  onChange={() => toggle(r.id)}
+                  disabled={pending}
+                />
+                <span className="recur-box" aria-hidden="true" />
+                <span className="recur-label">{r.label}</span>
                 <span className="sub">{r.category || (r.kind === 'income' ? 'Income' : 'Expense')}</span>
                 <span className="amt">{formatMoney(r.amount, currency, 0)}</span>
-              </div>
+              </label>
             ))}
+            {unticked.size > 0 && (
+              <p className="recur-hint">Unticked items will be skipped for this month.</p>
+            )}
           </div>
           <div className="banner-actions">
-            <button onClick={() => recurring.mutate('log-all')} disabled={recurring.isPending}>Log all</button>
-            <button onClick={() => recurring.mutate('skip-all')} disabled={recurring.isPending}>Not this month</button>
+            <button className="primary" onClick={logSelected} disabled={pending || picked.length === 0}>
+              Log selected ({picked.length})
+            </button>
+            <button onClick={() => recurring.mutate('log-all')} disabled={pending}>Log all</button>
+            <button onClick={() => recurring.mutate('skip-all')} disabled={pending}>Not this month</button>
           </div>
         </div>
       )}

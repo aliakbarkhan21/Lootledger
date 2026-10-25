@@ -522,6 +522,18 @@ def get_expenses():
     return _fetch_all("SELECT * FROM expenses ORDER BY date DESC, id DESC")
 
 
+def month_entries(table, period_key):
+    """(label, amount) of every row of an entry table dated in `period_key`
+    ("YYYY-MM"), in one query. `table` is "expenses" or "income"."""
+    label_col = {"expenses": "description", "income": "source"}[table]
+    conn = get_connection()
+    rows = conn.execute(
+        f"SELECT {label_col}, amount FROM {table} WHERE substr(date, 1, 7) = ?", (period_key,)
+    ).fetchall()
+    conn.close()
+    return [(r[0], _from_paisa(r[1])) for r in rows]
+
+
 def get_transport():
     return _fetch_all("SELECT * FROM transport ORDER BY date DESC, id DESC")
 
@@ -587,6 +599,19 @@ def add_recurring(label, kind, category, amount, day_of_month):
 
 def get_recurring() -> list:
     return _fetch_all("SELECT * FROM recurring ORDER BY day_of_month, id")
+
+
+def update_recurring(row_id, label, kind, category, amount, day_of_month):
+    """Rewrites a template's terms. last_logged is left alone, so editing a
+    template that was already logged this month does not make it due again."""
+    conn = get_connection()
+    conn.execute(
+        "UPDATE recurring SET label = ?, kind = ?, category = ?, amount = ?, day_of_month = ? "
+        "WHERE id = ?",
+        (label, kind, category, _to_paisa(amount), int(day_of_month), row_id),
+    )
+    conn.commit()
+    conn.close()
 
 
 def delete_recurring(row_id):

@@ -187,6 +187,15 @@ export function useAddRecurring() {
   })
 }
 
+export function useUpdateRecurring() {
+  const invalidate = useInvalidateBoard()
+  return useMutation({
+    mutationFn: ({ id, ...p }: { id: number; label: string; kind: 'expense' | 'income'; category: string | null; amount: number; day_of_month: number }) =>
+      api.put(`/recurring/${id}`, p),
+    onSuccess: invalidate,
+  })
+}
+
 export function useDeleteRecurring() {
   const invalidate = useInvalidateBoard()
   return useMutation({
@@ -199,6 +208,23 @@ export function useRecurringBulk() {
   const invalidate = useInvalidateBoard()
   return useMutation({
     mutationFn: (action: 'log-all' | 'skip-all') => api.post(`/recurring/${action}`),
+    onSuccess: invalidate,
+  })
+}
+
+export function useRecurringLog() {
+  const invalidate = useInvalidateBoard()
+  return useMutation({
+    mutationFn: (id: number) => api.post<{ logged: number }>(`/recurring/${id}/log`),
+    // Also on a refusal (409): the page was out of date, so show what is there now.
+    onSettled: invalidate,
+  })
+}
+
+export function useRecurringResolve() {
+  const invalidate = useInvalidateBoard()
+  return useMutation({
+    mutationFn: (p: { log_ids: number[]; skip_ids: number[] }) => api.post('/recurring/resolve', p),
     onSuccess: invalidate,
   })
 }

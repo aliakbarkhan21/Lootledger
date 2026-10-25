@@ -3,8 +3,8 @@ import { useQueryClient } from '@tanstack/react-query'
 import { api, ApiError } from '../api/client'
 import type { Currency, SettingsResponse } from '../api/types'
 import {
-  useAddRecurring, useAuthStatus, useBackups, useCategories, useClearDemo, useDeleteBudget,
-  useDeleteRecurring, useEraseEverything, useLedger, useMergeCategory, useRefreshRates,
+  useAuthStatus, useBackups, useCategories, useClearDemo, useDeleteBudget,
+  useEraseEverything, useLedger, useMergeCategory, useRefreshRates,
   useRestoreBackup, useSeedDemo, useSetBudget, useSetCurrency, useSetNetSameMonthDebts,
   useSetOpeningBalance, useSettings,
 } from '../api/hooks'
@@ -155,72 +155,6 @@ function MergeCategory({ categories }: { categories: string[] }) {
           {done && <div className="notice ok">{done}</div>}
         </>
       )}
-    </Block>
-  )
-}
-
-// ---------------------------------------------------------------- recurring
-
-function Recurring({ settings, categories }: { settings: SettingsResponse; categories: string[] }) {
-  const currency = settings.currency
-  const add = useAddRecurring()
-  const del = useDeleteRecurring()
-  const [label, setLabel] = useState('')
-  const [kind, setKind] = useState<'expense' | 'income'>('expense')
-  const [amount, setAmount] = useState('')
-  const [day, setDay] = useState('1')
-  const [category, setCategory] = useState('')
-  const [warn, setWarn] = useState<string | null>(null)
-  const cat = categories.includes(category) ? category : categories[0] ?? 'Other'
-
-  function submit() {
-    const n = parseFloat(amount)
-    const d = Math.min(28, Math.max(1, parseInt(day, 10) || 1))
-    if (!label.trim() || !(n > 0)) { setWarn('Needs a label and an amount above zero.'); return }
-    setWarn(null)
-    add.mutate(
-      { label: label.trim(), kind, category: kind === 'expense' ? cat : null, amount: n, day_of_month: d },
-      { onSuccess: () => { setLabel(''); setAmount(''); setDay('1') } },
-    )
-  }
-
-  return (
-    <Block title="Recurring">
-      <Caption>
-        Rent, subscriptions, salary — the same entry every month. A due template shows as a banner
-        above the board once its day arrives.
-      </Caption>
-      {settings.recurring.map((r) => (
-        <div className="settings-row" key={r.id}>
-          <span className="settings-row-label">
-            {r.label} — {formatMoney(r.amount, currency, 0)} on day {r.day_of_month}{' '}
-            ({r.kind === 'income' ? 'Income' : r.category || 'Expense'})
-          </span>
-          <button className="btn-link" title={`Remove ${r.label}`} onClick={() => del.mutate(r.id)}>✕</button>
-        </div>
-      ))}
-      <div className="settings-form">
-        <label>Label<input value={label} placeholder="Rent" onChange={(e) => setLabel(e.target.value)} /></label>
-        <label>
-          Kind
-          <select value={kind} onChange={(e) => setKind(e.target.value as 'expense' | 'income')}>
-            <option value="expense">Expense</option>
-            <option value="income">Income</option>
-          </select>
-        </label>
-        <label>Amount ({currency.code})<input type="number" min={0} step={500} value={amount} onChange={(e) => setAmount(e.target.value)} /></label>
-        <label>Day of month<input type="number" min={1} max={28} value={day} onChange={(e) => setDay(e.target.value)} /></label>
-        {kind === 'expense' && (
-          <label>
-            Category
-            <select value={cat} onChange={(e) => setCategory(e.target.value)}>
-              {categories.map((c) => <option key={c} value={c}>{c}</option>)}
-            </select>
-          </label>
-        )}
-      </div>
-      {warn && <div className="notice warn">{warn}</div>}
-      <button className="btn-link wide" onClick={submit} disabled={add.isPending}>Add recurring</button>
     </Block>
   )
 }
@@ -462,7 +396,6 @@ export default function SettingsDialog() {
 
             <Budgets settings={settings} categories={cats} />
             <MergeCategory categories={cats} />
-            <Recurring settings={settings} categories={cats} />
 
             <Block title="Sample data">
               {settings.demo_active ? (

@@ -122,7 +122,7 @@ export default function SpendingCalendar({
   }
 
   return (
-    <div className="panel">
+    <div className="panel cal-panel">
       <div className="panel-head"><h3>Spending Rhythm</h3></div>
       <div
         className={`cal ${active ? 'has-open' : ''}`}

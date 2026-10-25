@@ -58,5 +58,23 @@ def health():
 # the Vite dev server (with its proxy to this API) is used instead and this
 # mount simply won't find anything at that path.
 _FRONTEND_DIST = Path(__file__).resolve().parent.parent / "frontend" / "dist"
+
+
+class _PageFiles(StaticFiles):
+    """StaticFiles with cache headers that suit a rebuilt page. Without any,
+    browsers cache index.html heuristically (a tenth of its age) and reopen
+    the board on the PREVIOUS build after a rebuild. index.html must always be
+    revalidated; the hashed files under assets/ never change, so they can be
+    kept for good."""
+
+    async def get_response(self, path, scope):
+        response = await super().get_response(path, scope)
+        if path.startswith("assets/"):
+            response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
+        else:
+            response.headers["Cache-Control"] = "no-cache"
+        return response
+
+
 if _FRONTEND_DIST.exists():
-    app.mount("/", StaticFiles(directory=str(_FRONTEND_DIST), html=True), name="frontend")
+    app.mount("/", _PageFiles(directory=str(_FRONTEND_DIST), html=True), name="frontend")

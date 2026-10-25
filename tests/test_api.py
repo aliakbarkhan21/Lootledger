@@ -98,8 +98,155 @@ def test_budgets_recurring_and_merge(client):
     client.post("/api/recurring/log-all")
     assert [e["description"] for e in db.get_expenses()] == ["Rent"]
     assert _board(client)["banners"]["recurring_due"] == []
+    rent = client.get("/api/recurring").json()[0]
+    client.put(f"/api/recurring/{rent['id']}", json={"label": "Flat rent", "kind": "expense",
+                                                    "category": "Other", "amount": 150, "day_of_month": 2})
+    edited = client.get("/api/recurring").json()[0]
+    assert (edited["label"], edited["amount"], edited["day_of_month"]) == ("Flat rent", 150.0, 2)
+    assert edited["last_logged"] == rent["last_logged"]  # an edit does not make it due again
     moved = client.post("/api/categories/merge", json={"from_category": "Other", "to_category": "Food"}).json()
     assert moved["moved"] == 1 and db.get_expenses()[0]["category"] == "Food"
+
+
+def _three_due(client):
+    ids = []
+    for label, kind, cat in (("Rent", "expense", "Other"), ("Netflix", "expense", None), ("Pay", "income", None)):
+        client.post("/api/recurring", json={"label": label, "kind": kind, "category": cat,
+                                            "amount": 100, "day_of_month": 1})
+    return [r["id"] for r in client.get("/api/recurring").json()]
+
+
+def _due_ids(client):
+    return [r["id"] for r in _board(client)["banners"]["recurring_due"]]
+
+
+def test_resolve_logs_only_the_given_ids(client):
+    rent, netflix, pay = _three_due(client)
+    res = client.post("/api/recurring/resolve", json={"log_ids": [netflix], "skip_ids": []}).json()
+    assert res == {"logged": [netflix], "skipped": []}
+    assert [e["description"] for e in db.get_expenses()] == ["Netflix"]
+    assert db.get_expenses()[0]["category"] == "Other"   # category fallback
+    assert db.get_income() == []
+    assert _due_ids(client) == [rent, pay]               # the rest stay due
+
+
+def test_resolve_skips_without_writing_entries(client):
+    rent, netflix, pay = _three_due(client)
+    res = client.post("/api/recurring/resolve", json={"log_ids": [pay], "skip_ids": [rent, netflix]}).json()
+    assert res == {"logged": [pay], "skipped": [rent, netflix]}
+    assert db.get_expenses() == []
+    assert [i["source"] for i in db.get_income()] == ["Pay"]
+    assert _due_ids(client) == []
+
+
+def test_resolve_ignores_ids_that_are_not_due_or_do_not_exist(client):
+    rent, netflix, pay = _three_due(client)
+    client.post("/api/recurring/resolve", json={"log_ids": [rent], "skip_ids": []})
+    res = client.post("/api/recurring/resolve",
+                      json={"log_ids": [rent, 99999], "skip_ids": [rent, 12345]}).json()
+    assert res == {"logged": [], "skipped": []}
+    assert [e["description"] for e in db.get_expenses()] == ["Rent"]
+
+
+def test_resolve_twice_never_double_logs(client):
+    rent, netflix, pay = _three_due(client)
+    body = {"log_ids": [rent, netflix], "skip_ids": [pay]}
+    client.post("/api/recurring/resolve", json=body)
+    again = client.post("/api/recurring/resolve", json=body).json()
+    assert again == {"logged": [], "skipped": []}
+    assert sorted(e["description"] for e in db.get_expenses()) == ["Netflix", "Rent"]
+    assert db.get_income() == []
+
+
+def test_resolve_log_wins_when_an_id_is_in_both_lists(client):
+    rent, netflix, pay = _three_due(client)
+    res = client.post("/api/recurring/resolve", json={"log_ids": [rent], "skip_ids": [rent, netflix]}).json()
+    assert res == {"logged": [rent], "skipped": [netflix]}
+    assert [e["description"] for e in db.get_expenses()] == ["Rent"]
+
+
+def test_skip_all_and_log_all_still_work_after_a_partial_resolve(client):
+    rent, netflix, pay = _three_due(client)
+    client.post("/api/recurring/resolve", json={"log_ids": [rent], "skip_ids": []})
+    assert client.post("/api/recurring/skip-all").json() == {"skipped": [netflix, pay]}
+    assert [e["description"] for e in db.get_expenses()] == ["Rent"]
+
+
+def _template(client, label, amount, day=1, kind="expense"):
+    client.post("/api/recurring", json={"label": label, "kind": kind,
+                                        "category": "Other" if kind == "expense" else None,
+                                        "amount": amount, "day_of_month": day})
+    return next(r["id"] for r in client.get("/api/recurring").json() if r["label"] == label)
+
+
+def _status(client):
+    return {r["label"]: r["status"] for r in client.get("/api/recurring").json()}
+
+
+def test_recurring_status_logged_not_logged_and_upcoming(client):
+    import pytest
+    if TODAY.day >= 31:
+        pytest.skip("no day of the month is still ahead")
+    _template(client, "Rent", 100)
+    _template(client, "Gym", 50)
+    _template(client, "Pay", 900, kind="income")
+    _template(client, "Insurance", 70, day=31)
+    # Hand-typed entries: different case and stray spaces still match.
+    client.post("/api/expenses", json={"date": DAY, "description": "  rent ", "category": "Other", "amount": 100})
+    client.post("/api/income", json={"date": DAY, "source": "PAY", "amount": 900})
+    assert _status(client) == {"Rent": "logged", "Gym": "not_logged", "Pay": "logged", "Insurance": "upcoming"}
+    # The settings payload (what the panel reads) carries the same status.
+    assert {r["label"]: r["status"] for r in client.get("/api/settings").json()["recurring"]} == _status(client)
+
+
+def test_recurring_status_needs_the_same_kind_amount_and_month(client):
+    _template(client, "Rent", 100)
+    _template(client, "Bonus", 100, kind="income")
+    # Different amount, wrong month, and an expense with an income template's label.
+    client.post("/api/expenses", json={"date": DAY, "description": "Rent", "category": "Other", "amount": 101})
+    client.post("/api/expenses", json={"date": LAST_MONTH, "description": "Rent", "category": "Other", "amount": 100})
+    client.post("/api/expenses", json={"date": DAY, "description": "Bonus", "category": "Other", "amount": 100})
+    assert _status(client) == {"Rent": "not_logged", "Bonus": "not_logged"}
+
+
+def test_recurring_status_ignores_last_logged(client):
+    _template(client, "Rent", 100)
+    client.post("/api/recurring/skip-all")           # sets last_logged, writes no entry
+    assert _status(client) == {"Rent": "not_logged"}
+    db.add_expense(DAY, "Rent", "Other", 100)
+    assert _status(client) == {"Rent": "logged"}
+    db.delete_row("expenses", db.get_expenses()[0]["id"])
+    assert _status(client) == {"Rent": "not_logged"}
+
+
+def test_log_one_writes_once_and_refuses_a_second_time(client):
+    rent = _template(client, "Rent", 100)
+    pay = _template(client, "Pay", 900, kind="income")
+    assert client.post(f"/api/recurring/{rent}/log").json() == {"logged": rent}
+    assert [(e["description"], e["category"], e["date"]) for e in db.get_expenses()] == [("Rent", "Other", DAY)]
+    again = client.post(f"/api/recurring/{rent}/log")
+    assert again.status_code == 409 and "already logged" in again.json()["detail"]
+    assert len(db.get_expenses()) == 1
+    assert _status(client)["Rent"] == "logged"
+    assert [r["id"] for r in _board(client)["banners"]["recurring_due"]] == [pay]  # the banner drops it
+    assert client.post(f"/api/recurring/{pay}/log").json() == {"logged": pay}
+    assert [i["source"] for i in db.get_income()] == ["Pay"]
+
+
+def test_log_one_works_before_the_day_and_for_a_missing_category(client):
+    import pytest
+    if TODAY.day >= 31:
+        pytest.skip("no day of the month is still ahead")
+    late = _template(client, "Insurance", 70, day=31)
+    assert _status(client)["Insurance"] == "upcoming"
+    assert client.post(f"/api/recurring/{late}/log").json() == {"logged": late}
+    assert db.get_expenses()[0]["category"] == "Other"
+    assert _status(client)["Insurance"] == "logged"
+
+
+def test_log_one_unknown_id_is_404_and_writes_nothing(client):
+    assert client.post("/api/recurring/424242/log").status_code == 404
+    assert db.get_expenses() == [] and db.get_income() == []
 
 
 def test_import_auto_detects_and_commits(client):

@@ -5,7 +5,7 @@ import { useUi } from '../state/ui'
 // from the command palette (Ctrl K).
 const TABS = [
   { id: 'board', label: 'Board' },
-  { id: 'ledgers', label: 'Ledgers' },
+  { id: 'recurring', label: 'Recurring' },
   { id: 'obligations', label: 'Obligations' },
 ] as const
 
@@ -14,7 +14,7 @@ function scrollToId(id: string) {
 }
 
 export default function Book({ children, dock }: { children: ReactNode; dock?: ReactNode }) {
-  const { botOpen, setLedgersOpen, setLdiTab } = useUi()
+  const { botOpen } = useUi()
   return (
     <div className={`desk ${botOpen ? 'with-rail' : ''}`}>
       {dock}
@@ -28,11 +28,9 @@ export default function Book({ children, dock }: { children: ReactNode; dock?: R
               onClick={() => {
                 if (t.id === 'board') {
                   window.scrollTo({ top: 0, behavior: 'smooth' })
-                } else if (t.id === 'ledgers') {
-                  // Opens the Ledgers, debts and import section on its Ledgers sheet.
-                  setLdiTab('ledgers')
-                  setLedgersOpen(true)
-                  requestAnimationFrame(() => scrollToId('ledgers-debts-import'))
+                } else if (t.id === 'recurring') {
+                  // The Recurring panel beneath the Spending Rhythm calendar.
+                  scrollToId('recurring')
                 } else {
                   // The Board's own Obligations section: what is owed each way,
                   // net worth, and the panels beneath it.

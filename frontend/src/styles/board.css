@@ -182,7 +182,7 @@
 }
 
 /* Where the book's Obligations tab lands: a little air above the heading. */
-#obligations { scroll-margin-top: 20px; }
+#obligations, #recurring { scroll-margin-top: 20px; }
 
 /* ============================================================ masthead */
 .masthead {
@@ -541,7 +541,7 @@ td.amt.debit { color: var(--debit); }
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 28px;
-  align-items: start;
+  align-items: stretch;
   margin-top: 24px;
 }
 
@@ -551,6 +551,11 @@ td.amt.debit { color: var(--debit); }
   gap: 24px;
   min-width: 0;
 }
+
+/* Both columns stretch to the taller one; whichever is shorter lets its last
+   panel take up the difference so the two bottoms meet. The calendar fills
+   that height with taller weeks (see .cal-panel). */
+.panel-col > .panel:last-child { flex: 1 1 auto; }
 
 .panel.capacity { margin-top: 24px; }
 
@@ -662,6 +667,37 @@ td.amt.debit { color: var(--debit); }
   align-items: flex-start;
 }
 
+/* The donut and, under it, the period's total: the column is exactly the
+   donut's width, so the list beside it keeps its room. The figure scales to
+   its own character count (--chars) to fit that width at any currency. */
+.platform-donut-col {
+  flex: 0 0 auto;
+  width: 108px;
+  container-type: inline-size;
+}
+
+.platform-donut-col .donut { display: block; }
+
+.platform-total { margin-top: 10px; }
+
+.platform-total .k {
+  font-family: var(--font-display);
+  font-size: min(0.68rem, 9.5cqw);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--ink-soft);
+  white-space: nowrap;
+  margin-bottom: 3px;
+}
+
+.platform-total .v {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: min(0.98rem, calc(100cqw / (var(--chars) * 0.62)));
+  white-space: nowrap;
+  line-height: 1.2;
+}
+
 .platform-list {
   list-style: none;
   margin: 0;
@@ -745,6 +781,35 @@ td.amt.debit { color: var(--debit); }
 .cal {
   max-width: 540px;
 }
+
+/* When its column is stretched to the share panels beside it, the calendar
+   takes up the extra height: the weeks grow taller, the week totals stay
+   centred on their rows and the note stays at the foot. A day is never
+   shorter than it is wide: instead of aspect-ratio (which, stretched, would
+   widen the cell rather than heighten it) the square is a min-height worked
+   out from the calendar's own width — 7 days, the 84px total column and the
+   seven 3px gaps. The open-day card is sized in percentages of its cell's
+   width AND height, so a taller cell still unfolds over the whole month. */
+.cal-panel {
+  display: flex;
+  flex-direction: column;
+}
+
+.cal-panel .cal {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  container-type: inline-size;
+}
+
+.cal-panel .cal-week { flex: 1 1 auto; }
+
+.cal-panel .cal-cell {
+  aspect-ratio: auto;
+  min-height: calc((100cqw - 84px - 21px) / 7);
+}
+
+.cal-panel .panel-note { margin-top: auto; padding-top: 8px; }
 
 .cal-dow,
 .cal-week {
@@ -1562,7 +1627,9 @@ td.row-actions .btn-link + .btn-link { margin-left: 6px; }
 .settings-block select,
 .settings-block input[type='number'],
 .settings-block input:not([type]),
-.settings-block input[type='text'] {
+.settings-block input[type='text'],
+.recurring-panel select,
+.recurring-panel input {
   padding: 6px 8px;
   border: 1px solid var(--rule-green);
   background: var(--paper-2);
@@ -1620,6 +1687,128 @@ td.row-actions .btn-link + .btn-link { margin-left: 6px; }
 
 .btn-danger:hover { filter: brightness(1.08); }
 
+/* ============================================================ recurring panel */
+/* Lives on the board under the calendar; its form reuses .settings-form. */
+.recurring-panel { margin-top: 24px; }
+.recurring-note { margin: -6px 0 12px; }
+
+/* The list takes the width; the form is a narrow column beside it. Keyed to
+   the panel's own width (every .panel is an inline-size container), not the
+   viewport's: the entry dock and the book's margins leave the panel only
+   ~880px at a 1440px window and ~570px at 1100px. Below 860px (a 280px form,
+   the 28px gap and a list that still fits a row on one line) the form stacks
+   under the list. */
+.recurring-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) clamp(280px, 30%, 360px);
+  gap: 28px;
+  align-items: start;
+}
+
+.recurring-entries { min-width: 0; container-type: inline-size; }
+
+.recurring-form { min-width: 0; }
+.recurring-form .settings-form { margin-top: 0; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+.recurring-form .settings-form label { min-width: 0; }
+.recurring-form .settings-form label.wide { grid-column: 1 / -1; }
+
+@container (max-width: 860px) {
+  .recurring-body { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+}
+
+/* One line per row: stamp + day | name over category | amount | buttons. The
+   list is the grid and each row a subgrid of it, so every row's columns line
+   up; the stamp column is as wide as the "NOT LOGGED" stamp, and the amount
+   and button columns are as wide as the widest row needs. */
+.recurring-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 4.9rem minmax(0, 1fr) auto auto;
+  column-gap: 14px;
+}
+
+.recurring-list li {
+  display: grid;
+  grid-template-columns: subgrid;
+  grid-column: 1 / -1;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px dashed var(--rule-green);
+  font-size: 0.84rem;
+}
+
+.recurring-list li.is-editing { background: color-mix(in srgb, var(--gold) 10%, transparent); }
+
+/* The status stamp sits over the day. The column has a fixed width (the
+   widest stamp's), so every row's name starts at the same x. */
+.recurring-when {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+
+.recurring-day {
+  font-family: var(--font-display);
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--ink-soft);
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+/* A rubber stamp: ink-coloured rule with a second, fainter rule inside it. */
+.recurring-stamp {
+  display: inline-block;
+  transform: rotate(-3deg);
+  transform-origin: left center;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 700;
+  line-height: 1;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  padding: 2px 4px;
+  border: 1px solid currentColor;
+  box-shadow: inset 0 0 0 1px var(--paper),
+              inset 0 0 0 2px color-mix(in srgb, currentColor 55%, transparent);
+  border-radius: 1px;
+}
+
+.recurring-stamp.logged { color: var(--credit); }
+.recurring-stamp.not_logged { color: var(--debit); }
+.recurring-stamp.upcoming { color: var(--ink-faint); }
+
+.recurring-acts { display: flex; gap: 6px; align-items: center; justify-content: flex-end; white-space: nowrap; }
+
+/* Names wrap at spaces only: never inside a word, never an ellipsis. */
+.recurring-label { min-width: 0; overflow-wrap: normal; word-break: normal; hyphens: none; }
+.recurring-label small { display: block; color: var(--ink-soft); font-size: 0.72rem; }
+
+.recurring-amount { font-family: var(--font-mono); white-space: nowrap; text-align: right; }
+.recurring-amount.income { color: var(--credit); }
+
+.recurring-actions { display: flex; gap: 8px; }
+.recurring-actions .btn-link.wide { margin-bottom: 0; }
+
+/* A list narrower than 540px: each row is two lines. Stamp + day on the left
+   and the amount on the right, then the name over its category with the
+   buttons on the right. */
+@container (max-width: 540px) {
+  .recurring-list { grid-template-columns: minmax(0, 1fr) auto; }
+  .recurring-list li { row-gap: 6px; }
+  /* Both span the row: the amount's own column is as wide as the buttons, so
+     sharing it would squeeze the stamp and day. */
+  .recurring-when { grid-column: 1 / -1; grid-row: 1; justify-self: start; flex-direction: row; align-items: center; gap: 8px; }
+  .recurring-amount { grid-column: 1 / -1; grid-row: 1; justify-self: end; }
+  .recurring-label { grid-column: 1; grid-row: 2; }
+  .recurring-acts { grid-column: 2; grid-row: 2; }
+}
+
 /* ============================================================ banners: digest / recurring */
 .banner-title {
   font-family: var(--font-display);
@@ -1643,17 +1832,89 @@ td.row-actions .btn-link + .btn-link { margin-left: 6px; }
 .recur-body { flex: 1; min-width: 240px; }
 .recur-total { font-family: var(--font-mono); color: var(--gold); }
 
+.recur-what { color: var(--ink-soft); font-weight: 400; font-size: 0.74rem; }
+
 .recur-item {
+  position: relative;
   display: grid;
-  grid-template-columns: 1fr auto auto;
+  grid-template-columns: auto 1fr auto auto;
+  align-items: center;
   gap: 14px;
   font-size: 0.8rem;
-  padding: 2px 0;
-  max-width: 460px;
+  padding: 3px 6px;
+  margin: 0 -6px;
+  max-width: 480px;
+  cursor: pointer;
 }
+
+.recur-item:hover { background: color-mix(in srgb, var(--gold) 8%, transparent); }
+
+.recur-item input {
+  /* Hidden but still focusable, so the row works from the keyboard. */
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+  pointer-events: none;
+}
+
+.recur-box {
+  width: 14px;
+  height: 14px;
+  border: 1.5px solid var(--ink-soft);
+  background: var(--paper);
+  position: relative;
+  flex: none;
+}
+
+.recur-item input:checked + .recur-box {
+  border-color: var(--gold);
+  background: var(--gold);
+}
+
+.recur-item input:checked + .recur-box::after {
+  content: '';
+  position: absolute;
+  left: 3.5px;
+  top: 0.5px;
+  width: 4px;
+  height: 8px;
+  border: solid var(--paper);
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.recur-item:has(input:focus-visible) {
+  outline: 2px solid var(--gold);
+  outline-offset: 1px;
+}
+
+.recur-item:has(input:disabled) { cursor: default; opacity: 0.7; }
 
 .recur-item .sub { color: var(--ink-soft); font-size: 0.72rem; }
 .recur-item .amt { font-family: var(--font-mono); font-weight: 700; text-align: right; }
+
+.recur-hint { margin: 6px 0 0; font-size: 0.72rem; color: var(--ink-soft); font-style: italic; }
+
+/* The primary action of a banner: filled gold, the rest stay outlined. */
+.banner button.primary {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: var(--paper);
+  font-weight: 700;
+}
+
+.banner button.primary:hover:not(:disabled) { color: var(--paper); filter: brightness(1.08); }
+.banner button:disabled { opacity: 0.5; cursor: default; }
+
+@media (max-width: 560px) {
+  .recur-body { min-width: 0; width: 100%; }
+  .recur-item { grid-template-columns: auto 1fr auto; row-gap: 0; }
+  .recur-item .sub { grid-column: 2; grid-row: 2; }
+  .recur-item .amt { grid-column: 3; grid-row: 1 / span 2; }
+  .banner.recur .banner-actions { display: grid; grid-template-columns: 1fr 1fr; width: 100%; }
+  .banner.recur .banner-actions .primary { grid-column: 1 / -1; padding: 7px 10px; }
+}
 
 /* ============================================================ finance bot rail */
 .bot-rail {
@@ -2205,6 +2466,10 @@ table.ledger .amt-one { display: none; }
   td.date { font-size: 0.7rem; }
   .obligations { grid-template-columns: 1fr; }
   .platform-share { flex-direction: column; align-items: center; }
+  /* Stacked, the list sits right under the donut: the total goes in the empty
+     space beside the donut instead, out of flow, so the panel keeps its height. */
+  .platform-donut-col { position: relative; }
+  .platform-total { position: absolute; left: calc(100% + 16px); top: 50%; width: 100%; margin-top: 0; transform: translateY(-50%); }
   .platform-list { width: 100%; }
   .settings-form { grid-template-columns: 1fr; }
   .section-tab { padding: 8px 10px; font-size: 0.74rem; }
@@ -2688,6 +2953,8 @@ a:hover { text-decoration-color: var(--gold); }
 .map-grid select:hover,
 .settings-block select:hover,
 .settings-block input:hover,
+.recurring-panel select:hover,
+.recurring-panel input:hover,
 .bot-switch select:hover,
 .composer-row textarea:hover,
 .toolbar input[type='search']:hover,
@@ -2699,6 +2966,8 @@ table.ledger.grid input:hover { border-color: var(--ink-soft); }
 .map-grid select:focus-visible,
 .settings-block select:focus-visible,
 .settings-block input:focus-visible,
+.recurring-panel select:focus-visible,
+.recurring-panel input:focus-visible,
 .bot-switch select:focus-visible,
 .bot-menu input:focus-visible,
 .composer-row textarea:focus-visible,
@@ -2746,6 +3015,7 @@ table.ledger tbody tr:focus-visible { outline: 2px solid var(--focus-ring); outl
 @container (max-width: 460px) {
   .platform-share { gap: 12px; }
   .platform-share .donut { width: 84px; height: 84px; }
+  .platform-donut-col { width: 84px; }
   .platform-row { font-size: 0.76rem; gap: 8px; }
   .platform-row-note { font-size: 0.66rem; }
 }
