@@ -3,7 +3,7 @@ import { formatMoney } from '../lib/money'
 
 export default function Obligations({ figures, currency }: { figures: Figures; currency: Currency }) {
   return (
-    <div className="panel obligations">
+    <div className="panel obligations lg">
       <div>
         <div className="k">Owed To You</div>
         <div className="v credit">{formatMoney(figures.receivable_open, currency)}</div>

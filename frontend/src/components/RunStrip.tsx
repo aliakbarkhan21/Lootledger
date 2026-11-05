@@ -4,7 +4,7 @@ import { formatMoney, formatMoneyCompact } from '../lib/money'
 export default function RunStrip({ months, currency }: { months: RunStripMonth[]; currency: Currency }) {
   const peak = Math.max(...months.map((m) => m.outflow), 0.0001)
   return (
-    <div className="panel">
+    <div className="panel lg">
       <p className="panel-note run-legend">Bar height is each month's spending; the figure under it is what the month closed at.</p>
       <div className="run-strip">
         {months.map((m) => (

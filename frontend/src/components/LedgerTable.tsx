@@ -71,7 +71,7 @@ export default function LedgerTable({
           </div>
         </div>
       )}
-      <div className="table-wrap log">
+      <div className="table-wrap log lg lg-dense">
       <table className="ledger">
         <thead>
           <tr>

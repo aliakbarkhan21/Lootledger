@@ -38,7 +38,7 @@ export default function GlassTopBar({
     // The wrapper is what sticks: it carries the scroll-edge blur that the
     // board fades into as it passes under the floating bar.
     <div className="g-topbar-wrap">
-      <header className="g-topbar">
+      <header className="g-topbar lg lg-chrome">
         <div className="g-hello">
           <span className="g-mark g-mark-bar" aria-hidden="true">LL</span>
           <div className="g-hello-text">

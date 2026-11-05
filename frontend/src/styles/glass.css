@@ -344,27 +344,9 @@ html:root[data-style='glass'] {
 }
 
 /* ------------------------------------------------------------ the material
-   Eight surfaces carry a backdrop blur and no more: the rail, the top bar
-   and its scroll-edge veil, the four figures and Platform load. Rows, chips
-   and controls never do. */
-:root[data-style='glass'] .g-rail,
-:root[data-style='glass'] .g-topbar,
-:root[data-style='glass'] .summary > .fig,
-:root[data-style='glass'] .g-load {
-  background: var(--g-fill);
-  -webkit-backdrop-filter: blur(var(--g-blur)) saturate(var(--g-saturate));
-  backdrop-filter: blur(var(--g-blur)) saturate(var(--g-saturate));
-  box-shadow:
-    inset 0 0 0 1px var(--g-edge),
-    inset 0 1px 0 0 var(--g-edge-top),
-    0 0 0 1px var(--g-rim),
-    var(--g-shadow);
-}
-
-/* Chrome reads a step heavier than content (Apple's material weights). */
-:root[data-style='glass'] .g-rail,
-:root[data-style='glass'] .g-topbar { background: var(--g-fill-bar); }
-
+   Every pane is the one liquid-glass material, .lg, defined in its own
+   section at the end of this file (tint, frost, specular rim, depth,
+   refraction and the pointer light). */
 :root[data-style='glass'] .g-rail,
 :root[data-style='glass'] .g-topbar,
 :root[data-style='glass'] .service-line,
@@ -540,10 +522,10 @@ html:root[data-style='glass'] {
 
 /* ------------------------------------------------------------ top bar */
 /* The wrapper sticks to the top of the window with the bar floating 20px
-   below it. Content passing through that gap blurs and fades instead of
-   showing as a cut strip above the bar: Apple's scroll edge effect, not a
-   hard divider. At rest there is only the smooth backdrop behind it, so it
-   is invisible until something scrolls under. */
+   below it. Content passing through that gap fades into a shade of the
+   ground instead of showing as a cut strip above the bar: Apple's scroll
+   edge effect, not a hard divider. It only appears once the page has
+   scrolled (data-lg-scrolled, set by GlassScene). */
 :root[data-style='glass'] .g-topbar-wrap {
   position: sticky;
   top: 0;
@@ -554,15 +536,14 @@ html:root[data-style='glass'] {
 }
 
 :root[data-style='glass'] .g-topbar-wrap::before {
-  content: '';
+  content: none;
   position: absolute;
   top: 0;
   left: -14px;
   right: -14px;
   height: 66px;
   pointer-events: none;
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
+  background: var(--lg-veil);
   -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 42%, transparent 100%);
   mask-image: linear-gradient(to bottom, #000 0%, #000 42%, transparent 100%);
 }
@@ -905,23 +886,10 @@ html:root[data-style='glass'] {
   transition: transform var(--g-spring-lift-ms) var(--g-spring-lift);
 }
 
-/* The lifted shadow waits underneath and fades in: the pane moves by
-   transform, its shadow by opacity. */
-:root[data-style='glass'] .summary > .fig::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  border-radius: inherit;
-  box-shadow: var(--g-shadow-lift);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 240ms ease-out;
-}
-
+/* A pane lifts under the pointer by transform alone; the light that follows
+   the pointer (.lg::after) brightens it. */
 @media (hover: hover) and (pointer: fine) {
   :root[data-style='glass'] .summary > .fig:hover { transform: translateY(-3px); }
-  :root[data-style='glass'] .summary > .fig:hover::after { opacity: 1; }
 }
 
 :root[data-style='glass'] .summary .k {
@@ -961,9 +929,11 @@ html:root[data-style='glass'] {
 :root[data-style='glass'] .summary .note .up { color: var(--g-out); font-weight: 600; }
 :root[data-style='glass'] .summary .note .down { color: var(--g-in); font-weight: 600; }
 
-/* Arrivals come in, departures go out: an arrow in the pane's corner. */
-:root[data-style='glass'] .summary > .fig-in::before,
-:root[data-style='glass'] .summary > .fig-out::before {
+/* Arrivals come in, departures go out: an arrow in the pane's corner. Drawn
+   on the label, so the pane's own ::before stays free for its rim; the label
+   is not positioned, so the arrow still sits in the pane's corner. */
+:root[data-style='glass'] .summary > .fig-in > .k::after,
+:root[data-style='glass'] .summary > .fig-out > .k::after {
   content: '';
   position: absolute;
   top: 16px;
@@ -974,25 +944,19 @@ html:root[data-style='glass'] {
   mask: var(--g-arrow) center / 20px 20px no-repeat;
 }
 
-:root[data-style='glass'] .summary > .fig-in::before {
+:root[data-style='glass'] .summary > .fig-in > .k::after {
   --g-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M17 7 7 17'/%3E%3Cpath d='M7 9.5V17h7.5'/%3E%3C/svg%3E");
   background: var(--g-in);
 }
 
-:root[data-style='glass'] .summary > .fig-out::before {
+:root[data-style='glass'] .summary > .fig-out > .k::after {
   --g-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7 17 17 7'/%3E%3Cpath d='M9.5 7H17v7.5'/%3E%3C/svg%3E");
   background: var(--g-out);
 }
 
-/* The hero pane: carried forward, what is actually left. */
-:root[data-style='glass'] .summary > .fig-carried {
-  background: var(--g-hero-bg);
-  color: var(--g-hero-ink);
-  box-shadow:
-    inset 0 0 0 1px var(--g-hero-ring),
-    inset 0 1.5px 0 0 var(--g-hero-rim),
-    var(--g-hero-shadow);
-}
+/* The hero pane: carried forward, what is actually left. Its tinted glass
+   is .lg-hero, at the end of the file. */
+:root[data-style='glass'] .summary > .fig-carried { color: var(--g-hero-ink); }
 
 :root[data-style='glass'] .fig-carried .k,
 :root[data-style='glass'] .fig-carried .note { color: var(--g-hero-ink-2); }
@@ -1045,11 +1009,12 @@ html:root[data-style='glass'] {
     margin-top: 2px;
   }
 
-  :root[data-style='glass'] .summary > .fig-in::before,
-  :root[data-style='glass'] .summary > .fig-out::before {
-    position: static;
-    grid-column: 1;
-    grid-row: 1;
+  /* The arrow keeps the first column's place, centred on the first row. */
+  :root[data-style='glass'] .summary > .fig-in > .k::after,
+  :root[data-style='glass'] .summary > .fig-out > .k::after {
+    top: 15px;
+    right: auto;
+    left: 16px;
     width: 18px;
     height: 18px;
     -webkit-mask-size: 18px 18px;
@@ -1357,27 +1322,14 @@ html:root[data-style='glass'] {
 :root[data-style='glass'] .auth-card {
   border: 0;
   border-radius: var(--g-radius);
-  background: var(--g-pane);
-  box-shadow:
-    inset 0 0 0 1px var(--g-edge),
-    inset 0 1px 0 0 var(--g-edge-top),
-    0 0 0 1px var(--g-rim),
-    var(--g-shadow);
 }
 
 /* Panes with a pinned head or foot over rows that scroll beneath them are
-   solid, in the colour a frosted pane comes out at on this field, so the
-   pinned row and the pane are one surface. */
+   the dense glass (.lg-dense), with the pinned rows near-opaque. */
 :root[data-style='glass'] .table-wrap.log,
 :root[data-style='glass'] .section-body {
   border: 0;
   border-radius: var(--g-radius);
-  background: var(--g-pane-solid);
-  box-shadow:
-    inset 0 0 0 1px var(--g-edge),
-    inset 0 1px 0 0 var(--g-edge-top),
-    0 0 0 1px var(--g-rim),
-    var(--g-shadow);
 }
 
 :root[data-style='glass'] .panel:not(.g-load) {
@@ -1689,14 +1641,14 @@ html:root[data-style='glass'] {
 
 /* Sample data: a gold wash over the pane, the warning in plain ink. */
 :root[data-style='glass'] .banner.demo {
-  background: linear-gradient(var(--g-gold-wash), var(--g-gold-wash)), var(--g-pane);
+  background: linear-gradient(var(--g-gold-wash), var(--g-gold-wash)), var(--lg-tint-lite);
   color: var(--g-ink-2);
 }
 
 :root[data-style='glass'] .banner.demo strong { color: var(--g-gold-ink); font-weight: 650; }
 
 :root[data-style='glass'] .banner.warn {
-  background: linear-gradient(var(--g-out-wash), var(--g-out-wash)), var(--g-pane);
+  background: linear-gradient(var(--g-out-wash), var(--g-out-wash)), var(--lg-tint-lite);
 }
 
 :root[data-style='glass'] .banner-title {
@@ -1758,26 +1710,11 @@ html:root[data-style='glass'] {
   gap: 12px;
   padding: 13px 18px 13px 16px;
   border-radius: 20px;
-  transition: transform 160ms var(--g-ease-out), background-color 160ms ease-out;
+  transition: transform 160ms var(--g-ease-out);
 }
 
-:root[data-style='glass'] .ldi-toggle:hover {
-  transform: none;
-  background: linear-gradient(var(--g-hover-wash), var(--g-hover-wash)), var(--g-pane);
-  box-shadow:
-    inset 0 0 0 1px var(--g-edge),
-    inset 0 1px 0 0 var(--g-edge-top),
-    0 0 0 1px var(--g-rim),
-    var(--g-shadow);
-}
-
-:root[data-style='glass'] .ldi-toggle:active {
-  transform: scale(0.99);
-  background: linear-gradient(var(--g-hover-wash), var(--g-hover-wash)), var(--g-pane);
-  box-shadow:
-    inset 0 0 0 1px var(--g-edge),
-    0 0 0 1px var(--g-rim);
-}
+:root[data-style='glass'] .ldi-toggle:hover { transform: none; }
+:root[data-style='glass'] .ldi-toggle:active { transform: scale(0.99); }
 
 :root[data-style='glass'] .ldi-chevron {
   width: 22px;
@@ -1837,8 +1774,8 @@ html:root[data-style='glass'] {
 :root[data-style='glass'] .section-tab { color: var(--g-ink-2); }
 
 :root[data-style='glass'] .section-tab.active {
-  background: var(--g-seg-thumb);
-  box-shadow: var(--g-seg-thumb-shadow);
+  background: none;
+  box-shadow: none;
   color: var(--g-ink);
 }
 
@@ -1862,13 +1799,7 @@ html:root[data-style='glass'] {
 :root[data-style='glass'] .tab-controls { font: 500 13.5px/1.3 var(--g-font); }
 :root[data-style='glass'] .tab-note { font: 500 13px/1.4 var(--g-font); }
 
-:root[data-style='glass'] .grid-scroll table.ledger.grid thead th { background: var(--paper); }
-
-:root[data-style='glass'] .side-scroll {
-  background:
-    linear-gradient(transparent, var(--paper) 50%) 0 100% / 100% 32px no-repeat local,
-    linear-gradient(to top, color-mix(in srgb, var(--g-shadow-tint) 70%, transparent), transparent) 0 100% / 100% 14px no-repeat scroll;
-}
+:root[data-style='glass'] .grid-scroll table.ledger.grid thead th { background: var(--lg-head); }
 
 :root[data-style='glass'] table.ledger.grid tbody tr:hover { background: var(--g-hover-wash); }
 :root[data-style='glass'] table.ledger.grid tbody tr.editing { background: var(--g-gold-wash); }
@@ -1950,7 +1881,7 @@ html:root[data-style='glass'] {
 :root[data-style='glass'] table.ledger thead th {
   padding: 15px 6px 10px;
   border-bottom: 1px solid var(--g-rule);
-  background: var(--paper);
+  background: var(--lg-head);
   font: 600 12.5px/1.2 var(--g-font);
   letter-spacing: 0;
   text-transform: none;
@@ -1982,7 +1913,7 @@ html:root[data-style='glass'] {
   padding: 12px 6px 14px;
   border-top: 1px solid var(--g-rule);
   border-bottom: 0;
-  background: var(--paper);
+  background: var(--lg-head);
   font: 600 12.5px/1.2 var(--g-font);
   letter-spacing: 0;
   text-transform: none;
@@ -2450,14 +2381,6 @@ html:root[data-style='glass'] {
 :root[data-style='glass'] .bot-rail,
 :root[data-style='glass'] .dp-pop {
   border: 0;
-  background: var(--g-chrome);
-  -webkit-backdrop-filter: blur(28px) saturate(160%);
-  backdrop-filter: blur(28px) saturate(160%);
-  box-shadow:
-    inset 0 0 0 1px var(--g-edge),
-    inset 0 1px 0 0 var(--g-edge-top),
-    0 0 0 1px var(--g-rim),
-    var(--g-chrome-shadow);
   color: var(--g-ink);
   font-family: var(--g-font);
 }
@@ -2900,14 +2823,6 @@ html:root[data-style='glass'] {
    Without backdrop-filter, or when someone has asked for less transparency,
    every pane turns solid: same edges, same layout, nothing to read through. */
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-  :root[data-style='glass'] .summary > .fig,
-  :root[data-style='glass'] .g-load { background: var(--g-fill-solid); }
-
-  :root[data-style='glass'] .g-rail,
-  :root[data-style='glass'] .g-topbar { background: var(--g-fill-bar-solid); }
-
-  :root[data-style='glass'] .summary > .fig-carried { background: var(--g-hero-solid); }
-
   :root[data-style='glass'] .g-topbar-wrap::before { content: none; }
 }
 
@@ -2924,21 +2839,6 @@ html:root[data-style='glass'] {
     --g-row-hot: #222d25;
   }
 
-  :root[data-style='glass'] .g-rail,
-  :root[data-style='glass'] .g-topbar,
-  :root[data-style='glass'] .summary > .fig,
-  :root[data-style='glass'] .g-load {
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
-  }
-
-  :root[data-style='glass'] .summary > .fig,
-  :root[data-style='glass'] .g-load { background: var(--g-fill-solid); }
-
-  :root[data-style='glass'] .g-rail,
-  :root[data-style='glass'] .g-topbar { background: var(--g-fill-bar-solid); }
-
-  :root[data-style='glass'] .summary > .fig-carried { background: var(--g-hero-solid); }
 }
 
 /* Forced colours: shadows are dropped, so give every pane a real edge. */
@@ -3079,14 +2979,6 @@ html:root[data-style='glass'] {
     --g-pane: var(--g-pane-solid);
     --g-chrome: var(--g-chrome-solid);
   }
-
-  :root[data-style='glass'] .modal,
-  :root[data-style='glass'] .palette,
-  :root[data-style='glass'] .bot-rail,
-  :root[data-style='glass'] .dp-pop {
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
-  }
 }
 
 @media (forced-colors: active) {
@@ -3115,4 +3007,931 @@ html:root[data-style='glass'] {
   :root[data-style='glass'] .day-bar i,
   :root[data-style='glass'] .run-bar,
   :root[data-style='glass'] .capacity-fill { forced-color-adjust: none; }
+}
+
+/* =====================================================================
+   Liquid glass.
+
+   The panes above were frosted cards on a flat field, and read as dark
+   cards. This section makes them glass: a lit scene behind the page with
+   something in it to bend, panes thin enough to see that scene through,
+   a specular rim that catches the light at the top-left, refraction at the
+   edges of the four floating surfaces, and light that follows the pointer.
+
+   One material, .lg, with four weights:
+     .lg            content panes: 8-18% tint, the full frost.
+     .lg-dense      the ledger and the sheets: ~35% tint, so rows of figures
+                    stay readable; never glass on the rows themselves.
+     .lg-lite       banners and the ledgers bar: no backdrop-filter (keeps
+                    the blur budget), a heavier tint instead.
+     .lg-chrome     the top bar, the rail and the entry slip: refracting
+                    glass (Chromium), plain frost elsewhere.
+     .lg-hero       Carried forward: emerald-tinted glass with the lamp's
+                    gold coming through it.
+     .lg-overlay    Settings, the bot, the palette, the date picker.
+
+   Blur budget: at most eight backdrop-filter surfaces are on screen at
+   once at 1440x900 (measured), and none on rows, chips or list items.
+   ===================================================================== */
+
+/* ------------------------------------------------------------ tokens */
+:root[data-style='glass'] {
+  --lg-blur: 22px;
+  --lg-sat: 180%;
+  --lg-bright: 1.05;
+  --lg-radius: var(--g-radius);
+
+  /* light: morning light through green glass onto ledger paper */
+  --lg-base: linear-gradient(160deg, #edf4e9 0%, #e6efe1 46%, #f4eedf 100%);
+  --lg-o1: 92 184 132;
+  --lg-o1-a: 0.62;
+  --lg-o2: 244 188 84;
+  --lg-o2-a: 0.66;
+  --lg-o3: 80 182 190;
+  --lg-o3-a: 0.5;
+  --lg-o4: 56 150 100;
+  --lg-o4-a: 0.34;
+  --lg-o5: 250 208 128;
+  --lg-o5-a: 0.52;
+  --lg-line: rgb(24 60 36 / 0.09);
+  --lg-margin: rgb(181 73 61 / 0.16);
+  --lg-seal: rgb(122 90 18 / 0.2);
+  --lg-arc: rgb(24 60 36 / 0.22);
+
+  --lg-tint: rgb(255 255 255 / 0.18);
+  --lg-tint-lite: rgb(255 255 255 / 0.56);
+  --lg-tint-dense: rgb(255 255 255 / 0.4);
+  --lg-tint-chrome: rgb(255 255 255 / 0.22);
+  --lg-tint-overlay: rgb(248 250 245 / 0.84);
+  --lg-head: rgb(243 247 239);
+  --lg-scrim: rgb(244 248 240 / 0.78);
+  --lg-veil: rgb(236 243 232 / 0.94);
+  --lg-tint-cal: rgb(255 255 255 / 0.34);
+  --lg-tint-capacity: var(--lg-tint);
+
+  --lg-rim-hi: rgb(255 255 255 / 0.95);
+  --lg-rim-mid: rgb(255 255 255 / 0.45);
+  --lg-rim-lo: rgb(255 255 255 / 0.1);
+  --lg-rim-lo2: rgb(255 255 255 / 0.6);
+  --lg-hi: rgb(255 255 255 / 0.75);
+  --lg-glow: rgb(255 255 255 / 0.28);
+  --lg-hairline: rgb(28 46 31 / 0.08);
+  --lg-sh-tight: rgb(28 46 31 / 0.08);
+  --lg-sh-wide: rgb(28 46 31 / 0.24);
+  --lg-light: rgb(255 255 255 / 0.55);
+
+  --lg-hero-tint: linear-gradient(160deg, rgb(214 240 223 / 0.5) 0%, rgb(178 222 195 / 0.42) 100%);
+  --lg-hero-glow: rgb(246 192 88 / 0.36);
+  --lg-hero-rim: rgb(255 248 222 / 0.95);
+  --lg-hero-ink: #0f2e1d;
+  --lg-hero-ink-2: #1c4430;
+  --lg-hero-fig: #0b4328;
+  --lg-hero-neg: #8f2c1f;
+  --lg-hero-solid: #d6ecdc;
+
+  --lg-cap: rgb(255 255 255 / 0.5);
+  --lg-cap-hot: rgb(255 255 255 / 0.78);
+  --lg-cap-ring: rgb(28 46 31 / 0.11);
+  --lg-cap-ring-hot: rgb(28 46 31 / 0.24);
+  --lg-cap-hi: rgb(255 255 255 / 0.9);
+  --lg-cap-hi-hot: rgb(255 255 255 / 1);
+  --lg-thumb: linear-gradient(180deg, #ffffff, #f1f5ee);
+  --lg-thumb-rim: linear-gradient(180deg, rgb(255 255 255 / 1), rgb(28 46 31 / 0.14) 70%, rgb(28 46 31 / 0.2));
+}
+
+/* dark: the same desk at night, under the lamp. The orbs stay deep enough
+   that light ink holds 4.5:1 through the thinnest glass. */
+:root[data-style='glass'][data-theme='dark'] {
+  --lg-base: linear-gradient(160deg, #06110c 0%, #07140f 46%, #0d110b 100%);
+  --lg-o1: 24 128 82;
+  --lg-o1-a: 0.72;
+  --lg-o2: 206 148 56;
+  --lg-o2-a: 0.5;
+  --lg-o3: 18 122 128;
+  --lg-o3-a: 0.56;
+  --lg-o4: 46 150 98;
+  --lg-o4-a: 0.38;
+  --lg-o5: 214 168 82;
+  --lg-o5-a: 0.26;
+  --lg-line: rgb(214 236 220 / 0.07);
+  --lg-margin: rgb(226 112 92 / 0.18);
+  --lg-seal: rgb(243 213 140 / 0.16);
+  --lg-arc: rgb(214 236 220 / 0.2);
+
+  --lg-tint: rgb(6 18 12 / 0.18);
+  --lg-tint-lite: rgb(8 22 15 / 0.46);
+  --lg-tint-dense: rgb(7 19 13 / 0.4);
+  --lg-tint-chrome: rgb(6 18 12 / 0.3);
+  --lg-tint-overlay: rgb(12 24 18 / 0.76);
+  --lg-head: rgb(14 29 21);
+  --lg-scrim: rgb(5 15 10 / 0.72);
+  --lg-veil: rgb(6 16 11 / 0.94);
+  --lg-tint-cal: rgb(7 19 13 / 0.46);
+  --lg-tint-capacity: rgb(6 18 12 / 0.28);
+
+  --lg-rim-hi: rgb(255 255 255 / 0.72);
+  --lg-rim-mid: rgb(255 255 255 / 0.2);
+  --lg-rim-lo: rgb(255 255 255 / 0.05);
+  --lg-rim-lo2: rgb(255 255 255 / 0.3);
+  --lg-hi: rgb(255 255 255 / 0.16);
+  --lg-glow: rgb(255 255 255 / 0.045);
+  --lg-hairline: rgb(0 0 0 / 0.22);
+  --lg-sh-tight: rgb(0 0 0 / 0.32);
+  --lg-sh-wide: rgb(0 0 0 / 0.5);
+  --lg-light: rgb(255 255 255 / 0.085);
+
+  --lg-hero-tint: linear-gradient(160deg, rgb(30 122 80 / 0.5) 0%, rgb(14 80 51 / 0.58) 100%);
+  --lg-hero-glow: rgb(236 188 96 / 0.3);
+  --lg-hero-rim: rgb(255 232 176 / 0.75);
+  --lg-hero-ink: #f3f2e6;
+  --lg-hero-ink-2: #e4f0e1;
+  --lg-hero-fig: #f5d589;
+  --lg-hero-neg: #ffc4b8;
+  --lg-hero-solid: #1d6142;
+
+  --lg-cap: rgb(255 255 255 / 0.07);
+  --lg-cap-hot: rgb(255 255 255 / 0.13);
+  --lg-cap-ring: rgb(255 255 255 / 0.11);
+  --lg-cap-ring-hot: rgb(255 255 255 / 0.28);
+  --lg-cap-hi: rgb(255 255 255 / 0.16);
+  --lg-cap-hi-hot: rgb(255 255 255 / 0.36);
+  --lg-thumb: linear-gradient(180deg, #3b4b42, #2b3931);
+  --lg-thumb-rim: linear-gradient(180deg, rgb(255 255 255 / 0.55), rgb(255 255 255 / 0.08) 65%, rgb(255 255 255 / 0.2));
+}
+
+/* ------------------------------------------------------------ the scene
+   Fixed behind everything, so scrolling never repaints it. The old flat
+   ambient field on body::before is retired; the grain on body::after stays
+   on top of the orbs and dithers their long gradients so they never band. */
+:root[data-style='glass'] body::before { content: none; }
+
+:root[data-style='glass'] .lg-scene {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+  background: var(--lg-base);
+  contain: strict;
+}
+
+:root[data-style='glass'] .lg-orb {
+  position: absolute;
+  border-radius: 50%;
+  will-change: transform;
+  animation: lg-drift-a 56s ease-in-out infinite alternate;
+}
+
+/* Each orb falls off along an eased curve rather than a straight ramp, so
+   its edge has no visible ring. */
+:root[data-style='glass'] .lg-orb-1 {
+  --o: var(--lg-o1);
+  --a: var(--lg-o1-a);
+  width: 64vmax;
+  height: 64vmax;
+  left: -20vmax;
+  top: -26vmax;
+}
+
+/* The lamp: gold, set behind Carried forward so its light comes through
+   the hero pane. */
+:root[data-style='glass'] .lg-orb-2 {
+  --o: var(--lg-o2);
+  --a: var(--lg-o2-a);
+  width: 44vmax;
+  height: 44vmax;
+  right: -10vmax;
+  top: 6vh;
+  animation-name: lg-drift-b;
+  animation-duration: 64s;
+}
+
+:root[data-style='glass'] .lg-orb-3 {
+  --o: var(--lg-o3);
+  --a: var(--lg-o3-a);
+  width: 54vmax;
+  height: 54vmax;
+  right: -16vmax;
+  bottom: -30vmax;
+  animation-name: lg-drift-c;
+  animation-duration: 72s;
+}
+
+:root[data-style='glass'] .lg-orb-4 {
+  --o: var(--lg-o4);
+  --a: var(--lg-o4-a);
+  width: 40vmax;
+  height: 40vmax;
+  left: 24vw;
+  top: 30vh;
+  animation-name: lg-drift-d;
+  animation-duration: 50s;
+}
+
+:root[data-style='glass'] .lg-orb-5 {
+  --o: var(--lg-o5);
+  --a: var(--lg-o5-a);
+  width: 24vmax;
+  height: 24vmax;
+  left: 38vw;
+  top: -8vmax;
+  animation-name: lg-drift-e;
+  animation-duration: 84s;
+}
+
+:root[data-style='glass'] .lg-orb {
+  background: radial-gradient(closest-side,
+    rgb(var(--o) / var(--a)) 0%,
+    rgb(var(--o) / calc(var(--a) * 0.82)) 24%,
+    rgb(var(--o) / calc(var(--a) * 0.55)) 46%,
+    rgb(var(--o) / calc(var(--a) * 0.28)) 66%,
+    rgb(var(--o) / calc(var(--a) * 0.09)) 84%,
+    rgb(var(--o) / 0) 100%);
+}
+
+:root[data-style='glass'][data-lg-scrolling] .lg-orb { animation-play-state: paused; }
+
+@keyframes lg-drift-a {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to { transform: translate3d(9vw, 7vh, 0) scale(1.08); }
+}
+
+@keyframes lg-drift-b {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to { transform: translate3d(-6vw, 9vh, 0) scale(0.94); }
+}
+
+@keyframes lg-drift-c {
+  from { transform: translate3d(0, 0, 0) scale(1.04); }
+  to { transform: translate3d(-12vw, -8vh, 0) scale(0.96); }
+}
+
+@keyframes lg-drift-d {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(14vw, -10vh, 0); }
+}
+
+@keyframes lg-drift-e {
+  from { transform: translate3d(0, 0, 0) scale(0.9); }
+  to { transform: translate3d(-10vw, 12vh, 0) scale(1.1); }
+}
+
+/* Sharp, faint things for the glass to bend: ledger ruling, the journal's
+   double red margin rule, a few arcs and a large outlined seal. Static. */
+:root[data-style='glass'] .lg-rules {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, transparent calc(18vw - 1px), var(--lg-margin) calc(18vw - 1px) 18vw, transparent 18vw calc(18vw + 4px), var(--lg-margin) calc(18vw + 4px) calc(18vw + 5px), transparent calc(18vw + 5px)),
+    repeating-linear-gradient(180deg, transparent 0 35px, var(--lg-line) 35px 36px);
+}
+
+:root[data-style='glass'] .lg-arcs {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke: var(--lg-arc);
+  stroke-width: 1.5;
+}
+
+:root[data-style='glass'] .lg-arcs circle { vector-effect: non-scaling-stroke; }
+
+:root[data-style='glass'] .lg-seal {
+  position: absolute;
+  right: -3vw;
+  bottom: -16vh;
+  font: italic 700 72vh/1 var(--g-mark-font);
+  letter-spacing: -0.07em;
+  color: transparent;
+  -webkit-text-stroke: 1.5px var(--lg-seal);
+  white-space: nowrap;
+  user-select: none;
+}
+
+:root[data-style='glass'] .lg-defs {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+
+/* ------------------------------------------------------------ the material */
+/* Zero specificity, so anything that positions a pane itself (the rail,
+   the bot drawer and the date picker are fixed) keeps its own position. */
+:where(:root[data-style='glass'] .lg) {
+  position: relative;
+  isolation: isolate;
+}
+
+:root[data-style='glass'] .lg {
+  border: 0;
+  background: var(--lg-tint);
+  -webkit-backdrop-filter: blur(var(--lg-blur)) saturate(var(--lg-sat)) brightness(var(--lg-bright));
+  backdrop-filter: blur(var(--lg-blur)) saturate(var(--lg-sat)) brightness(var(--lg-bright));
+  box-shadow:
+    inset 0 1px 0 0 var(--lg-hi),
+    inset 0 0 24px 0 var(--lg-glow),
+    0 0 0 1px var(--lg-hairline),
+    0 1px 2px var(--lg-sh-tight),
+    0 22px 44px -22px var(--lg-sh-wide);
+}
+
+/* The specular rim: a 1px ring masked out of a gradient, bright where the
+   light lands at the top-left, dim along the bottom-right, with a faint
+   second catch at the bottom-right corner. */
+:root[data-style='glass'] .lg::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+  padding: 1px;
+  pointer-events: none;
+  background: linear-gradient(135deg,
+    var(--lg-rim-hi) 0%,
+    var(--lg-rim-mid) 22%,
+    var(--lg-rim-lo) 48%,
+    var(--lg-rim-lo) 74%,
+    var(--lg-rim-lo2) 100%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+}
+
+/* The light that follows the pointer: a soft pool under the content. It
+   fades by opacity; its position is the --mx/--my GlassScene writes. */
+:root[data-style='glass'] .lg:not(.lg-chrome)::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(340px circle at var(--mx, 50%) var(--my, -40%), var(--lg-light), transparent 72%);
+  opacity: 0;
+  transition: opacity 260ms ease-out;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  :root[data-style='glass'] .lg:not(.lg-chrome):hover::after { opacity: 1; }
+}
+
+/* Dense: the ledger and the sheets. */
+:root[data-style='glass'] .lg-dense { background: var(--lg-tint-dense); }
+
+/* The month's log scrolls inside its own pane, and a ring drawn by a
+   pseudo-element would scroll away with the rows; its rim is box-shadow,
+   which stays on the pane's edge. */
+:root[data-style='glass'] .table-wrap.lg::before { content: none; }
+
+:root[data-style='glass'] .table-wrap.lg {
+  box-shadow:
+    inset 1px 1px 0 0 var(--lg-rim-mid),
+    inset 0 1px 0 0 var(--lg-hi),
+    inset -1px -1px 0 0 var(--lg-rim-lo),
+    0 0 0 1px var(--lg-hairline),
+    0 1px 2px var(--lg-sh-tight),
+    0 22px 44px -22px var(--lg-sh-wide);
+}
+
+/* Lite: no backdrop-filter, a heavier tint instead. */
+:root[data-style='glass'] .lg-lite {
+  background: var(--lg-tint-lite);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+:root[data-style='glass'] .banner.demo.lg-lite {
+  background: linear-gradient(var(--g-gold-wash), var(--g-gold-wash)), var(--lg-tint-lite);
+}
+
+:root[data-style='glass'] .banner.warn.lg-lite {
+  background: linear-gradient(var(--g-out-wash), var(--g-out-wash)), var(--lg-tint-lite);
+}
+
+/* Chrome: the floating layers. Frost everywhere; refraction where the
+   engine can draw an SVG filter behind an element (Chromium), once the
+   surface's map is drawn. */
+:root[data-style='glass'] .lg-chrome { background: var(--lg-tint-chrome); }
+
+@supports (backdrop-filter: url(#a)) and (not (-moz-appearance: none)) and (not (font: -apple-system-body)) {
+  :root[data-style='glass'] .g-topbar[data-lg-refract] {
+    backdrop-filter: url(#lg-refract-bar) saturate(var(--lg-sat)) brightness(var(--lg-bright));
+  }
+
+  :root[data-style='glass'] .g-rail[data-lg-refract] {
+    backdrop-filter: url(#lg-refract-rail) saturate(var(--lg-sat)) brightness(var(--lg-bright));
+  }
+
+  :root[data-style='glass'] .dock-paper[data-lg-refract] {
+    backdrop-filter: url(#lg-refract-dock) saturate(var(--lg-sat)) brightness(var(--lg-bright));
+  }
+
+  :root[data-style='glass'] .fig-carried[data-lg-refract] {
+    backdrop-filter: url(#lg-refract-hero) saturate(var(--lg-sat)) brightness(var(--lg-bright));
+  }
+}
+
+/* Hero: Carried forward is emerald glass, the lamp's gold coming through
+   from behind at the top-right. Its figure stays the highest contrast on
+   the board. */
+:root[data-style='glass'] .lg-hero {
+  background:
+    radial-gradient(120% 150% at 100% 0%, var(--lg-hero-glow) 0%, transparent 58%),
+    var(--lg-hero-tint);
+  color: var(--lg-hero-ink);
+}
+
+:root[data-style='glass'] .lg-hero::before {
+  background: linear-gradient(135deg,
+    var(--lg-hero-rim) 0%,
+    var(--lg-rim-mid) 24%,
+    var(--lg-rim-lo) 50%,
+    var(--lg-rim-lo) 72%,
+    var(--lg-hero-rim) 100%);
+}
+
+:root[data-style='glass'] .summary > .fig-carried .k,
+:root[data-style='glass'] .summary > .fig-carried .note { color: var(--lg-hero-ink-2); }
+:root[data-style='glass'] .summary > .fig-carried .note b { color: var(--lg-hero-ink); }
+:root[data-style='glass'] .summary .fig-carried .v { color: var(--lg-hero-fig); }
+:root[data-style='glass'] .summary .fig-carried .v.debit { color: var(--lg-hero-neg); }
+
+/* Overlays sit over content, so they frost harder and tint heavier. */
+:root[data-style='glass'] .lg-overlay {
+  background: var(--lg-tint-overlay);
+  -webkit-backdrop-filter: blur(28px) saturate(var(--lg-sat));
+  backdrop-filter: blur(28px) saturate(var(--lg-sat));
+  box-shadow:
+    inset 0 1px 0 0 var(--lg-hi),
+    inset 0 0 24px 0 var(--lg-glow),
+    0 0 0 1px var(--lg-hairline),
+    0 2px 6px var(--lg-sh-tight),
+    0 40px 80px -30px var(--lg-sh-wide);
+}
+
+/* Concentric corners: a control that sits in a pane's padding takes the
+   pane's radius less that padding. The top bar (33 - 10 = 23) and rail
+   (32 - 9 = 23) already hold; the segmented controls' thumbs sit 3px
+   inside a pill and stay pills. */
+:root[data-style='glass'] .modal.lg { border-radius: 28px; }
+:root[data-style='glass'] .modal-head .icon-btn { border-radius: 50%; }
+
+/* Text set straight on the scene (the section titles and the service line)
+   gets a soft scrim of the ground behind it, so it holds its contrast over
+   any orb that drifts beneath. */
+:root[data-style='glass'] .folio-heading,
+:root[data-style='glass'] .service-meta {
+  position: relative;
+  isolation: isolate;
+}
+
+:root[data-style='glass'] .folio-heading::before,
+:root[data-style='glass'] .service-meta::before {
+  content: '';
+  position: absolute;
+  inset: -12px -28px;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(closest-side, var(--lg-scrim) 0%, var(--lg-scrim) 55%, transparent 100%);
+}
+
+:root[data-style='glass'] .folio-heading { width: max-content; max-width: 100%; }
+
+/* The calendar's quiet future days are the faintest ink on the board, so
+   its pane is tinted a step denser. */
+:root[data-style='glass'] .cal-panel.lg { background: var(--lg-tint-cal); }
+
+/* Capacity's two lines of small print run full width across whatever orb
+   drifts beneath; in the dark its pane is a step denser too. */
+:root[data-style='glass'] .capacity.lg { background: var(--lg-tint-capacity); }
+
+/* The sheets' tab row sits on the scene, so its track is lite glass. */
+:root[data-style='glass'] .section-tabs {
+  background: linear-gradient(var(--g-seg-bg), var(--g-seg-bg)), var(--lg-tint-lite);
+}
+
+/* ------------------------------------------------------------ the floating layers
+   The top bar sticks and the rail is fixed, so the board passes under both
+   and frosts there. The veil above the bar only blurs once something has
+   scrolled under it. */
+/* The veil is a shade of the scene's ground rather than a ninth blurred
+   surface. It covers the 20px gap above the bar (fading out over the bar's
+   top few pixels), as wide as the bar, and dissolves at both ends: it used to run 14px past each end and 66px
+   down, so it showed through the translucent bar as a pale (or, in the
+   dark, a black) block with square corners standing out either side. */
+:root[data-style='glass'][data-lg-scrolled] .g-topbar-wrap::before {
+  content: '';
+  left: 0;
+  right: 0;
+  height: 28px;
+  -webkit-mask-image:
+    linear-gradient(to bottom, #000 0%, #000 62%, transparent 100%),
+    linear-gradient(to right, transparent 0, #000 48px, #000 calc(100% - 48px), transparent 100%);
+  -webkit-mask-composite: source-in;
+  mask-image:
+    linear-gradient(to bottom, #000 0%, #000 62%, transparent 100%),
+    linear-gradient(to right, transparent 0, #000 48px, #000 calc(100% - 48px), transparent 100%);
+  mask-composite: intersect;
+}
+
+/* ------------------------------------------------------------ controls as glass
+   Small glass capsules: a light well with a bright top edge. Hover lights
+   the rim (instantly: a colour, not a motion); a press scales to 0.97 fast
+   and the release springs back with a touch of overshoot. Only transform
+   animates. */
+:root[data-style='glass'] .btn-link,
+:root[data-style='glass'] .banner button,
+:root[data-style='glass'] .confirm-row button,
+:root[data-style='glass'] .kbd-btn,
+:root[data-style='glass'] .icon-btn,
+:root[data-style='glass'] .tab-controls input[type='file']::file-selector-button {
+  background: var(--lg-cap);
+  box-shadow:
+    inset 0 1px 0 0 var(--lg-cap-hi),
+    inset 0 0 0 1px var(--lg-cap-ring),
+    0 1px 2px var(--lg-sh-tight);
+  transition: transform var(--g-spring-lift-ms) var(--g-spring-lift);
+}
+
+:root[data-style='glass'] .btn-link:hover:not(:disabled),
+:root[data-style='glass'] .banner button:hover:not(:disabled),
+:root[data-style='glass'] .confirm-row button:hover:not(:disabled),
+:root[data-style='glass'] .kbd-btn:hover:not(:disabled),
+:root[data-style='glass'] .icon-btn:hover:not(:disabled),
+:root[data-style='glass'] .tab-controls input[type='file']::file-selector-button:hover {
+  background: var(--lg-cap-hot);
+  box-shadow:
+    inset 0 1px 0 0 var(--lg-cap-hi-hot),
+    inset 0 0 0 1px var(--lg-cap-ring-hot),
+    0 3px 10px -4px var(--lg-sh-wide);
+}
+
+:root[data-style='glass'] .btn-link:active:not(:disabled),
+:root[data-style='glass'] .banner button:active:not(:disabled),
+:root[data-style='glass'] .confirm-row button:active:not(:disabled),
+:root[data-style='glass'] .kbd-btn:active:not(:disabled),
+:root[data-style='glass'] .icon-btn:active:not(:disabled),
+:root[data-style='glass'] .tab-controls input[type='file']::file-selector-button:active {
+  transform: scale(0.97);
+  background: var(--lg-cap-hot);
+  box-shadow:
+    inset 0 1px 0 0 var(--lg-cap-hi),
+    inset 0 0 0 1px var(--lg-cap-ring-hot);
+  transition: transform 90ms var(--g-ease-out);
+}
+
+:root[data-style='glass'] .btn-link.danger,
+:root[data-style='glass'] .confirm-row button.danger {
+  box-shadow:
+    inset 0 1px 0 0 var(--lg-cap-hi),
+    inset 0 0 0 1px color-mix(in srgb, var(--g-out) 40%, transparent),
+    0 1px 2px var(--lg-sh-tight);
+}
+
+:root[data-style='glass'] .btn-link.danger:hover:not(:disabled),
+:root[data-style='glass'] .confirm-row button.danger:hover:not(:disabled) {
+  box-shadow:
+    inset 0 1px 0 0 var(--lg-cap-hi-hot),
+    inset 0 0 0 1px color-mix(in srgb, var(--g-out) 65%, transparent),
+    0 3px 10px -4px var(--lg-sh-wide);
+}
+
+:root[data-style='glass'] .icon-btn.active,
+:root[data-style='glass'] .icon-btn.active:hover:not(:disabled) {
+  background: var(--g-hero-solid);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.3), inset 0 0 0 1px rgb(255 255 255 / 0.14);
+}
+
+/* The primary action: an emerald capsule, lit along its top edge. */
+:root[data-style='glass'] .btn-primary,
+:root[data-style='glass'] .banner button.primary,
+:root[data-style='glass'] .dock-submit,
+:root[data-style='glass'] .auth-card button {
+  background: linear-gradient(180deg, #24805a 0%, #1d6b46 52%, #185c3c 100%);
+  box-shadow:
+    inset 0 1px 0 0 rgb(255 255 255 / 0.34),
+    inset 0 0 0 1px rgb(255 255 255 / 0.1),
+    inset 0 -1px 0 0 rgb(0 0 0 / 0.16),
+    0 8px 18px -10px rgb(14 64 40 / 0.75);
+  transition: transform var(--g-spring-lift-ms) var(--g-spring-lift);
+}
+
+:root[data-style='glass'] .btn-primary:hover:not(:disabled),
+:root[data-style='glass'] .banner button.primary:hover:not(:disabled),
+:root[data-style='glass'] .dock-submit:hover:not(:disabled),
+:root[data-style='glass'] .auth-card button:hover:not(:disabled) {
+  background: linear-gradient(180deg, #24805a 0%, #1d6b46 52%, #185c3c 100%);
+  filter: none;
+  box-shadow:
+    inset 0 1px 0 0 rgb(255 255 255 / 0.55),
+    inset 0 0 0 1px rgb(255 255 255 / 0.26),
+    inset 0 -1px 0 0 rgb(0 0 0 / 0.16),
+    0 10px 22px -10px rgb(14 64 40 / 0.85);
+}
+
+:root[data-style='glass'] .btn-primary:active:not(:disabled),
+:root[data-style='glass'] .banner button.primary:active:not(:disabled),
+:root[data-style='glass'] .dock-submit:active:not(:disabled),
+:root[data-style='glass'] .auth-card button:active:not(:disabled) {
+  transform: scale(0.97);
+  filter: none;
+  box-shadow:
+    inset 0 1px 0 0 rgb(255 255 255 / 0.22),
+    inset 0 0 0 1px rgb(255 255 255 / 0.12);
+  transition: transform 90ms var(--g-ease-out);
+}
+
+:root[data-style='glass'] .btn-primary:disabled,
+:root[data-style='glass'] .banner button.primary:disabled,
+:root[data-style='glass'] .dock-submit:disabled {
+  background: var(--g-field-deep);
+  box-shadow: inset 0 0 0 1px var(--g-field-ring);
+}
+
+/* The top bar's wells: glass inside glass would stack two translucent
+   layers, so they are a quiet lit well, not a second pane. */
+:root[data-style='glass'] .g-period,
+:root[data-style='glass'] .g-search {
+  background: var(--lg-cap);
+  box-shadow: inset 0 1px 0 0 var(--lg-cap-hi), inset 0 0 0 1px var(--lg-cap-ring);
+}
+
+:root[data-style='glass'] .status-lamp {
+  background: var(--lg-tint-lite);
+  box-shadow: inset 0 1px 0 0 var(--lg-cap-hi), inset 0 0 0 1px var(--lg-cap-ring);
+}
+
+/* ------------------------------------------------------------ sliding thumbs */
+/* Share / Trend: the thumb is a small glass bead that slides on the spring. */
+:root[data-style='glass'] .g-seg-thumb {
+  background: var(--lg-thumb);
+  box-shadow:
+    inset 0 1px 0 0 var(--lg-cap-hi-hot),
+    inset 0 0 0 1px var(--lg-cap-ring),
+    0 2px 8px -2px var(--lg-sh-wide);
+}
+
+/* Ledgers / Edit / Debts / Import: a window onto a lit copy of the tab row,
+   moved by clip-path. The ring layer is the same window 1px larger, so the
+   bead keeps its specular edge the whole way across. */
+:root[data-style='glass'] .section-tabs { position: relative; }
+
+:root[data-style='glass'] .section-tabs-ring,
+:root[data-style='glass'] .section-tabs-lit {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+:root[data-style='glass'] .section-tabs-ring { background: var(--lg-thumb-rim); }
+
+:root[data-style='glass'] .section-tabs-lit {
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  background: var(--lg-thumb);
+}
+
+:root[data-style='glass'] .section-tabs-lit > .section-tab { color: var(--g-ink); }
+
+:root[data-style='glass'] .section-tabs-ring[data-ready],
+:root[data-style='glass'] .section-tabs-lit[data-ready] {
+  transition: clip-path var(--g-spring-ui-ms) var(--g-spring-ui);
+}
+
+/* ------------------------------------------------------------ fallbacks */
+@media (prefers-reduced-motion: reduce) {
+  :root[data-style='glass'] .lg-orb { animation-play-state: paused; }
+  :root[data-style='glass'] .lg:not(.lg-chrome)::after { transition: none; }
+
+  :root[data-style='glass'] .section-tabs-ring[data-ready],
+  :root[data-style='glass'] .section-tabs-lit[data-ready] { transition: none; }
+
+  :root[data-style='glass'] .btn-link,
+  :root[data-style='glass'] .banner button,
+  :root[data-style='glass'] .confirm-row button,
+  :root[data-style='glass'] .kbd-btn,
+  :root[data-style='glass'] .icon-btn,
+  :root[data-style='glass'] .btn-primary,
+  :root[data-style='glass'] .dock-submit { transition: none; }
+}
+
+/* Less transparency asked for, or no backdrop-filter at all: every pane is
+   solid, with the same rims, radii and layout. */
+@media (prefers-reduced-transparency: reduce) {
+  :root[data-style='glass'] .lg,
+  :root[data-style='glass'] .lg[data-lg-refract] {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: var(--g-pane-solid);
+  }
+
+  :root[data-style='glass'] .lg-chrome { background: var(--g-fill-bar-solid); }
+  :root[data-style='glass'] .lg-overlay { background: var(--g-chrome-solid); }
+  :root[data-style='glass'] .lg-hero { background: var(--lg-hero-solid); }
+  :root[data-style='glass'] .banner.demo.lg-lite { background: linear-gradient(var(--g-gold-wash), var(--g-gold-wash)), var(--g-pane-solid); }
+  :root[data-style='glass'] .banner.warn.lg-lite { background: linear-gradient(var(--g-out-wash), var(--g-out-wash)), var(--g-pane-solid); }
+  :root[data-style='glass'] { --lg-head: var(--g-pane-solid); }
+  :root[data-style='glass'][data-lg-scrolled] .g-topbar-wrap::before { content: none; }
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  :root[data-style='glass'] .lg { background: var(--g-pane-solid); }
+  :root[data-style='glass'] .lg-chrome { background: var(--g-fill-bar-solid); }
+  :root[data-style='glass'] .lg-overlay { background: var(--g-chrome-solid); }
+  :root[data-style='glass'] .lg-hero { background: var(--lg-hero-solid); }
+  :root[data-style='glass'] { --lg-head: var(--g-pane-solid); }
+  :root[data-style='glass'][data-lg-scrolled] .g-topbar-wrap::before { content: none; }
+}
+
+@media (forced-colors: active) {
+  :root[data-style='glass'] .lg::before,
+  :root[data-style='glass'] .lg::after,
+  :root[data-style='glass'] .lg-scene { display: none; }
+  :root[data-style='glass'] .lg { border: 1px solid CanvasText; }
+}
+
+/* ------------------------------------------------------------ the entry slip's fold
+   The journal swings its slip open on a 3D hinge and fades the leaf. Under
+   glass both of those are costly and wrong: a 3D transform above a
+   backdrop-filter flattens it every frame, and opacity on an ancestor makes
+   that ancestor the glass's backdrop root, so the pane shows nothing behind
+   it mid-fade and pops when the fade ends. Here the leaf only slides and
+   scales (2D transform, composited) and the pane fades itself, so the glass
+   stays glass the whole way. */
+:root[data-style='glass'] .dock-leaf,
+:root[data-style='glass'] .entry-dock.is-folded .dock-leaf { opacity: 1; }
+
+:root[data-style='glass'] .dock-paper { transition: opacity 240ms ease-out 40ms; }
+
+:root[data-style='glass'] .entry-dock.is-folded .dock-paper {
+  opacity: 0;
+  transition: opacity 160ms ease-out;
+}
+
+@media (min-width: 901px) {
+  /* The column snaps to its new width; EntryDock slides the book across by
+     transform. The leaf stays anchored at the desk's edge while it folds,
+     and the desk clips the book's slide rather than scrolling sideways. */
+  :root[data-style='glass'] .entry-dock,
+  :root[data-style='glass'] .entry-dock.is-folded {
+    justify-content: flex-start;
+    transition: none;
+  }
+
+  :root[data-style='glass'] .desk { overflow-x: clip; }
+
+  :root[data-style='glass'] .entry-dock.is-folded.moved .dock-unfold { animation-delay: 180ms; }
+
+  :root[data-style='glass'] .dock-leaf {
+    transform-origin: 0 0;
+    transition: transform var(--g-spring-enter-ms) var(--g-spring-enter) 40ms, visibility 0s;
+  }
+
+  :root[data-style='glass'] .entry-dock.is-folded .dock-leaf {
+    transform: translateX(-20px) scale(0.94);
+    transition: transform 280ms var(--g-ease-out), visibility 0s linear 280ms;
+  }
+}
+
+@media (max-width: 900px) {
+  :root[data-style='glass'] .dock-leaf { transition: grid-template-rows 460ms var(--ease-leaf), visibility 0s; }
+
+  :root[data-style='glass'] .entry-dock.is-folded .dock-leaf {
+    transition: grid-template-rows 340ms var(--ease-shut), visibility 0s linear 340ms;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root[data-style='glass'] .dock-leaf,
+  :root[data-style='glass'] .entry-dock.is-folded .dock-leaf {
+    transform: none;
+    transition: visibility 0s;
+  }
+}
+
+/* ------------------------------------------------------------ table heads, totals and rows as pills
+   A head or totals row drawn as a full-width band was the one square shape
+   left on the board. Each is now a pill in the same shape as the controls:
+   the cells carry the fill, the outer cells round off the ends, and a 1px
+   ring (top and bottom on every cell, the curve on the end cells) outlines
+   it like the segmented track. Rows light up as pills under the pointer.
+   Separate borders, so cell radii and stuck cells both hold. */
+:root[data-style='glass'] {
+  --lg-pill-ring: rgb(28 46 31 / 0.11);
+  --lg-pill-hi: rgb(255 255 255 / 0.9);
+}
+
+:root[data-style='glass'][data-theme='dark'] {
+  --lg-pill-ring: rgb(255 255 255 / 0.1);
+  --lg-pill-hi: rgb(255 255 255 / 0.07);
+}
+
+:root[data-style='glass'] table.ledger {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+:root[data-style='glass'] table.ledger thead th,
+:root[data-style='glass'] table.ledger tfoot td {
+  padding-top: 10px;
+  padding-bottom: 10px;
+  border-top: 0;
+  border-bottom: 0;
+  background: var(--lg-head);
+  box-shadow: inset 0 1px 0 var(--lg-pill-hi), inset 0 -1px 0 var(--lg-pill-ring);
+}
+
+:root[data-style='glass'] table.ledger thead th:first-child,
+:root[data-style='glass'] table.ledger tfoot td:first-child {
+  border-radius: 999px 0 0 999px;
+  box-shadow: inset 0 1px 0 var(--lg-pill-hi), inset 0 -1px 0 var(--lg-pill-ring), inset 1px 0 0 var(--lg-pill-ring);
+}
+
+:root[data-style='glass'] table.ledger thead th:last-child,
+:root[data-style='glass'] table.ledger tfoot td:last-child {
+  border-radius: 0 999px 999px 0;
+  box-shadow: inset 0 1px 0 var(--lg-pill-hi), inset 0 -1px 0 var(--lg-pill-ring), inset -1px 0 0 var(--lg-pill-ring);
+}
+
+:root[data-style='glass'] table.ledger thead th:only-child,
+:root[data-style='glass'] table.ledger tfoot td:only-child { border-radius: 999px; }
+
+/* The end cells sit clear of the pill's curve, and the rows beneath keep
+   the same inset so every column still lines up under its head. */
+:root[data-style='glass'] table.ledger tr > :first-child { padding-left: 16px; }
+:root[data-style='glass'] table.ledger tr > :last-child { padding-right: 16px; }
+
+/* A row's highlight is a pill too, drawn on its cells rather than the row
+   (a row's own background cannot be rounded). */
+:root[data-style='glass'] table.ledger tbody tr:hover,
+:root[data-style='glass'] table.ledger tbody tr.removing,
+:root[data-style='glass'] table.ledger.grid tbody tr.editing,
+:root[data-style='glass'] table.ledger:not(.grid) tbody tr:not(.empty):active { background: none; }
+
+:root[data-style='glass'] table.ledger tbody tr:hover > td { background: var(--g-hover-wash); }
+:root[data-style='glass'] table.ledger tbody tr.removing > td { background: var(--g-out-wash); }
+:root[data-style='glass'] table.ledger.grid tbody tr.editing > td { background: var(--g-gold-wash); }
+:root[data-style='glass'] table.ledger:not(.grid) tbody tr:not(.empty):active > td { background: var(--g-field-deep); }
+
+/* Rounded only while lit: a resting row's ruled line must stay straight to
+   its ends. */
+:root[data-style='glass'] table.ledger tbody tr:is(:hover, .removing, .editing, :active) > td:first-child { border-radius: 999px 0 0 999px; }
+:root[data-style='glass'] table.ledger tbody tr:is(:hover, .removing, .editing, :active) > td:last-child { border-radius: 0 999px 999px 0; }
+:root[data-style='glass'] table.ledger tbody tr:is(:hover, .removing, .editing, :active) > td:only-child { border-radius: 999px; }
+
+/* Above phone width the log's single signed column (.amt-one) is hidden
+   and is still the row's last cell, so the last cell showing, Credit, is
+   the one that has to round off the pill and keep clear of its curve. On a
+   phone the signed column shows and Debit/Credit hide, so :last-child is
+   right again. */
+@media (min-width: 641px) {
+  :root[data-style='glass'] table.ledger tr > :nth-last-child(1 of :not(.amt-one)) { padding-right: 16px; }
+
+  :root[data-style='glass'] table.ledger thead th:nth-last-child(1 of :not(.amt-one)),
+  :root[data-style='glass'] table.ledger tfoot td:nth-last-child(1 of :not(.amt-one)) {
+    border-radius: 0 999px 999px 0;
+    box-shadow: inset 0 1px 0 var(--lg-pill-hi), inset 0 -1px 0 var(--lg-pill-ring), inset -1px 0 0 var(--lg-pill-ring);
+  }
+
+  :root[data-style='glass'] table.ledger tbody tr:is(:hover, .removing, .editing, :active) > td:nth-last-child(1 of :not(.amt-one)) {
+    border-radius: 0 999px 999px 0;
+  }
+}
+
+/* The month's log: the head and totals float a few pixels inside the pane
+   instead of being pressed against its rim, at rest and when stuck. */
+:root[data-style='glass'] .table-wrap.log table.ledger { margin: 10px 0; }
+:root[data-style='glass'] .table-wrap.log thead th { top: 10px; }
+:root[data-style='glass'] .table-wrap.log tfoot td { bottom: 10px; }
+
+/* The edit grid scrolls inside its sheet; its clip follows the pill head. */
+:root[data-style='glass'] .grid-scroll { border-radius: 20px; }
+
+/* The two side lists (Departures, Arrivals) hinted at more rows with a
+   cover painted in the pane's solid colour, which on glass read as a dark
+   square band over the last row. The hint is a fade of the list itself
+   now, driven by its own scroll: it shows only while rows remain below and
+   lifts at the end; a list that fits has no fade at all. */
+@property --lg-fade {
+  syntax: '<length>';
+  inherits: false;
+  initial-value: 0px;
+}
+
+:root[data-style='glass'] .side-scroll {
+  background: none;
+  -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - var(--lg-fade)), transparent);
+  mask-image: linear-gradient(to bottom, #000 calc(100% - var(--lg-fade)), transparent);
+  animation: lg-list-fade linear both;
+  animation-timeline: scroll(self);
+}
+
+@keyframes lg-list-fade {
+  from { --lg-fade: 36px; }
+  96% { --lg-fade: 36px; }
+  to { --lg-fade: 0px; }
 }

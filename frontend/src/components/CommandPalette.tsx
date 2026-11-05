@@ -90,7 +90,7 @@ export default function CommandPalette({
   let lastSection = ''
   return (
     <div className="modal-scrim palette-scrim" onMouseDown={(e) => { if (e.target === e.currentTarget) setPaletteOpen(false) }}>
-      <div className="palette" role="dialog" aria-modal="true" aria-label="Command palette" onKeyDown={onKey}>
+      <div className="palette lg lg-overlay" role="dialog" aria-modal="true" aria-label="Command palette" onKeyDown={onKey}>
         <input
           ref={inputRef}
           className="pal-input"

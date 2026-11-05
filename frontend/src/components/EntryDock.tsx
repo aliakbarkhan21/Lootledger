@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useAddEntry, useBoard, useCategories } from '../api/hooks'
 import { formatDisplayDate, formatMoney, todayIso } from '../lib/money'
 import { useUi } from '../state/ui'
@@ -80,7 +80,7 @@ function initiallyOpen(): boolean {
 /** The entry panel, docked to the left of the book and always on screen, so
  * a movement can be logged while the ledger and the figures stay in view. */
 export default function EntryDock() {
-  const { period } = useUi()
+  const { period, style } = useUi()
   const { data: board } = useBoard(period)
   const { data: categories } = useCategories()
   const addEntry = useAddEntry()
@@ -98,6 +98,8 @@ export default function EntryDock() {
   const [entered, setEntered] = useState<string | null>(null)
   const firstField = useRef<HTMLInputElement>(null)
   const unfoldButton = useRef<HTMLButtonElement>(null)
+  // Glass: where the book's left edge was before a fold, for the slide below.
+  const bookFrom = useRef<number | null>(null)
 
   const currency = board?.currency
   const cats = categories || []
@@ -107,6 +109,29 @@ export default function EntryDock() {
 
   useEffect(() => {
     try { window.localStorage.setItem(STORE_KEY, open ? 'open' : 'closed') } catch { /* ignore */ }
+  }, [open])
+
+  // Glass: the desk takes its new widths at once (animating them re-lays out
+  // the whole board and resizes every pane of glass on it, every frame), and
+  // the book then slides from where it was to where it now is, by transform
+  // alone. The journal keeps its own animated fold (board.css).
+  useLayoutEffect(() => {
+    const from = bookFrom.current
+    bookFrom.current = null
+    if (from == null) return
+    const book = document.querySelector<HTMLElement>('.book')
+    if (!book) return
+    const dx = from - book.getBoundingClientRect().left
+    if (Math.abs(dx) < 1) return
+    const root = getComputedStyle(document.documentElement)
+    const easing = (open ? root.getPropertyValue('--g-spring-enter') : root.getPropertyValue('--g-ease-out')).trim()
+    const frames = [{ transform: `translateX(${dx}px)` }, { transform: 'translateX(0)' }]
+    const duration = open ? 500 : 320
+    try {
+      book.animate(frames, { duration, easing: easing || 'ease-out' })
+    } catch {
+      book.animate(frames, { duration, easing: 'cubic-bezier(0.22, 0.85, 0.3, 1)' })
+    }
   }, [open])
 
   useEffect(() => {
@@ -129,6 +154,14 @@ export default function EntryDock() {
   // Folding moves focus to whichever control is left showing, so the keyboard
   // never ends up on something that has just been put away.
   function fold(next: boolean) {
+    bookFrom.current = null
+    if (
+      style === 'glass'
+      && window.matchMedia('(min-width: 901px)').matches
+      && !window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    ) {
+      bookFrom.current = document.querySelector('.book')?.getBoundingClientRect().left ?? null
+    }
     setMoved(true)
     setOpen(next)
     requestAnimationFrame(() => {
@@ -184,7 +217,7 @@ export default function EntryDock() {
 
       <div className="dock-leaf" inert={!open}>
         <div className="dock-clip">
-          <div className="dock-paper">
+          <div className="dock-paper lg lg-chrome">
             <div className="dock-head">
               <h2>Record a movement</h2>
               <button className="icon-btn dock-fold" onClick={() => fold(false)} aria-expanded="true" title="Fold the entry panel away">

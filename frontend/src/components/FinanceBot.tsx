@@ -206,7 +206,7 @@ export default function FinanceBot({ periodKey, periodLabel }: { periodKey: stri
   const fallback = status && status.active_model !== status.model
 
   return (
-    <aside className={`bot-rail ${closing ? 'closing' : ''}`} aria-label="Finance bot" inert={closing}>
+    <aside className={`bot-rail lg lg-overlay ${closing ? 'closing' : ''}`} aria-label="Finance bot" inert={closing}>
       <div className="bot-head">
         <h2>Finance bot</h2>
         <button className="icon-btn" aria-label="Close the Finance Bot" onClick={() => setBotOpen(false)}>✕</button>

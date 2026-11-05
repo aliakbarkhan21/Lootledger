@@ -62,22 +62,22 @@ export default function SummaryBand({ figures, currency }: { figures: Figures; c
       {/* The fig-* classes are hooks for the Glass style (the journal styles
           these cells by position and never reads them). */}
       <div className="summary">
-        <div className="fig fig-brought">
+        <div className="fig fig-brought lg">
           <div className="k">Brought Forward</div>
           <div className="v" {...fit(opening)}>{opening}</div>
           <div className="note">{broughtNote}</div>
         </div>
-        <div className="fig fig-in">
+        <div className="fig fig-in lg">
           <div className="k">Arrivals</div>
           <div className="v credit" {...fit(arrivals)}>{arrivals}</div>
           <div className="note">{inNote}</div>
         </div>
-        <div className="fig fig-out">
+        <div className="fig fig-out lg">
           <div className="k">Departures</div>
           <div className="v debit" {...fit(departures)}>{departures}</div>
           <div className="note">{outNote}</div>
         </div>
-        <div className="fig fig-carried">
+        <div className="fig fig-carried lg lg-hero">
           <div className="k">Carried Forward</div>
           <div className={`v ${figures.on_hand < 0 ? 'debit' : ''}`} {...fit(onHand)}>{onHand}</div>
           <div className="note">{handNote}</div>

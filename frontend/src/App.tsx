@@ -98,7 +98,7 @@ function BoardPage() {
           {board.calendar ? (
             <SpendingCalendar calendar={board.calendar} periodKey={board.period.key} currency={board.currency} />
           ) : (
-            <div className="panel">
+            <div className="panel lg">
               <div className="panel-head"><h3>Spending Rhythm</h3></div>
               <p className="panel-empty">All Time has no single month's shape to show.</p>
             </div>

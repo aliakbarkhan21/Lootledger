@@ -36,7 +36,7 @@ export default function PlatformLoad({
   }
 
   return (
-    <div className={glass ? 'panel g-load' : 'panel'}>
+    <div className={glass ? 'panel g-load lg' : 'panel'}>
       <div className="panel-head">
         <h3>Platform Load</h3>
         {glass ? (

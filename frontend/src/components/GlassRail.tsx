@@ -115,7 +115,7 @@ export default function GlassRail({ onGo }: { onGo: (id: RailTarget) => void }) 
   return (
     <nav
       ref={nav}
-      className="g-rail"
+      className="g-rail lg lg-chrome"
       aria-label="Board sections"
       data-warm={warm ? '' : undefined}
       onPointerLeave={() => {

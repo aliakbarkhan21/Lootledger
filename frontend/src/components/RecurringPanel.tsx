@@ -59,7 +59,7 @@ export default function RecurringPanel({ currency }: { currency: Currency }) {
   }
 
   return (
-    <div className="panel recurring-panel" id="recurring">
+    <div className="panel recurring-panel lg" id="recurring">
       <div className="panel-head"><h3>Recurring</h3></div>
       <p className="panel-note recurring-note">
         The same entry every month. A due template shows as a banner above the board once its day arrives.

@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { useUi } from '../state/ui'
 import GlassRail, { type RailTarget } from './GlassRail'
+import GlassScene from './GlassScene'
 
 // The Finance Bot is not a tab: it opens from the ✦ button in the toolbar and
 // from the command palette (Ctrl K).
@@ -37,6 +38,7 @@ export default function Book({ children, dock }: { children: ReactNode; dock?: R
   const glass = style === 'glass'
   return (
     <div className={`desk ${botOpen ? 'with-rail' : ''}`}>
+      {glass ? <GlassScene /> : null}
       {glass ? <GlassRail onGo={goTo} /> : null}
       {dock}
       <div className="book">

@@ -55,7 +55,7 @@ export default function Banners({ banners, currency }: { banners: BannersType; c
   return (
     <div className="banners">
       {banners.demo_active && (
-        <div className="banner demo">
+        <div className="banner demo lg lg-lite">
           <span>
             <strong>Sample data</strong> — these figures are generated for demonstration, not real records.
             Clear them from Settings.
@@ -63,7 +63,7 @@ export default function Banners({ banners, currency }: { banners: BannersType; c
         </div>
       )}
       {showHint && (
-        <div className="banner warn">
+        <div className="banner warn lg lg-lite">
           <div className="setup-body">
             <div className="banner-title">
               {gaps.length > 1 ? 'Two settings' : 'One setting'} would change what the board reports
@@ -79,7 +79,7 @@ export default function Banners({ banners, currency }: { banners: BannersType; c
         </div>
       )}
       {digest && (
-        <div className="banner digest">
+        <div className="banner digest lg lg-lite">
           <div>
             <div className="banner-title">{banners.digest.label} digest</div>
             <div className="banner-text">{digest}</div>
@@ -90,7 +90,7 @@ export default function Banners({ banners, currency }: { banners: BannersType; c
         </div>
       )}
       {due.length > 0 && (
-        <div className="banner recur">
+        <div className="banner recur lg lg-lite">
           <div className="recur-body">
             <div className="banner-title">
               {picked.length} of {due.length} selected

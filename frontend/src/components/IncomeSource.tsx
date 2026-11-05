@@ -17,14 +17,14 @@ export default function IncomeSource({
   const total = bySource.reduce((a, r) => a + r.amount, 0)
   if (bySource.length === 0) {
     return (
-      <div className="panel">
+      <div className="panel lg">
         <div className="panel-head"><h3>Where It Came From</h3></div>
         <p className="panel-empty">No income logged for this period yet.</p>
       </div>
     )
   }
   return (
-    <div className="panel">
+    <div className="panel lg">
       <div className="panel-head"><h3>Where It Came From</h3></div>
       <div className="platform-share">
         <Donut

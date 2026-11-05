@@ -164,7 +164,7 @@ export default function DatePicker({
       {open && createPortal(
         <div
           ref={pop}
-          className={`dp-pop ${pos?.above ? 'above' : ''}`}
+          className={`dp-pop lg lg-overlay ${pos?.above ? 'above' : ''}`}
           role="dialog"
           aria-label={`Choose ${label.toLowerCase()}`}
           style={pos ? { top: pos.top, left: pos.left } : { top: 0, left: 0, visibility: 'hidden' }}

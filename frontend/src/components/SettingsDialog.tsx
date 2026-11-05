@@ -307,7 +307,7 @@ export default function SettingsDialog() {
 
   return (
     <div className="modal-scrim" onMouseDown={(e) => { if (e.target === e.currentTarget) setSettingsOpen(false) }}>
-      <div className="modal settings" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+      <div className="modal settings lg lg-overlay" role="dialog" aria-modal="true" aria-labelledby="settings-title">
         <div className="modal-head">
           <h2 id="settings-title">Settings</h2>
           <button className="icon-btn" aria-label="Close settings" onClick={() => setSettingsOpen(false)}>✕</button>
