@@ -412,6 +412,22 @@ html:root[data-style='glass'] {
   gap: 6px;
 }
 
+:root[data-style='glass'] .g-rail-thumb {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--g-active-bg);
+  pointer-events: none;
+  clip-path: inset(50%);
+}
+
+/* The current section's highlight travels to the button clicked on the ui
+   spring (no overshoot, so the clip never runs past the button). Only the
+   clip animates; the first placement and any after a resize land at once. */
+:root[data-style='glass'] .g-rail-thumb[data-ready] {
+  transition: clip-path var(--g-spring-ui-ms) var(--g-spring-ui);
+}
+
 :root[data-style='glass'] .g-rail-sep {
   width: 26px;
   height: 1px;
@@ -457,17 +473,21 @@ html:root[data-style='glass'] {
 :root[data-style='glass'] .g-rail-btn[aria-current='true'],
 :root[data-style='glass'] .g-icon-btn.is-on { color: var(--g-active-ink); }
 
-:root[data-style='glass'] .g-rail-btn[aria-current='true']::before,
 :root[data-style='glass'] .g-icon-btn.is-on::before {
   background: var(--g-active-bg);
   opacity: 1;
+}
+
+/* On the rail, the travelling highlight marks the current button. */
+:root[data-style='glass'] .g-rail-btn {
+  transition: transform 160ms var(--g-ease-out), color 200ms ease-out;
 }
 
 @media (hover: hover) and (pointer: fine) {
   :root[data-style='glass'] .g-rail-btn:hover { color: var(--g-ink); }
   :root[data-style='glass'] .g-rail-btn[aria-current='true']:hover,
   :root[data-style='glass'] .g-icon-btn.is-on:hover { color: var(--g-active-ink); }
-  :root[data-style='glass'] .g-rail-btn:hover::before,
+  :root[data-style='glass'] .g-rail-btn:not([aria-current='true']):hover::before,
   :root[data-style='glass'] .g-icon-btn:hover::before { opacity: 1; }
 }
 
@@ -2850,6 +2870,7 @@ html:root[data-style='glass'] {
    a switched view still cross-fades. */
 @media (prefers-reduced-motion: reduce) {
   :root[data-style='glass'] .summary > .fig,
+  :root[data-style='glass'] .g-rail-thumb[data-ready],
   :root[data-style='glass'] .g-seg-thumb,
   :root[data-style='glass'] .g-rail-btn,
   :root[data-style='glass'] .g-icon-btn,
@@ -2931,6 +2952,7 @@ html:root[data-style='glass'] {
   :root[data-style='glass'] .g-seg { border: 1px solid CanvasText; }
 
   :root[data-style='glass'] .g-seg-thumb { border: 2px solid Highlight; }
+  :root[data-style='glass'] .g-rail-thumb { display: none; }
 
   /* Keep the colour key: the dots and share bars are the ring's legend. */
   :root[data-style='glass'] .g-load .swatch,
