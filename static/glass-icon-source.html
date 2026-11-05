@@ -1,0 +1,150 @@
+<!doctype html>
+<!-- Source of the Loot Ledger mark in the Glass style: the italic gold LL of
+     the board's own .g-mark, set on a pane of frosted glass that floats over
+     the Glass backdrop -- emerald glass lit by a pool of brass lamp light.
+     The tile is the lamp's shade: emerald with a brass rim and a specular
+     edge along the top where it catches the light.
+
+     Every shipped size is screenshotted from this page with a transparent
+     background (Playwright, element #icon at 512px, then filtered down) in
+     the variant drawn for it:
+       (none)      192px and up, and the .ico from 64px
+       simple      32-48px: no grain, a thicker pane edge, a bigger LL
+       tiny        16-24px: no pane, a single L filling the tile
+       bleed       the maskable and Apple touch icons: square, no rounding
+                   (the OS cuts its own shape)
+     render_glass_icon.py does the screenshots and writes every output. -->
+<html>
+<head>
+<meta charset="utf-8" />
+<link rel="stylesheet" href="../frontend/public/fonts/spectral.css" />
+<style>
+  html, body { margin: 0; background: transparent; }
+
+  .icon {
+    position: relative;
+    width: 512px;
+    height: 512px;
+    border-radius: 114px;
+    overflow: hidden;
+    isolation: isolate;
+    /* The backdrop: emerald glass, deepening toward the bottom-right. */
+    background:
+      radial-gradient(90% 80% at 18% 8%, #23794f 0%, #17573a 36%, #0d3322 74%, #08221a 100%);
+  }
+  .icon.bleed { border-radius: 0; }
+
+  /* The lamp: a pool of brass light, upper right, and a second, fainter
+     green glow low on the left. Behind the pane, so the frost picks them up. */
+  .lamp {
+    position: absolute;
+    width: 300px; height: 300px;
+    right: -40px; top: -44px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255, 226, 150, 1) 0%, rgba(240, 190, 90, 0.7) 30%, rgba(214, 160, 70, 0.18) 56%, rgba(214, 160, 70, 0) 70%);
+  }
+  .glow {
+    position: absolute;
+    width: 300px; height: 300px;
+    left: -90px; bottom: -110px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(120, 210, 150, 0.55) 0%, rgba(120, 210, 150, 0) 70%);
+  }
+  /* Film grain, as on the board's ambient field. */
+  .grain {
+    position: absolute; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 0 0 0 0 0.07'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  /* The pane: frosted glass, lit along its top-left edge, with a sheen
+     falling across it and a soft shadow on the backdrop below. */
+  .pane {
+    position: absolute;
+    left: 78px; top: 78px; right: 78px; bottom: 78px;
+    border-radius: 84px;
+    background:
+      linear-gradient(150deg, rgba(255, 255, 255, 0.30) 0%, rgba(255, 255, 255, 0.10) 38%, rgba(255, 255, 255, 0.04) 62%, rgba(255, 255, 255, 0.12) 100%);
+    -webkit-backdrop-filter: blur(22px) saturate(160%);
+    backdrop-filter: blur(22px) saturate(160%);
+    box-shadow:
+      inset 0 0 0 2px rgba(255, 255, 255, 0.22),
+      inset 0 3px 0 rgba(255, 255, 255, 0.55),
+      inset 0 -2px 0 rgba(255, 255, 255, 0.12),
+      0 26px 40px -18px rgba(3, 22, 12, 0.75);
+  }
+  /* A specular highlight hugging the pane's upper-left curve. */
+  .pane::before {
+    content: '';
+    position: absolute; inset: 0;
+    border-radius: inherit;
+    padding: 3px;
+    background: linear-gradient(140deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0) 30%, rgba(255, 255, 255, 0) 70%, rgba(247, 220, 150, 0.6) 100%);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+  }
+
+  /* The mark: the board's italic gold LL, cast in a light-to-brass gradient
+     with a dark bevel underneath so it holds against the pale frost. */
+  .mark {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    padding: 34px 0 0 22px;
+    font-family: 'Spectral', Georgia, serif;
+    font-style: italic; font-weight: 800;
+    font-size: 252px; line-height: 1;
+    letter-spacing: -30px;
+    filter:
+      drop-shadow(0 2px 1px rgba(60, 38, 6, 0.5))
+      drop-shadow(0 10px 14px rgba(3, 22, 12, 0.5));
+  }
+  .mark span {
+    /* Padded out and pulled back: an italic glyph overhangs its own box,
+       and background-clip only paints inside the box, so without this the
+       overhanging feet go transparent and the shadow shows through. */
+    padding: 0 60px;
+    margin: 0 -60px;
+    background: linear-gradient(180deg, #fff1c4 0%, #f3d58c 34%, #d6ad5c 64%, #b48d36 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    -webkit-text-stroke: 3px rgba(255, 236, 180, 0.35);
+  }
+
+  /* The tile's own rim: brass, with a bright top edge. */
+  .rim {
+    position: absolute; inset: 0;
+    border-radius: inherit;
+    box-shadow:
+      inset 0 0 0 5px rgba(214, 173, 92, 0.42),
+      inset 0 7px 0 -2px rgba(255, 245, 210, 0.35);
+    pointer-events: none;
+  }
+  .bleed .rim { box-shadow: none; }
+
+  /* 32-48px. */
+  .simple .grain { display: none; }
+  .simple .pane { left: 56px; top: 56px; right: 56px; bottom: 56px; border-radius: 76px; }
+  .simple .pane { box-shadow: inset 0 0 0 5px rgba(255, 255, 255, 0.3), inset 0 7px 0 rgba(255, 255, 255, 0.6), 0 20px 30px -14px rgba(3, 22, 12, 0.8); }
+  .simple .mark { font-size: 320px; letter-spacing: -44px; padding: 40px 0 0 26px; }
+  .simple .mark span { -webkit-text-stroke: 8px #f3d58c; }
+  .simple .rim { box-shadow: inset 0 0 0 10px rgba(214, 173, 92, 0.55); }
+
+  /* 16-24px: no pane, one big L. */
+  .tiny .grain, .tiny .pane, .tiny .lamp { display: none; }
+  .tiny .mark { font-size: 540px; padding: 40px 0 0 0; letter-spacing: 0; }
+  .tiny .mark span { -webkit-text-stroke: 14px #f3d58c; }
+  .tiny .rim { box-shadow: inset 0 0 0 16px rgba(214, 173, 92, 0.6); }
+</style>
+</head>
+<body>
+  <div id="icon" class="icon">
+    <div class="glow"></div>
+    <div class="lamp"></div>
+    <div class="grain"></div>
+    <div class="pane"></div>
+    <div class="mark"><span>LL</span></div>
+    <div class="rim"></div>
+  </div>
+</body>
+</html>
