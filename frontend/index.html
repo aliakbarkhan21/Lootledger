@@ -16,6 +16,27 @@
     <meta name="apple-mobile-web-app-title" content="Loot Ledger" />
     <link rel="stylesheet" href="/fonts/spectral.css" />
     <link rel="stylesheet" href="/fonts/courier-prime.css" />
+    <link rel="stylesheet" href="/fonts/bricolage-grotesque.css" />
+    <script>
+      // The Glass style paints its own backdrop, so mark the page before the
+      // first frame rather than after React mounts; otherwise a Glass board
+      // opens on one frame of the journal's desk. The journal (the default)
+      // is left exactly as it loads today.
+      (function () {
+        function stored(k) {
+          try { return localStorage.getItem(k); } catch (e) { return null; } /* storage blocked */
+        }
+        var q = new URLSearchParams(location.search);
+        var s = q.get('style');
+        if (s !== 'glass' && s !== 'journal') s = stored('ll-style');
+        if (s !== 'glass') return;
+        var t = q.get('theme');
+        if (t !== 'light' && t !== 'dark') t = stored('ll-theme');
+        if (t !== 'light' && t !== 'dark') t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-style', 'glass');
+        document.documentElement.setAttribute('data-theme', t);
+      })();
+    </script>
     <title>Loot Ledger</title>
   </head>
   <body>

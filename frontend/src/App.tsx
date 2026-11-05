@@ -1,7 +1,11 @@
 import './styles/board.css'
+// After board.css on purpose: every rule in it is scoped under
+// [data-style='glass'], so the Ledger Journal never matches one.
+import './styles/glass.css'
 import AuthGate from './components/AuthGate'
 import Book from './components/Book'
 import Masthead from './components/Masthead'
+import GlassTopBar from './components/GlassTopBar'
 import Banners from './components/Banners'
 import Toolbar from './components/Toolbar'
 import EntryDock from './components/EntryDock'
@@ -22,14 +26,17 @@ import { useBoard, usePeriods } from './api/hooks'
 import { useUi } from './state/ui'
 
 function BoardPage() {
-  const { period, search } = useUi()
+  const { period, search, style } = useUi()
   const { data: periods } = usePeriods()
   const { data: board, isLoading } = useBoard(period)
+  // Glass folds the masthead and the toolbar row into one floating top bar;
+  // everything else on the page is the same component in either style.
+  const glass = style === 'glass'
 
   if (isLoading || !board || !periods) {
     return (
       <>
-        <Masthead periodLabel="…" />
+        {glass ? <GlassTopBar /> : <Masthead periodLabel="…" />}
         <p style={{ color: 'var(--ink-soft)', marginTop: 20 }}>Opening the ledger…</p>
       </>
     )
@@ -39,7 +46,11 @@ function BoardPage() {
 
   return (
     <>
-      <Masthead periodLabel={board.period.label} />
+      {glass ? (
+        <GlassTopBar months={periods.months} current={periods.current} totalRows={totalRows} currency={board.currency} />
+      ) : (
+        <Masthead periodLabel={board.period.label} />
+      )}
       <Banners banners={board.banners} currency={board.currency} />
       {/* Where the section always sat: above the controls, folded until wanted. */}
       <LedgersDebtsImport
@@ -48,7 +59,9 @@ function BoardPage() {
         currency={board.currency}
         periodKey={board.period.key}
       />
-      <Toolbar months={periods.months} current={periods.current} totalRows={totalRows} currency={board.currency} />
+      {!glass && (
+        <Toolbar months={periods.months} current={periods.current} totalRows={totalRows} currency={board.currency} />
+      )}
       <SummaryBand figures={board.figures} currency={board.currency} />
       <LedgerTable
         arrivals={board.arrivals}

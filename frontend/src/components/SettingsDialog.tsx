@@ -274,7 +274,7 @@ function Erase({ totalRows }: { totalRows: number }) {
 // ---------------------------------------------------------------- dialog
 
 export default function SettingsDialog() {
-  const { settingsOpen, setSettingsOpen } = useUi()
+  const { settingsOpen, setSettingsOpen, style, setStyle } = useUi()
   const { data: settings } = useSettings()
   const { data: categories } = useCategories()
   const setNet = useSetNetSameMonthDebts()
@@ -317,6 +317,24 @@ export default function SettingsDialog() {
         ) : (
           <div className="modal-body">
             <p className="settings-summary"><strong>{totalRows} records</strong> — {present}</p>
+
+            <Block title="Style">
+              <Caption>
+                How the board is drawn. Ledger Journal is the ruled book on its desk; Glass sets the same
+                figures on frosted panes over a lamplit desk. Each works in light and dark, and only the look
+                changes — never a figure.
+              </Caption>
+              <div className="settings-row">
+                <select
+                  value={style}
+                  onChange={(e) => setStyle(e.target.value === 'glass' ? 'glass' : 'journal')}
+                  aria-label="Style"
+                >
+                  <option value="journal">Ledger Journal</option>
+                  <option value="glass">Glass</option>
+                </select>
+              </div>
+            </Block>
 
             <Block title="Debts settled the same month">
               <label className="check" title="A debt borrowed and repaid inside one month moves money out and back again, so it changes nothing. Leaving both legs in adds its value to your arrivals AND departures totals. Either way your on-hand balance is identical.">

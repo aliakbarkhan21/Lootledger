@@ -1,0 +1,3096 @@
+/* =====================================================================
+   Glass: Loot Ledger's second visual style.
+
+   Every rule in this file is scoped under :root[data-style='glass'], so the
+   Ledger Journal (the default) never matches one. Glass keeps its own tokens
+   (--g-*) and never redefines the journal's, so the panels not yet drawn in
+   Glass keep reading exactly as they do in the journal.
+
+   The idea: the journal's desk at another hour, under a banker's lamp. The
+   ambient field is emerald glass and a pool of brass light; the panels are
+   frosted panes laid over it. Ledger green and coin gold, never the
+   blue-violet of a stock gradient.
+   ===================================================================== */
+
+/* ------------------------------------------------------------ tokens */
+:root[data-style='glass'] {
+  --g-font: 'Bricolage Grotesque', 'Segoe UI', system-ui, sans-serif;
+  --g-mark-font: 'Spectral', Georgia, serif;
+
+  --g-radius: 24px;
+  --g-blur: 22px;
+  --g-saturate: 150%;
+  --g-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+
+  /* Springs. Fallback curves here; the real ones (below, where linear() is
+     supported) are sampled from a damped spring with Apple's two
+     parameters, damping and response. */
+  --g-spring-lift: cubic-bezier(0.2, 0.9, 0.25, 1.02);
+  --g-spring-lift-ms: 520ms;
+  --g-spring-ui: cubic-bezier(0.25, 0.85, 0.3, 1);
+  --g-spring-ui-ms: 380ms;
+  --g-spring-enter: cubic-bezier(0.22, 0.85, 0.3, 1);
+  --g-spring-enter-ms: 460ms;
+
+  /* Film grain over the ambient field: dithers the long, low-contrast
+     gradients so they never band. A 180px tile, drawn once. */
+  --g-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 0 0 0 0 0.05'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+
+  /* --- light: morning light through green glass onto ledger paper --- */
+  --g-ground: #eef2e8;
+  --g-ambient:
+    radial-gradient(62% 58% at 4% -4%,
+      rgb(118 172 126 / 0.5) 0%, rgb(118 172 126 / 0.36) 22%, rgb(118 172 126 / 0.21) 42%,
+      rgb(118 172 126 / 0.1) 60%, rgb(118 172 126 / 0.035) 76%, rgb(118 172 126 / 0) 90%),
+    radial-gradient(34% 42% at 90% 44%,
+      rgb(240 196 100 / 0.62) 0%, rgb(240 196 100 / 0.45) 22%, rgb(240 196 100 / 0.26) 42%,
+      rgb(240 196 100 / 0.12) 60%, rgb(240 196 100 / 0.04) 76%, rgb(240 196 100 / 0) 90%),
+    radial-gradient(26% 20% at 50% 50%,
+      rgb(122 178 136 / 0.42) 0%, rgb(122 178 136 / 0.3) 22%, rgb(122 178 136 / 0.17) 42%,
+      rgb(122 178 136 / 0.08) 60%, rgb(122 178 136 / 0.03) 76%, rgb(122 178 136 / 0) 90%),
+    radial-gradient(72% 60% at 78% 104%,
+      rgb(138 192 160 / 0.42) 0%, rgb(138 192 160 / 0.3) 22%, rgb(138 192 160 / 0.18) 42%,
+      rgb(138 192 160 / 0.084) 60%, rgb(138 192 160 / 0.03) 76%, rgb(138 192 160 / 0) 90%),
+    radial-gradient(48% 52% at -6% 98%,
+      rgb(226 205 140 / 0.32) 0%, rgb(226 205 140 / 0.23) 22%, rgb(226 205 140 / 0.13) 42%,
+      rgb(226 205 140 / 0.064) 60%, rgb(226 205 140 / 0.022) 76%, rgb(226 205 140 / 0) 90%),
+    linear-gradient(180deg, #f2f5ee 0%, #e7ece0 100%);
+
+  --g-fill: rgba(255, 255, 255, 0.5);
+  --g-fill-bar: rgba(255, 255, 255, 0.66);
+  --g-fill-solid: #f6f8f2;
+  --g-fill-bar-solid: #f8faf5;
+  --g-well: rgba(255, 255, 255, 0.74);
+  --g-well-ring: rgba(28, 46, 31, 0.1);
+  --g-hover-wash: rgba(28, 46, 31, 0.07);
+  --g-row-hot: rgba(255, 255, 255, 0.62);
+  --g-kbd: rgba(28, 46, 31, 0.07);
+  --g-seg-bg: rgba(28, 46, 31, 0.07);
+  --g-seg-thumb: #ffffff;
+  --g-seg-thumb-shadow: 0 1px 2px rgba(28, 46, 31, 0.14), 0 4px 12px -4px rgba(28, 46, 31, 0.22);
+  --g-track: rgba(28, 46, 31, 0.09);
+  --g-rule: rgba(28, 46, 31, 0.12);
+
+  /* The pane's edge: a 1px inner highlight, brighter along the top where it
+     catches the light, and a faint outer rim so white glass still has an
+     edge on a pale field. */
+  --g-edge: rgba(255, 255, 255, 0.7);
+  --g-edge-top: rgba(255, 255, 255, 0.95);
+  --g-rim: rgba(28, 46, 31, 0.09);
+  --g-shadow: 0 1px 2px rgba(28, 46, 31, 0.05), 0 12px 30px -16px rgba(28, 46, 31, 0.3);
+  --g-shadow-lift: 0 3px 8px -2px rgba(28, 46, 31, 0.08), 0 26px 46px -22px rgba(28, 46, 31, 0.42);
+
+  --g-ink: #132018;
+  --g-ink-2: #3b4a39;
+  --g-ink-3: #435140;
+  --g-in: #19693c;
+  --g-out: #a1392a;
+  --g-gold-mark: #b48d36;
+  --g-focus: #7a5a12;
+  --g-active-bg: rgba(31, 108, 70, 0.16);
+  --g-active-ink: #12452c;
+  --g-tip-bg: #16271c;
+  --g-tip-ink: #f3f6ee;
+
+  /* The one accent pane: emerald glass with a brass rim, the lamp's shade. */
+  --g-hero-bg: linear-gradient(160deg, rgba(31, 108, 70, 0.96) 0%, rgba(19, 82, 53, 0.97) 100%);
+  --g-hero-solid: #1d6743;
+  --g-hero-ring: rgba(214, 173, 92, 0.32);
+  --g-hero-rim: #d6ad5c;
+  --g-hero-shadow: 0 2px 4px rgba(14, 64, 40, 0.16), 0 22px 44px -20px rgba(14, 74, 46, 0.62);
+  --g-hero-ink: #f5f3e8;
+  --g-hero-ink-2: #e2eedf;
+  --g-hero-figure: #f7dc96;
+  --g-hero-neg: #ffc6ba;
+
+  /* The rest of the board. Content panes take the same frosted look without
+     a blur of their own: over a field this soft, a blur changes nothing you
+     can see, so it is spent only where content passes underneath (the bars
+     and the overlays). */
+  --g-pane: rgba(255, 255, 255, 0.55);
+  --g-pane-solid: #f5f8f1;
+  --g-field: #fbfcf8;
+  --g-field-deep: #e9efe3;
+  --g-field-ring: rgba(28, 46, 31, 0.15);
+  --g-field-ring-hot: rgba(28, 46, 31, 0.32);
+  --g-rule-solid: #d3dccb;
+  --g-scroll: #b9c6b1;
+  --g-danger: #a1392a;
+  --g-danger-ink: #fff8f4;
+  --g-shadow-tint: rgba(28, 46, 31, 0.16);
+  --g-gold-ink: #7a5a12;
+  --g-heat: #d9a548;
+  --g-run: #a7bfa2;
+  --g-chrome: rgba(247, 249, 244, 0.8);
+  --g-chrome-solid: #f5f8f1;
+  --g-chrome-shadow: 0 2px 6px rgba(28, 46, 31, 0.08), 0 40px 80px -30px rgba(20, 40, 26, 0.45);
+  --g-scrim: rgba(20, 34, 25, 0.3);
+  --g-pill-hover: #ffffff;
+  --g-gold-wash: rgba(214, 173, 92, 0.2);
+  --g-out-wash: rgba(161, 57, 42, 0.08);
+  --g-in-wash: rgba(25, 105, 60, 0.1);
+  --g-arrow-in: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M17 7 7 17'/%3E%3Cpath d='M7 9.5V17h7.5'/%3E%3C/svg%3E");
+  --g-arrow-out: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7 17 17 7'/%3E%3Cpath d='M9.5 7H17v7.5'/%3E%3C/svg%3E");
+}
+
+/* --- dark: the same desk at night, under the lamp ---
+   Gold laid thinly over green-black turns olive, so the lamp's pool sits on
+   a warm black of its own (the base runs green-black to warm-black across)
+   and is kept small and bright, a light rather than a stain. */
+:root[data-style='glass'][data-theme='dark'] {
+  --g-ground: #0c130f;
+  --g-ambient:
+    radial-gradient(64% 60% at 2% -6%,
+      rgb(36 124 80 / 0.55) 0%, rgb(36 124 80 / 0.4) 22%, rgb(36 124 80 / 0.23) 42%,
+      rgb(36 124 80 / 0.11) 60%, rgb(36 124 80 / 0.04) 76%, rgb(36 124 80 / 0) 90%),
+    radial-gradient(28% 32% at 86% 48%,
+      rgb(236 176 78 / 0.42) 0%, rgb(236 176 78 / 0.3) 22%, rgb(236 176 78 / 0.17) 42%,
+      rgb(236 176 78 / 0.08) 60%, rgb(236 176 78 / 0.026) 76%, rgb(236 176 78 / 0) 90%),
+    radial-gradient(70% 58% at 62% 112%,
+      rgb(18 88 62 / 0.44) 0%, rgb(18 88 62 / 0.32) 22%, rgb(18 88 62 / 0.18) 42%,
+      rgb(18 88 62 / 0.088) 60%, rgb(18 88 62 / 0.03) 76%, rgb(18 88 62 / 0) 90%),
+    radial-gradient(46% 50% at -6% 104%,
+      rgb(20 78 66 / 0.3) 0%, rgb(20 78 66 / 0.22) 22%, rgb(20 78 66 / 0.13) 42%,
+      rgb(20 78 66 / 0.06) 60%, rgb(20 78 66 / 0.02) 76%, rgb(20 78 66 / 0) 90%),
+    linear-gradient(112deg, #0e1712 0%, #0b120e 52%, #12100b 100%);
+
+  --g-fill: rgba(24, 36, 28, 0.5);
+  --g-fill-bar: rgba(18, 28, 21, 0.62);
+  --g-fill-solid: #18231c;
+  --g-fill-bar-solid: #141e18;
+  --g-well: rgba(255, 255, 255, 0.07);
+  --g-well-ring: rgba(255, 255, 255, 0.09);
+  --g-hover-wash: rgba(255, 255, 255, 0.08);
+  --g-row-hot: rgba(255, 255, 255, 0.06);
+  --g-kbd: rgba(255, 255, 255, 0.08);
+  --g-seg-bg: rgba(0, 0, 0, 0.22);
+  --g-seg-thumb: rgba(255, 255, 255, 0.14);
+  --g-seg-thumb-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1), 0 2px 8px -2px rgba(0, 0, 0, 0.5);
+  --g-track: rgba(255, 255, 255, 0.08);
+  --g-rule: rgba(255, 255, 255, 0.12);
+
+  --g-edge: rgba(255, 255, 255, 0.08);
+  --g-edge-top: rgba(255, 255, 255, 0.16);
+  --g-rim: rgba(0, 0, 0, 0.28);
+  --g-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 18px 40px -20px rgba(0, 0, 0, 0.72);
+  --g-shadow-lift: 0 3px 8px -2px rgba(0, 0, 0, 0.35), 0 30px 56px -24px rgba(0, 0, 0, 0.88);
+
+  --g-ink: #edf3e8;
+  --g-ink-2: #c3cfbc;
+  --g-ink-3: #a3b19c;
+  --g-in: #86d7a2;
+  --g-out: #f4a395;
+  --g-gold-mark: #d9b25e;
+  --g-focus: #e4c06c;
+  --g-active-bg: rgba(134, 215, 162, 0.18);
+  --g-active-ink: #d9f2e1;
+  --g-tip-bg: #e9f0e3;
+  --g-tip-ink: #101d14;
+
+  --g-hero-bg: linear-gradient(160deg, rgba(38, 124, 81, 0.8) 0%, rgba(22, 88, 58, 0.78) 100%);
+  --g-hero-solid: #1d6142;
+  --g-hero-ring: rgba(224, 185, 104, 0.3);
+  --g-hero-rim: #e0b968;
+  --g-hero-shadow: 0 2px 4px rgba(0, 0, 0, 0.3), 0 24px 48px -22px rgba(12, 70, 44, 0.85);
+  --g-hero-ink: #f3f2e6;
+  --g-hero-ink-2: #e2efdf;
+  --g-hero-figure: #f4d283;
+  --g-hero-neg: #ffbfb2;
+
+  --g-pane: rgba(24, 36, 28, 0.55);
+  --g-pane-solid: #141e17;
+  --g-field: #1c2820;
+  --g-field-deep: #24322a;
+  --g-field-ring: rgba(255, 255, 255, 0.1);
+  --g-field-ring-hot: rgba(255, 255, 255, 0.24);
+  --g-rule-solid: #2c3a31;
+  --g-scroll: #3d5045;
+  --g-danger: #b04b3c;
+  --g-danger-ink: #fff8f4;
+  --g-shadow-tint: rgba(0, 0, 0, 0.5);
+  --g-gold-ink: #e0b968;
+  --g-run: #3e5a47;
+  --g-chrome: rgba(20, 30, 24, 0.82);
+  --g-chrome-solid: #18231c;
+  --g-chrome-shadow: 0 2px 6px rgba(0, 0, 0, 0.3), 0 40px 80px -30px rgba(0, 0, 0, 0.8);
+  --g-scrim: rgba(0, 0, 0, 0.5);
+  --g-pill-hover: rgba(255, 255, 255, 0.13);
+  --g-gold-wash: rgba(224, 185, 104, 0.14);
+  --g-out-wash: rgba(244, 163, 149, 0.1);
+  --g-in-wash: rgba(134, 215, 162, 0.1);
+}
+
+/* ------------------------------------------------------------ the journal's tokens
+   Every panel below the summary is the journal's own component. Glass points
+   the journal's tokens at its own inks, fields and type, then reshapes the
+   panels further down. (html:root outranks tokens.css's :root[data-theme].)
+   Bricolage has no italic, so the journal's italics set upright rather than
+   being slanted by the browser. */
+html:root[data-style='glass'] {
+  --font-display: var(--g-font);
+  --font-mono: var(--g-font);
+  --paper: var(--g-pane-solid);
+  --paper-2: var(--g-field);
+  --paper-3: var(--g-field-deep);
+  --rule-green: var(--g-rule-solid);
+  --rule-red: var(--g-danger);
+  --ink: var(--g-ink);
+  --ink-soft: var(--g-ink-2);
+  --ink-faint: var(--g-ink-3);
+  --gold: var(--g-gold-ink);
+  --credit: var(--g-in);
+  --debit: var(--g-out);
+  --shadow: var(--g-shadow-tint);
+  --desk: var(--g-ground);
+  --focus-ring: var(--g-focus);
+  --lift: 0 1px 2px var(--g-shadow-tint), 0 8px 18px -10px var(--g-shadow-tint);
+  --lift-2: var(--g-shadow-lift);
+  --glow: 0 0 0 0 transparent;
+  --press: 0 0 0 0 transparent;
+  scrollbar-color: var(--g-scroll) transparent;
+  font-synthesis: none;
+  font-variant-numeric: tabular-nums;
+}
+
+/* The springs proper. lift: damping 0.72, response 0.42s (a small
+   overshoot that reads as weight, settled by 675ms). ui: 0.92 / 0.38s for
+   the segmented thumb. enter: critically damped 1.0 / 0.34s for a view
+   arriving. Transform and opacity are the only properties they drive. */
+@supports (transition-timing-function: linear(0, 1)) {
+  :root[data-style='glass'] {
+    --g-spring-lift: linear(0, 0.0343, 0.1193, 0.2327, 0.3578, 0.4826, 0.5992, 0.7028, 0.7911, 0.8635, 0.9206, 0.9639, 0.9951, 1.0162, 1.0293, 1.0361, 1.0384, 1.0374, 1.0344, 1.0301, 1.0253, 1.0205, 1.016, 1.0119, 1.0085, 1.0056, 1.0033, 1.0016, 1.0003, 0.9995, 0.9989, 0.9986, 0.9985, 0.9986, 0.9987, 0.9988, 1);
+    --g-spring-lift-ms: 675ms;
+    --g-spring-ui: linear(0, 0.0149, 0.0535, 0.1078, 0.1719, 0.2411, 0.312, 0.3821, 0.4497, 0.5135, 0.5729, 0.6274, 0.6769, 0.7214, 0.761, 0.7961, 0.827, 0.8539, 0.8773, 0.8975, 0.9148, 0.9295, 0.9421, 0.9527, 0.9616, 0.9691, 0.9753, 0.9804, 0.9846, 0.9881, 0.9909, 0.9931, 0.9949, 0.9964, 0.9975, 0.9984, 1);
+    --g-spring-ui-ms: 398ms;
+    --g-spring-enter: linear(0, 0.0278, 0.0943, 0.1805, 0.274, 0.3673, 0.4555, 0.5362, 0.6082, 0.6714, 0.7261, 0.7729, 0.8125, 0.8458, 0.8737, 0.8968, 0.9159, 0.9317, 0.9446, 0.9552, 0.9638, 0.9708, 0.9765, 0.9812, 0.9849, 0.9879, 0.9903, 0.9922, 0.9938, 0.9951, 0.9961, 0.9969, 0.9975, 0.998, 0.9984, 0.9987, 1);
+    --g-spring-enter-ms: 500ms;
+  }
+}
+
+/* ------------------------------------------------------------ shell */
+:root[data-style='glass'] body {
+  background-color: var(--g-ground);
+}
+
+/* The ambient field: one fixed layer under everything, so it is drawn once
+   and never repaints on scroll; the panes blur whatever part sits behind
+   them. Static on purpose: a moving backdrop the size of the screen is the
+   one kind of motion that makes people unwell. */
+:root[data-style='glass'] body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image: var(--g-ambient);
+  background-repeat: no-repeat;
+}
+
+/* The grain on its own layer above the light: it tiles, the light does not. */
+:root[data-style='glass'] body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: var(--g-grain) repeat;
+  background-size: 180px 180px;
+}
+
+/* The left of the desk is kept clear for the rail. */
+:root[data-style='glass'] .desk {
+  gap: 24px;
+  padding: 20px 28px 88px 104px;
+}
+
+@media (min-width: 1720px) {
+  :root[data-style='glass'] .desk.with-rail { padding-right: 440px; }
+}
+
+/* No paper, no spine, no red margin rule: the book is only the column the
+   page lives in. */
+:root[data-style='glass'] .book {
+  background: none;
+  border: 0;
+  box-shadow: none;
+  min-height: 0;
+}
+
+:root[data-style='glass'] .page {
+  margin-left: 0;
+  padding: 0 0 48px;
+  container: g-page / inline-size;
+}
+
+:root[data-style='glass'] .page::before { content: none; }
+
+/* The rail's Recurring and Obligations land below the floating top bar. */
+:root[data-style='glass'] { scroll-padding-top: 104px; }
+
+/* The rail's jumps and keyboard focus land clear of the floating bar. */
+:root[data-style='glass'] #obligations,
+:root[data-style='glass'] #recurring { scroll-margin-top: 8px; }
+
+@media (max-width: 1180px) {
+  :root[data-style='glass'] { scroll-padding-top: 164px; }
+}
+
+/* The credit (load-bearing, per PRODUCT.md) sits straight on the backdrop
+   here rather than on paper, where a gold link would drop to ~2:1. */
+:root[data-style='glass'] .page > footer a {
+  color: var(--g-ink);
+  font-weight: 600;
+  text-decoration-color: var(--g-gold-mark);
+}
+
+/* ------------------------------------------------------------ the material
+   Eight surfaces carry a backdrop blur and no more: the rail, the top bar
+   and its scroll-edge veil, the four figures and Platform load. Rows, chips
+   and controls never do. */
+:root[data-style='glass'] .g-rail,
+:root[data-style='glass'] .g-topbar,
+:root[data-style='glass'] .summary > .fig,
+:root[data-style='glass'] .g-load {
+  background: var(--g-fill);
+  -webkit-backdrop-filter: blur(var(--g-blur)) saturate(var(--g-saturate));
+  backdrop-filter: blur(var(--g-blur)) saturate(var(--g-saturate));
+  box-shadow:
+    inset 0 0 0 1px var(--g-edge),
+    inset 0 1px 0 0 var(--g-edge-top),
+    0 0 0 1px var(--g-rim),
+    var(--g-shadow);
+}
+
+/* Chrome reads a step heavier than content (Apple's material weights). */
+:root[data-style='glass'] .g-rail,
+:root[data-style='glass'] .g-topbar { background: var(--g-fill-bar); }
+
+:root[data-style='glass'] .g-rail,
+:root[data-style='glass'] .g-topbar,
+:root[data-style='glass'] .service-line,
+:root[data-style='glass'] .summary,
+:root[data-style='glass'] .g-load {
+  font-family: var(--g-font);
+  color: var(--g-ink);
+}
+
+/* ------------------------------------------------------------ brand mark */
+:root[data-style='glass'] .g-mark {
+  flex: none;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  padding-right: 2px;
+  /* Dark enough everywhere under the gold LL to hold 4.5:1, highlight included. */
+  background: radial-gradient(circle at 32% 26%, #1d6a45, #0f3a26 74%);
+  color: #f3d58c;
+  font: italic 700 18px/1 var(--g-mark-font);
+  letter-spacing: -0.06em;
+  box-shadow:
+    inset 0 0 0 1px rgba(243, 213, 140, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.28),
+    0 4px 10px -4px rgba(16, 70, 44, 0.5);
+}
+
+/* In the top bar only where the rail cannot carry it (narrow screens). */
+:root[data-style='glass'] .g-mark-bar { display: none; }
+
+/* ------------------------------------------------------------ rail */
+:root[data-style='glass'] .g-rail {
+  position: fixed;
+  z-index: 30;
+  top: 20px;
+  left: 20px;
+  width: 64px;
+  padding: 10px 0;
+  border-radius: 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+:root[data-style='glass'] .g-rail-sep {
+  width: 26px;
+  height: 1px;
+  margin: 4px 0;
+  background: var(--g-rule);
+}
+
+:root[data-style='glass'] .g-rail-btn,
+:root[data-style='glass'] .g-icon-btn {
+  position: relative;
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--g-ink-2);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 160ms var(--g-ease-out);
+}
+
+:root[data-style='glass'] .g-icon-btn { color: var(--g-ink); }
+
+/* Hover and the selected state are a wash under the icon that fades in:
+   opacity, not a colour transition. */
+:root[data-style='glass'] .g-rail-btn::before,
+:root[data-style='glass'] .g-icon-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--g-hover-wash);
+  opacity: 0;
+  transition: opacity 160ms ease-out;
+}
+
+:root[data-style='glass'] .g-rail-btn > svg,
+:root[data-style='glass'] .g-icon-btn > svg { position: relative; }
+
+:root[data-style='glass'] .g-rail-btn[aria-current='true'],
+:root[data-style='glass'] .g-icon-btn.is-on { color: var(--g-active-ink); }
+
+:root[data-style='glass'] .g-rail-btn[aria-current='true']::before,
+:root[data-style='glass'] .g-icon-btn.is-on::before {
+  background: var(--g-active-bg);
+  opacity: 1;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  :root[data-style='glass'] .g-rail-btn:hover { color: var(--g-ink); }
+  :root[data-style='glass'] .g-rail-btn[aria-current='true']:hover,
+  :root[data-style='glass'] .g-icon-btn.is-on:hover { color: var(--g-active-ink); }
+  :root[data-style='glass'] .g-rail-btn:hover::before,
+  :root[data-style='glass'] .g-icon-btn:hover::before { opacity: 1; }
+}
+
+:root[data-style='glass'] .g-rail-btn:active,
+:root[data-style='glass'] .g-icon-btn:active {
+  transform: scale(0.94);
+  transition-duration: 80ms;
+}
+
+:root[data-style='glass'] .g-rail-btn:focus-visible,
+:root[data-style='glass'] .g-icon-btn:focus-visible {
+  outline: 2px solid var(--g-focus);
+  outline-offset: 2px;
+}
+
+/* Tooltips: the button's own label, set beside it. They wait on the first
+   hover, then answer at once while the pointer stays on the rail. */
+:root[data-style='glass'] .g-tip {
+  position: absolute;
+  left: calc(100% + 14px);
+  top: 50%;
+  padding: 7px 11px;
+  border-radius: 10px;
+  background: var(--g-tip-bg);
+  color: var(--g-tip-ink);
+  font: 600 13px/1.2 var(--g-font);
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: 0 8px 20px -10px rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  transform: translate(-4px, -50%);
+  transition: opacity 120ms ease-out, transform 120ms ease-out;
+}
+
+:root[data-style='glass'] .g-rail-btn:focus-visible .g-tip {
+  opacity: 1;
+  transform: translate(0, -50%);
+}
+
+@media (hover: hover) and (pointer: fine) and (min-width: 901px) {
+  :root[data-style='glass'] .g-rail-btn:hover .g-tip {
+    opacity: 1;
+    transform: translate(0, -50%);
+    transition-duration: 160ms;
+    transition-delay: 400ms;
+  }
+
+  :root[data-style='glass'] .g-rail[data-warm] .g-rail-btn:hover .g-tip { transition: none; }
+}
+
+/* ------------------------------------------------------------ top bar */
+/* The wrapper sticks to the top of the window with the bar floating 20px
+   below it. Content passing through that gap blurs and fades instead of
+   showing as a cut strip above the bar: Apple's scroll edge effect, not a
+   hard divider. At rest there is only the smooth backdrop behind it, so it
+   is invisible until something scrolls under. */
+:root[data-style='glass'] .g-topbar-wrap {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  pointer-events: none;
+  margin-top: -20px;
+  padding-top: 20px;
+}
+
+:root[data-style='glass'] .g-topbar-wrap::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -14px;
+  right: -14px;
+  height: 66px;
+  pointer-events: none;
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 42%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 0%, #000 42%, transparent 100%);
+}
+
+:root[data-style='glass'] .g-topbar {
+  position: relative;
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px 12px;
+  min-height: 66px;
+  padding: 10px 10px 10px 24px;
+  border-radius: 33px;
+}
+
+/* The controls group exists for reading order; layout is the bar's own. */
+:root[data-style='glass'] .g-controls { display: contents; }
+
+:root[data-style='glass'] .g-hello {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  margin-right: auto;
+}
+
+:root[data-style='glass'] .g-hello-text { min-width: 0; overflow: hidden; }
+
+:root[data-style='glass'] .g-greet {
+  margin: 0;
+  font: 650 19px/1.15 var(--g-font);
+  letter-spacing: -0.015em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+:root[data-style='glass'] .g-product {
+  margin: 2px 0 0;
+  font: 500 12.5px/1.2 var(--g-font);
+  letter-spacing: 0.01em;
+  color: var(--g-ink-2);
+}
+
+/* Period: the native select is the control, invisible over its face. */
+:root[data-style='glass'] .g-period {
+  position: relative;
+  flex: none;
+  min-width: 0;
+  height: 46px;
+  border-radius: 23px;
+  background: var(--g-well);
+  box-shadow: inset 0 0 0 1px var(--g-well-ring);
+}
+
+:root[data-style='glass'] .g-period::before,
+:root[data-style='glass'] .g-search::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--g-hover-wash);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 160ms ease-out;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  :root[data-style='glass'] .g-period:hover::before,
+  :root[data-style='glass'] .g-search:hover::before { opacity: 1; }
+}
+
+:root[data-style='glass'] .g-period select {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  opacity: 0;
+  cursor: pointer;
+  font-size: 16px;
+  appearance: none;
+}
+
+:root[data-style='glass'] .g-period select:disabled { cursor: default; }
+
+:root[data-style='glass'] .g-period-face {
+  position: relative;
+  height: 100%;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 14px;
+  border-radius: inherit;
+  color: var(--g-ink);
+}
+
+:root[data-style='glass'] .g-period-face > svg {
+  flex: none;
+  color: var(--g-ink-2);
+}
+
+:root[data-style='glass'] .g-period-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+:root[data-style='glass'] .g-period-text b {
+  font: 600 14px/1.2 var(--g-font);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+:root[data-style='glass'] .g-period-text small {
+  font: 500 12px/1.25 var(--g-font);
+  color: var(--g-ink-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-variant-numeric: tabular-nums;
+}
+
+:root[data-style='glass'] .g-period select:focus-visible + .g-period-face {
+  outline: 2px solid var(--g-focus);
+  outline-offset: 2px;
+}
+
+/* Search */
+:root[data-style='glass'] .g-search {
+  position: relative;
+  flex: 1 1 200px;
+  max-width: 360px;
+  min-width: 0;
+  height: 46px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 7px 0 15px;
+  border-radius: 23px;
+  background: var(--g-well);
+  box-shadow: inset 0 0 0 1px var(--g-well-ring);
+  color: var(--g-ink-2);
+}
+
+:root[data-style='glass'] .g-search > svg { flex: none; position: relative; }
+
+:root[data-style='glass'] .g-search input {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  background: none;
+  color: var(--g-ink);
+  font: 500 14px var(--g-font);
+}
+
+:root[data-style='glass'] .g-search input::placeholder {
+  color: var(--g-ink-2);
+  opacity: 1;
+}
+
+:root[data-style='glass'] .g-search input::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  margin: 0 4px 0 0;
+  background: var(--g-ink-2);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round'%3E%3Cpath d='M7 7l10 10M17 7 7 17'/%3E%3C/svg%3E") center / 16px 16px no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round'%3E%3Cpath d='M7 7l10 10M17 7 7 17'/%3E%3C/svg%3E") center / 16px 16px no-repeat;
+  cursor: pointer;
+}
+
+:root[data-style='glass'] .g-search:focus-within {
+  outline: 2px solid var(--g-focus);
+  outline-offset: 2px;
+}
+
+:root[data-style='glass'] .g-kbd {
+  position: relative;
+  flex: none;
+  height: 32px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 16px;
+  background: var(--g-kbd);
+  color: var(--g-ink-2);
+  font: 600 12px/1 var(--g-font);
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: transform 160ms var(--g-ease-out);
+}
+
+:root[data-style='glass'] .g-kbd:active { transform: scale(0.95); transition-duration: 80ms; }
+
+:root[data-style='glass'] .g-kbd:focus-visible {
+  outline: 2px solid var(--g-focus);
+  outline-offset: 2px;
+}
+
+:root[data-style='glass'] .g-actions {
+  flex: none;
+  display: flex;
+  gap: 4px;
+}
+
+:root[data-style='glass'] .g-pill-btn {
+  flex: none;
+  height: 46px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 23px;
+  background: var(--g-hero-solid);
+  color: var(--g-hero-ink);
+  font: 600 13.5px/1 var(--g-font);
+  cursor: pointer;
+  transition: transform 160ms var(--g-ease-out);
+}
+
+:root[data-style='glass'] .g-pill-btn:active { transform: scale(0.97); transition-duration: 80ms; }
+:root[data-style='glass'] .g-pill-btn:disabled { opacity: 0.6; cursor: default; }
+
+:root[data-style='glass'] .g-pill-btn:focus-visible {
+  outline: 2px solid var(--g-focus);
+  outline-offset: 2px;
+}
+
+/* Narrower page (a laptop with the entry slip open, a tablet): two rows,
+   the greeting and its controls over the period and search. */
+@container g-page (max-width: 920px) {
+  :root[data-style='glass'] .g-topbar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-areas: 'hello actions' 'period search';
+    gap: 10px;
+    padding: 12px 12px 12px 18px;
+    border-radius: 26px;
+  }
+
+  :root[data-style='glass'] .g-hello { grid-area: hello; margin-right: 0; }
+  :root[data-style='glass'] .g-actions { grid-area: actions; justify-self: end; }
+  :root[data-style='glass'] .g-period { grid-area: period; }
+  :root[data-style='glass'] .g-search { grid-area: search; max-width: none; }
+  :root[data-style='glass'] .g-pill-btn { grid-column: 1 / -1; }
+}
+
+@container g-page (max-width: 520px) {
+  :root[data-style='glass'] .g-topbar { padding: 12px; }
+  :root[data-style='glass'] .g-greet { font-size: 17px; }
+  :root[data-style='glass'] .g-actions { gap: 2px; }
+  :root[data-style='glass'] .g-icon-btn { width: 40px; height: 40px; }
+  :root[data-style='glass'] .g-kbd,
+  :root[data-style='glass'] .g-now { display: none; }
+  :root[data-style='glass'] .g-search { gap: 6px; padding: 0 10px 0 12px; }
+  :root[data-style='glass'] .g-period-face { gap: 8px; padding: 0 12px; }
+  :root[data-style='glass'] .g-period-face > svg:first-child { display: none; }
+}
+
+@container g-page (max-width: 400px) {
+  :root[data-style='glass'] .g-hello .g-mark-bar { display: none; }
+
+  /* A phone: the greeting takes what the four buttons leave, then the
+     period and search share the second line. */
+  :root[data-style='glass'] .g-topbar { display: flex; flex-wrap: wrap; row-gap: 0; }
+  :root[data-style='glass'] .g-topbar::after { content: ''; order: 2; flex-basis: 100%; }
+  :root[data-style='glass'] .g-hello { order: 0; flex: 1 1 0; }
+  :root[data-style='glass'] .g-actions { order: 1; }
+  :root[data-style='glass'] .g-period,
+  :root[data-style='glass'] .g-search { flex: 1 1 0; margin-top: 10px; }
+  :root[data-style='glass'] .g-period { order: 3; }
+  :root[data-style='glass'] .g-search { order: 4; }
+  :root[data-style='glass'] .g-pill-btn { order: 5; flex: 1 0 100%; margin-top: 10px; }
+  :root[data-style='glass'] .g-greet { font-size: 16px; }
+}
+
+/* Only the smallest phones lose the product line, so it never collides. */
+@container g-page (max-width: 300px) {
+  :root[data-style='glass'] .g-product { display: none; }
+}
+
+/* ------------------------------------------------------------ service line */
+:root[data-style='glass'] .service-line { margin-top: 22px; }
+
+:root[data-style='glass'] .status-lamp {
+  gap: 8px;
+  padding: 6px 13px 6px 11px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--g-well);
+  box-shadow: inset 0 0 0 1px var(--g-well-ring);
+  color: var(--g-ink);
+  font: 600 13px/1.2 var(--g-font);
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+:root[data-style='glass'] .status-lamp::before {
+  width: 8px;
+  height: 8px;
+  background: var(--g-ink-3);
+}
+
+:root[data-style='glass'] .status-lamp.on-time::before { background: var(--g-in); }
+:root[data-style='glass'] .status-lamp.delayed::before { background: var(--g-gold-mark); }
+:root[data-style='glass'] .status-lamp.cancelled::before { background: var(--g-out); }
+
+:root[data-style='glass'] .service-meta {
+  font: 500 13px/1.3 var(--g-font);
+  color: var(--g-ink-2);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ------------------------------------------------------------ summary band
+   Four panes, one equation: brought forward + arrivals - departures =
+   carried forward. The answer is the one accent pane and the largest
+   figure; direction is carried by the label and its arrow, never by
+   tinting the figure. */
+:root[data-style='glass'] .summary {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) minmax(0, 1.36fr);
+  gap: 14px;
+  margin: 14px 0 26px;
+  border: 0;
+}
+
+:root[data-style='glass'] .summary > .fig {
+  position: relative;
+  container-type: inline-size;
+  padding: 18px 20px 20px;
+  border: 0;
+  border-radius: var(--g-radius);
+  transition: transform var(--g-spring-lift-ms) var(--g-spring-lift);
+}
+
+/* The lifted shadow waits underneath and fades in: the pane moves by
+   transform, its shadow by opacity. */
+:root[data-style='glass'] .summary > .fig::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  box-shadow: var(--g-shadow-lift);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 240ms ease-out;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  :root[data-style='glass'] .summary > .fig:hover { transform: translateY(-3px); }
+  :root[data-style='glass'] .summary > .fig:hover::after { opacity: 1; }
+}
+
+:root[data-style='glass'] .summary .k {
+  margin: 0 0 12px;
+  font: 500 13px/1.3 var(--g-font);
+  letter-spacing: 0.005em;
+  text-transform: lowercase;
+  color: var(--g-ink-2);
+}
+
+/* "Brought Forward" reads "Brought forward": sentence case for labels. */
+:root[data-style='glass'] .summary .k::first-letter { text-transform: uppercase; }
+
+:root[data-style='glass'] .summary .v {
+  font: 600 min(23px, 12.6cqi, calc(100cqi / (var(--chars, 14) * 0.56)))/1.15 var(--g-font);
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  color: var(--g-ink);
+  white-space: nowrap;
+}
+
+:root[data-style='glass'] .summary .v.credit,
+:root[data-style='glass'] .summary .v.debit { color: var(--g-ink); }
+
+:root[data-style='glass'] .summary .note {
+  margin-top: 8px;
+  font: 500 12.5px/1.4 var(--g-font);
+  color: var(--g-ink-2);
+  font-variant-numeric: tabular-nums;
+}
+
+:root[data-style='glass'] .summary .note b { color: var(--g-ink); font-weight: 650; }
+
+/* A sum never breaks between "Rs." and its figure, nor a month from its year. */
+:root[data-style='glass'] .summary .note b,
+:root[data-style='glass'] .summary .note .keep { white-space: nowrap; }
+:root[data-style='glass'] .summary .note .up { color: var(--g-out); font-weight: 600; }
+:root[data-style='glass'] .summary .note .down { color: var(--g-in); font-weight: 600; }
+
+/* Arrivals come in, departures go out: an arrow in the pane's corner. */
+:root[data-style='glass'] .summary > .fig-in::before,
+:root[data-style='glass'] .summary > .fig-out::before {
+  content: '';
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 20px;
+  height: 20px;
+  -webkit-mask: var(--g-arrow) center / 20px 20px no-repeat;
+  mask: var(--g-arrow) center / 20px 20px no-repeat;
+}
+
+:root[data-style='glass'] .summary > .fig-in::before {
+  --g-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M17 7 7 17'/%3E%3Cpath d='M7 9.5V17h7.5'/%3E%3C/svg%3E");
+  background: var(--g-in);
+}
+
+:root[data-style='glass'] .summary > .fig-out::before {
+  --g-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7 17 17 7'/%3E%3Cpath d='M9.5 7H17v7.5'/%3E%3C/svg%3E");
+  background: var(--g-out);
+}
+
+/* The hero pane: carried forward, what is actually left. */
+:root[data-style='glass'] .summary > .fig-carried {
+  background: var(--g-hero-bg);
+  color: var(--g-hero-ink);
+  box-shadow:
+    inset 0 0 0 1px var(--g-hero-ring),
+    inset 0 1.5px 0 0 var(--g-hero-rim),
+    var(--g-hero-shadow);
+}
+
+:root[data-style='glass'] .fig-carried .k,
+:root[data-style='glass'] .fig-carried .note { color: var(--g-hero-ink-2); }
+
+:root[data-style='glass'] .fig-carried .note b { color: var(--g-hero-ink); }
+
+:root[data-style='glass'] .summary .fig-carried .v {
+  font-size: min(34px, 15.2cqi, calc(100cqi / (var(--chars, 14) * 0.53)));
+  font-weight: 650;
+  letter-spacing: -0.025em;
+  color: var(--g-hero-figure);
+}
+
+:root[data-style='glass'] .summary .fig-carried .v.debit { color: var(--g-hero-neg); }
+
+/* Four across holds down to a ~760px page (a laptop with the entry slip
+   open is ~990px); below that, two by two. */
+@container g-page (max-width: 760px) {
+  :root[data-style='glass'] .summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* A phone: the answer first and full width, then the three terms as rows
+   with the label and its arrow on the left and the figure on the right. */
+@container g-page (max-width: 560px) {
+  :root[data-style='glass'] .summary {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+  }
+
+  :root[data-style='glass'] .summary > .fig-carried { order: -1; }
+
+  :root[data-style='glass'] .summary > .fig:not(.fig-carried) {
+    display: grid;
+    grid-template-columns: 18px minmax(0, 1fr) auto;
+    align-items: center;
+    column-gap: 10px;
+    padding: 14px 18px 15px 16px;
+  }
+
+  :root[data-style='glass'] .summary > .fig:not(.fig-carried) .k { grid-column: 2; margin: 0; }
+
+  :root[data-style='glass'] .summary > .fig:not(.fig-carried) .v {
+    grid-column: 3;
+    font-size: 17px;
+    text-align: right;
+  }
+
+  :root[data-style='glass'] .summary > .fig:not(.fig-carried) .note {
+    grid-column: 2 / -1;
+    margin-top: 2px;
+  }
+
+  :root[data-style='glass'] .summary > .fig-in::before,
+  :root[data-style='glass'] .summary > .fig-out::before {
+    position: static;
+    grid-column: 1;
+    grid-row: 1;
+    width: 18px;
+    height: 18px;
+    -webkit-mask-size: 18px 18px;
+    mask-size: 18px 18px;
+  }
+}
+
+/* ------------------------------------------------------------ platform load */
+:root[data-style='glass'] .g-load {
+  isolation: isolate;
+  padding: 20px 22px 18px;
+  border: 0;
+  border-radius: var(--g-radius);
+}
+
+:root[data-style='glass'] .g-load .panel-head {
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+:root[data-style='glass'] .g-load .panel-head h3 {
+  font: 650 16px/1.2 var(--g-font);
+  letter-spacing: -0.01em;
+  text-transform: lowercase;
+  color: var(--g-ink);
+}
+
+:root[data-style='glass'] .g-load .panel-head h3::first-letter { text-transform: uppercase; }
+
+/* Segmented control: one thumb that travels on a spring between two real
+   radio buttons, so arrow keys and screen readers work as usual. */
+:root[data-style='glass'] .g-seg {
+  position: relative;
+  flex: none;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  padding: 3px;
+  border-radius: 999px;
+  background: var(--g-seg-bg);
+  box-shadow: inset 0 0 0 1px var(--g-well-ring);
+}
+
+:root[data-style='glass'] .g-seg-thumb {
+  position: absolute;
+  top: 3px;
+  bottom: 3px;
+  left: 3px;
+  width: calc(50% - 3px);
+  border-radius: 999px;
+  background: var(--g-seg-thumb);
+  box-shadow: var(--g-seg-thumb-shadow);
+  transition: transform var(--g-spring-ui-ms) var(--g-spring-ui);
+}
+
+:root[data-style='glass'] .g-seg[data-view='trend'] .g-seg-thumb { transform: translateX(100%); }
+
+:root[data-style='glass'] .g-seg-opt {
+  position: relative;
+  display: grid;
+}
+
+:root[data-style='glass'] .g-seg-opt label {
+  min-width: 70px;
+  padding: 7px 16px 8px;
+  border-radius: 999px;
+  text-align: center;
+  font: 600 13px/1.2 var(--g-font);
+  color: var(--g-ink-2);
+  cursor: pointer;
+}
+
+:root[data-style='glass'] .g-seg-opt input:checked + label {
+  color: var(--g-ink);
+  cursor: default;
+}
+
+:root[data-style='glass'] .g-seg-opt input:focus-visible + label {
+  outline: 2px solid var(--g-focus);
+  outline-offset: 1px;
+}
+
+/* Share: the ring with the period's total in its centre, the list beside.
+   Kept side by side wherever the card allows: stacked, the card runs twice
+   as tall and the calendar beside it stretches to match. */
+:root[data-style='glass'] .g-load .platform-share {
+  flex-direction: row;
+  gap: 18px;
+  align-items: center;
+}
+
+:root[data-style='glass'] .g-load .platform-donut-col {
+  position: relative;
+  flex: none;
+  width: 136px;
+}
+
+:root[data-style='glass'] .g-load .donut {
+  width: 136px;
+  height: 136px;
+}
+
+:root[data-style='glass'] .g-load .donut-seg { transition: opacity 160ms ease-out; }
+:root[data-style='glass'] .g-load .donut.has-hot .donut-seg.hot { stroke-width: 18; }
+
+:root[data-style='glass'] .g-load .platform-total {
+  position: absolute;
+  inset: 0;
+  width: auto;
+  margin: 0;
+  transform: none;
+  display: grid;
+  place-content: center;
+  text-align: center;
+  pointer-events: none;
+}
+
+:root[data-style='glass'] .g-load .platform-total .k {
+  margin: 0 0 2px;
+  font: 500 12px/1.2 var(--g-font);
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--g-ink-2);
+}
+
+:root[data-style='glass'] .g-load .platform-total .v {
+  font: 650 min(15px, calc(92px / (var(--chars) * 0.55)))/1.15 var(--g-font);
+  letter-spacing: -0.015em;
+  font-variant-numeric: tabular-nums;
+  color: var(--g-ink);
+}
+
+:root[data-style='glass'] .g-load .platform-list li {
+  position: relative;
+  margin: 0 -10px 1px;
+  padding: 6px 10px 8px;
+  border-radius: 12px;
+  background: none;
+  box-shadow: none;
+  transition: none;
+}
+
+:root[data-style='glass'] .g-load .platform-list li::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: var(--g-row-hot);
+  opacity: 0;
+  transition: opacity 140ms ease-out;
+}
+
+:root[data-style='glass'] .g-load .platform-list li.hot::before { opacity: 1; }
+
+:root[data-style='glass'] .g-load .platform-row {
+  gap: 10px;
+  font: 500 13.5px/1.3 var(--g-font);
+  color: var(--g-ink);
+}
+
+:root[data-style='glass'] .g-load .swatch {
+  width: 9px;
+  height: 9px;
+  margin-right: 10px;
+  border-radius: 50%;
+}
+
+:root[data-style='glass'] .g-load .g-figs {
+  flex: none;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+:root[data-style='glass'] .g-load .g-pct {
+  min-width: 3.6ch;
+  text-align: right;
+  font-size: 12.5px;
+  color: var(--g-ink-2);
+}
+
+:root[data-style='glass'] .g-load .g-amt {
+  min-width: 10.5ch;
+  text-align: right;
+  font-weight: 600;
+}
+
+/* Each category's share of the period, at its true length. */
+:root[data-style='glass'] .g-load .g-bar {
+  height: 5px;
+  margin: 6px 0 0 19px;
+  border-radius: 999px;
+  background: var(--g-track);
+  overflow: hidden;
+}
+
+:root[data-style='glass'] .g-load .g-bar > i {
+  display: block;
+  height: 100%;
+  min-width: 6px;
+  border-radius: inherit;
+}
+
+:root[data-style='glass'] .g-load .cap-track {
+  height: 4px;
+  margin: 7px 0 4px 19px;
+  border-radius: 999px;
+  background: var(--g-track);
+}
+
+:root[data-style='glass'] .g-load .cap-fill { border-radius: 999px; background: var(--g-in); }
+:root[data-style='glass'] .g-load .cap-fill.warm { background: var(--g-gold-mark); }
+:root[data-style='glass'] .g-load .cap-fill.over { background: var(--g-out); }
+
+:root[data-style='glass'] .g-load .platform-row-note {
+  margin: 0 0 0 19px;
+  font: 500 12px/1.3 var(--g-font);
+  color: var(--g-ink-2);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Trend: name, line, change, in fixed columns. */
+:root[data-style='glass'] .g-load .platform-row.trend-row {
+  grid-template-columns: minmax(0, 1fr) minmax(64px, 112px) 5.2em;
+  gap: 14px;
+}
+
+:root[data-style='glass'] .g-load .trend-row svg { width: 100%; }
+
+:root[data-style='glass'] .g-load .trend-row polyline {
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+:root[data-style='glass'] .g-load .trend-row > span:last-child {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--g-ink-2);
+  font-variant-numeric: tabular-nums;
+}
+
+:root[data-style='glass'] .g-load .platform-row .spend-up { color: var(--g-out); }
+:root[data-style='glass'] .g-load .platform-row .spend-down { color: var(--g-in); }
+
+:root[data-style='glass'] .g-load .panel-empty {
+  margin: 4px 0 2px;
+  font: 500 14px/1.5 var(--g-font);
+  color: var(--g-ink-2);
+}
+
+/* A switched view eases in; the first view on load just appears. */
+:root[data-style='glass'] .g-load .g-enter {
+  transition:
+    opacity 280ms ease-out,
+    transform var(--g-spring-enter-ms) var(--g-spring-enter);
+}
+
+@starting-style {
+  :root[data-style='glass'] .g-load .g-enter {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
+/* Narrow card (a phone): the ring above its list. (Every .panel is an
+   inline-size container, so this keys off the card's own width.) */
+/* A narrow card (a phone, or the entry slip open on a small laptop): the
+   ring above its list. */
+@container (max-width: 340px) {
+  :root[data-style='glass'] .g-load .platform-share {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+  }
+
+  :root[data-style='glass'] .g-load .platform-donut-col { align-self: center; }
+}
+
+/* A card too narrow for name and figures on one line (the entry slip open on
+   a laptop): each row's figures go under its name, so no name is cut. */
+@container (max-width: 430px) {
+  :root[data-style='glass'] .g-load .platform-share .platform-row { flex-wrap: wrap; row-gap: 1px; }
+  :root[data-style='glass'] .g-load .platform-share .platform-row > .swatch-label { flex: 1 0 100%; }
+  :root[data-style='glass'] .g-load .g-figs {
+    flex: 1 0 100%;
+    justify-content: space-between;
+    padding-left: 19px;
+  }
+  :root[data-style='glass'] .g-load .g-pct { text-align: left; }
+  :root[data-style='glass'] .g-load .g-amt { min-width: 0; }
+}
+
+/* ------------------------------------------------------------ the rest of the board
+   Panes: the same edge, rim and shadow as the frosted figures, at the same
+   radius, with no blur of their own (see the tokens). Platform load keeps
+   its blurred pane above. */
+:root[data-style='glass'] .panel:not(.g-load),
+:root[data-style='glass'] .banner,
+:root[data-style='glass'] .ldi-toggle,
+:root[data-style='glass'] .dock-paper,
+:root[data-style='glass'] .auth-card {
+  border: 0;
+  border-radius: var(--g-radius);
+  background: var(--g-pane);
+  box-shadow:
+    inset 0 0 0 1px var(--g-edge),
+    inset 0 1px 0 0 var(--g-edge-top),
+    0 0 0 1px var(--g-rim),
+    var(--g-shadow);
+}
+
+/* Panes with a pinned head or foot over rows that scroll beneath them are
+   solid, in the colour a frosted pane comes out at on this field, so the
+   pinned row and the pane are one surface. */
+:root[data-style='glass'] .table-wrap.log,
+:root[data-style='glass'] .section-body {
+  border: 0;
+  border-radius: var(--g-radius);
+  background: var(--g-pane-solid);
+  box-shadow:
+    inset 0 0 0 1px var(--g-edge),
+    inset 0 1px 0 0 var(--g-edge-top),
+    0 0 0 1px var(--g-rim),
+    var(--g-shadow);
+}
+
+:root[data-style='glass'] .panel:not(.g-load) {
+  padding: 20px 22px;
+  color: var(--g-ink);
+}
+
+:root[data-style='glass'] .panel-cols { gap: 18px; margin-top: 18px; }
+:root[data-style='glass'] .panel-col { gap: 18px; }
+:root[data-style='glass'] .panel.capacity,
+:root[data-style='glass'] .recurring-panel { margin-top: 18px; }
+
+:root[data-style='glass'] .panel:not(.g-load) .panel-head { margin-bottom: 16px; }
+
+:root[data-style='glass'] .panel:not(.g-load) .panel-head h3 {
+  font: 650 16px/1.2 var(--g-font);
+  letter-spacing: -0.01em;
+  text-transform: lowercase;
+}
+
+/* "Where It Came From" reads "Where it came from". */
+:root[data-style='glass'] .panel:not(.g-load) .panel-head h3::first-letter { text-transform: uppercase; }
+
+:root[data-style='glass'] .panel-note,
+:root[data-style='glass'] .panel-empty {
+  font: 500 13px/1.5 var(--g-font);
+  color: var(--g-ink-2);
+}
+
+/* Section titles: set in the type, not ruled off in small capitals. */
+:root[data-style='glass'] .folio-heading {
+  display: block;
+  margin: 40px 4px 14px;
+  font: 650 19px/1.2 var(--g-font);
+  letter-spacing: -0.015em;
+  text-transform: lowercase;
+  color: var(--g-ink);
+}
+
+:root[data-style='glass'] .folio-heading::first-letter { text-transform: uppercase; }
+:root[data-style='glass'] .folio-heading::after { content: none; }
+
+:root[data-style='glass'] .swatch { border-radius: 50%; }
+
+/* ------------------------------------------------------------ buttons
+   Outlined paper controls become pills on a light well; the primary action
+   is the emerald of the answer pane. Hover is a brighter well, never a
+   lift; a press scales down a hair. */
+:root[data-style='glass'] .btn-link,
+:root[data-style='glass'] .banner button,
+:root[data-style='glass'] .confirm-row button,
+:root[data-style='glass'] .kbd-btn,
+:root[data-style='glass'] .tab-controls input[type='file']::file-selector-button {
+  border: 0;
+  border-radius: 999px;
+  padding: 7px 14px;
+  background: var(--g-well);
+  box-shadow: inset 0 0 0 1px var(--g-well-ring);
+  color: var(--g-ink);
+  font: 600 13px/1.2 var(--g-font);
+  letter-spacing: 0;
+  transition: transform 160ms var(--g-ease-out), background-color 160ms ease-out, box-shadow 160ms ease-out;
+}
+
+:root[data-style='glass'] .icon-btn {
+  border: 0;
+  border-radius: 50%;
+  background: var(--g-well);
+  box-shadow: inset 0 0 0 1px var(--g-well-ring);
+  color: var(--g-ink);
+  transition: transform 160ms var(--g-ease-out), background-color 160ms ease-out, box-shadow 160ms ease-out;
+}
+
+:root[data-style='glass'] .btn-link.danger,
+:root[data-style='glass'] .confirm-row button.danger {
+  color: var(--g-out);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--g-out) 38%, transparent);
+}
+
+:root[data-style='glass'] .btn-link:hover:not(:disabled),
+:root[data-style='glass'] .banner button:hover:not(:disabled),
+:root[data-style='glass'] .confirm-row button:hover:not(:disabled),
+:root[data-style='glass'] .kbd-btn:hover:not(:disabled),
+:root[data-style='glass'] .icon-btn:hover:not(:disabled),
+:root[data-style='glass'] .tab-controls input[type='file']::file-selector-button:hover {
+  transform: none;
+  background-color: var(--g-pill-hover);
+  color: var(--g-ink);
+  box-shadow: inset 0 0 0 1px var(--g-field-ring-hot), 0 2px 8px -3px var(--g-shadow-tint);
+}
+
+:root[data-style='glass'] .btn-link.danger:hover:not(:disabled),
+:root[data-style='glass'] .confirm-row button.danger:hover:not(:disabled) {
+  color: var(--g-out);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--g-out) 60%, transparent), 0 2px 8px -3px var(--g-shadow-tint);
+}
+
+:root[data-style='glass'] .btn-link:active:not(:disabled),
+:root[data-style='glass'] .banner button:active:not(:disabled),
+:root[data-style='glass'] .confirm-row button:active:not(:disabled),
+:root[data-style='glass'] .kbd-btn:active:not(:disabled),
+:root[data-style='glass'] .icon-btn:active:not(:disabled),
+:root[data-style='glass'] .tab-controls input[type='file']::file-selector-button:active {
+  transform: scale(0.97);
+  background-color: var(--g-field-deep);
+  box-shadow: inset 0 0 0 1px var(--g-field-ring);
+  transition-duration: 80ms;
+}
+
+:root[data-style='glass'] .icon-btn.active,
+:root[data-style='glass'] .icon-btn.active:hover:not(:disabled) {
+  background: var(--g-hero-solid);
+  color: var(--g-hero-ink);
+  box-shadow: none;
+}
+
+:root[data-style='glass'] .btn-primary,
+:root[data-style='glass'] .banner button.primary,
+:root[data-style='glass'] .dock-submit,
+:root[data-style='glass'] .auth-card button {
+  border: 0;
+  border-radius: 999px;
+  background: var(--g-hero-solid);
+  color: var(--g-hero-ink);
+  font: 650 13.5px/1.2 var(--g-font);
+  letter-spacing: 0;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 6px 14px -8px rgba(14, 64, 40, 0.7);
+  transition: transform 160ms var(--g-ease-out), filter 160ms ease-out;
+}
+
+:root[data-style='glass'] .btn-primary:hover:not(:disabled),
+:root[data-style='glass'] .banner button.primary:hover:not(:disabled),
+:root[data-style='glass'] .dock-submit:hover:not(:disabled),
+:root[data-style='glass'] .auth-card button:hover:not(:disabled) {
+  transform: none;
+  color: var(--g-hero-ink);
+  background: var(--g-hero-solid);
+  filter: brightness(1.1);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 8px 18px -8px rgba(14, 64, 40, 0.75);
+}
+
+:root[data-style='glass'] .btn-primary:active:not(:disabled),
+:root[data-style='glass'] .banner button.primary:active:not(:disabled),
+:root[data-style='glass'] .dock-submit:active:not(:disabled),
+:root[data-style='glass'] .auth-card button:active:not(:disabled) {
+  transform: scale(0.98);
+  filter: brightness(0.95);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  transition-duration: 80ms;
+}
+
+/* Disabled: a quiet well with legible ink, not a faded emerald. */
+:root[data-style='glass'] .btn-primary:disabled,
+:root[data-style='glass'] .banner button.primary:disabled,
+:root[data-style='glass'] .dock-submit:disabled {
+  opacity: 1;
+  background: var(--g-field-deep);
+  color: var(--g-ink-3);
+  box-shadow: inset 0 0 0 1px var(--g-field-ring);
+  filter: none;
+}
+
+:root[data-style='glass'] .btn-danger {
+  border: 0;
+  border-radius: 999px;
+  background: var(--g-danger);
+  color: var(--g-danger-ink);
+  font: 650 13.5px/1.2 var(--g-font);
+  transition: transform 160ms var(--g-ease-out), filter 160ms ease-out;
+}
+
+:root[data-style='glass'] .btn-danger:hover:not(:disabled) { transform: none; box-shadow: none; filter: brightness(1.08); }
+:root[data-style='glass'] .btn-danger:active:not(:disabled) { transform: scale(0.98); box-shadow: none; }
+
+:root[data-style='glass'] input[type='checkbox'],
+:root[data-style='glass'] input[type='radio'] { accent-color: var(--g-hero-solid); }
+
+/* ------------------------------------------------------------ fields
+   One field everywhere: a rounded well with a hairline ring that darkens
+   under the pointer and turns to the focus colour when typed in. */
+:root[data-style='glass'] .tab-controls select,
+:root[data-style='glass'] .tab-controls input[type='file'],
+:root[data-style='glass'] .map-grid select,
+:root[data-style='glass'] table.ledger.grid select,
+:root[data-style='glass'] table.ledger.grid input[type='text'],
+:root[data-style='glass'] table.ledger.grid input[type='number'],
+:root[data-style='glass'] table.ledger.grid input[type='date'],
+:root[data-style='glass'] table.ledger.grid .dp-field,
+:root[data-style='glass'] .settings-block select,
+:root[data-style='glass'] .settings-block input[type='number'],
+:root[data-style='glass'] .settings-block input:not([type]),
+:root[data-style='glass'] .settings-block input[type='text'],
+:root[data-style='glass'] .recurring-panel select,
+:root[data-style='glass'] .recurring-panel input,
+:root[data-style='glass'] .bot-switch select,
+:root[data-style='glass'] .bot-menu input,
+:root[data-style='glass'] .composer-row textarea,
+:root[data-style='glass'] .auth-card input,
+:root[data-style='glass'] .dock-field input,
+:root[data-style='glass'] .dock-field select,
+:root[data-style='glass'] .dock-field .dp-field {
+  padding: 8px 11px;
+  border: 0;
+  border-radius: 12px;
+  background-color: var(--g-field);
+  box-shadow: inset 0 0 0 1px var(--g-field-ring);
+  color: var(--g-ink);
+  font: 500 14px/1.35 var(--g-font);
+  transition: box-shadow 140ms ease-out;
+}
+
+:root[data-style='glass'] table.ledger.grid select,
+:root[data-style='glass'] table.ledger.grid input[type='text'],
+:root[data-style='glass'] table.ledger.grid input[type='number'],
+:root[data-style='glass'] table.ledger.grid input[type='date'],
+:root[data-style='glass'] table.ledger.grid .dp-field {
+  padding: 6px 9px;
+  border-radius: 10px;
+  font-size: 13px;
+}
+
+:root[data-style='glass'] .tab-controls input[type='file'] { padding: 4px; }
+
+:root[data-style='glass'] .tab-controls select:hover,
+:root[data-style='glass'] .map-grid select:hover,
+:root[data-style='glass'] table.ledger.grid select:hover,
+:root[data-style='glass'] table.ledger.grid input:hover,
+:root[data-style='glass'] table.ledger.grid .dp-field:hover,
+:root[data-style='glass'] .settings-block select:hover,
+:root[data-style='glass'] .settings-block input:hover,
+:root[data-style='glass'] .recurring-panel select:hover,
+:root[data-style='glass'] .recurring-panel input:hover,
+:root[data-style='glass'] .bot-switch select:hover,
+:root[data-style='glass'] .bot-menu input:hover,
+:root[data-style='glass'] .composer-row textarea:hover,
+:root[data-style='glass'] .dock-field input:hover,
+:root[data-style='glass'] .dock-field select:hover,
+:root[data-style='glass'] .dock-field .dp-field:hover {
+  background-color: var(--g-field);
+  box-shadow: inset 0 0 0 1px var(--g-field-ring-hot);
+}
+
+:root[data-style='glass'] .tab-controls select:focus-visible,
+:root[data-style='glass'] .map-grid select:focus-visible,
+:root[data-style='glass'] table.ledger.grid select:focus-visible,
+:root[data-style='glass'] table.ledger.grid input:focus-visible,
+:root[data-style='glass'] table.ledger.grid .dp-field.open,
+:root[data-style='glass'] .settings-block select:focus-visible,
+:root[data-style='glass'] .settings-block input:focus-visible,
+:root[data-style='glass'] .recurring-panel select:focus-visible,
+:root[data-style='glass'] .recurring-panel input:focus-visible,
+:root[data-style='glass'] .bot-switch select:focus-visible,
+:root[data-style='glass'] .bot-menu input:focus-visible,
+:root[data-style='glass'] .composer-row textarea:focus-visible,
+:root[data-style='glass'] .auth-card input:focus-visible,
+:root[data-style='glass'] .dock-field input:focus-visible,
+:root[data-style='glass'] .dock-field select:focus-visible,
+:root[data-style='glass'] .dock-field .dp-field:focus-visible,
+:root[data-style='glass'] .dock-field .dp-field.open {
+  outline: none;
+  background-color: var(--g-field);
+  box-shadow: inset 0 0 0 1.5px var(--g-focus), 0 0 0 3px color-mix(in srgb, var(--g-focus) 18%, transparent);
+}
+
+:root[data-style='glass'] input::placeholder,
+:root[data-style='glass'] textarea::placeholder,
+:root[data-style='glass'] .dp-placeholder {
+  color: var(--g-ink-3);
+  font-style: normal;
+  opacity: 1;
+}
+
+:root[data-style='glass'] .settings-form label,
+:root[data-style='glass'] .map-grid label {
+  gap: 5px;
+  font: 500 12.5px/1.3 var(--g-font);
+  color: var(--g-ink-2);
+}
+
+:root[data-style='glass'] .notice {
+  border: 0;
+  border-radius: 12px;
+  padding: 9px 12px;
+  background: var(--g-field);
+  box-shadow: inset 0 0 0 1px var(--g-field-ring);
+  font: 500 13px/1.45 var(--g-font);
+}
+
+:root[data-style='glass'] .notice.warn {
+  background: var(--g-out-wash);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--g-out) 32%, transparent);
+}
+
+:root[data-style='glass'] .notice.ok {
+  color: var(--g-in);
+  background: var(--g-in-wash);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--g-in) 30%, transparent);
+}
+
+/* ------------------------------------------------------------ banners */
+:root[data-style='glass'] .banners { gap: 10px; margin-top: 16px; }
+
+:root[data-style='glass'] .banner {
+  padding: 14px 16px 14px 20px;
+  border-radius: 20px;
+  color: var(--g-ink);
+  font: 500 14px/1.5 var(--g-font);
+}
+
+/* Sample data: a gold wash over the pane, the warning in plain ink. */
+:root[data-style='glass'] .banner.demo {
+  background: linear-gradient(var(--g-gold-wash), var(--g-gold-wash)), var(--g-pane);
+  color: var(--g-ink-2);
+}
+
+:root[data-style='glass'] .banner.demo strong { color: var(--g-gold-ink); font-weight: 650; }
+
+:root[data-style='glass'] .banner.warn {
+  background: linear-gradient(var(--g-out-wash), var(--g-out-wash)), var(--g-pane);
+}
+
+:root[data-style='glass'] .banner-title {
+  margin-bottom: 4px;
+  font: 650 14.5px/1.35 var(--g-font);
+  letter-spacing: -0.005em;
+}
+
+:root[data-style='glass'] .banner-text,
+:root[data-style='glass'] .setup-item {
+  font: 500 14px/1.55 var(--g-font);
+  color: var(--g-ink-2);
+}
+
+:root[data-style='glass'] .setup-item b { color: var(--g-ink); font-weight: 650; }
+
+:root[data-style='glass'] .recur-total { color: var(--g-gold-ink); font-weight: 650; }
+:root[data-style='glass'] .recur-what { font-size: 12.5px; color: var(--g-ink-2); }
+
+:root[data-style='glass'] .recur-item {
+  padding: 5px 8px;
+  margin: 0 -8px;
+  border-radius: 10px;
+  font-size: 13.5px;
+  transition: background-color 120ms ease-out;
+}
+
+:root[data-style='glass'] .recur-item:hover { background: var(--g-hover-wash); }
+
+:root[data-style='glass'] .recur-box {
+  width: 16px;
+  height: 16px;
+  border: 1.5px solid var(--g-ink-3);
+  border-radius: 5px;
+  background: var(--g-field);
+}
+
+:root[data-style='glass'] .recur-item input:checked + .recur-box {
+  border-color: var(--g-hero-solid);
+  background: var(--g-hero-solid);
+}
+
+:root[data-style='glass'] .recur-item input:checked + .recur-box::after {
+  left: 4.5px;
+  top: 1.5px;
+  border-color: var(--g-hero-ink);
+}
+
+:root[data-style='glass'] .recur-item:has(input:focus-visible) { outline-color: var(--g-focus); }
+:root[data-style='glass'] .recur-item .sub,
+:root[data-style='glass'] .recur-hint { color: var(--g-ink-2); font-size: 12.5px; font-style: normal; }
+:root[data-style='glass'] .recur-item .amt { font-weight: 650; }
+
+/* ------------------------------------------------------------ ledgers, debts and import */
+:root[data-style='glass'] .ldi { margin-top: 12px; }
+
+:root[data-style='glass'] .ldi-toggle {
+  align-items: center;
+  gap: 12px;
+  padding: 13px 18px 13px 16px;
+  border-radius: 20px;
+  transition: transform 160ms var(--g-ease-out), background-color 160ms ease-out;
+}
+
+:root[data-style='glass'] .ldi-toggle:hover {
+  transform: none;
+  background: linear-gradient(var(--g-hover-wash), var(--g-hover-wash)), var(--g-pane);
+  box-shadow:
+    inset 0 0 0 1px var(--g-edge),
+    inset 0 1px 0 0 var(--g-edge-top),
+    0 0 0 1px var(--g-rim),
+    var(--g-shadow);
+}
+
+:root[data-style='glass'] .ldi-toggle:active {
+  transform: scale(0.99);
+  background: linear-gradient(var(--g-hover-wash), var(--g-hover-wash)), var(--g-pane);
+  box-shadow:
+    inset 0 0 0 1px var(--g-edge),
+    0 0 0 1px var(--g-rim);
+}
+
+:root[data-style='glass'] .ldi-chevron {
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--g-well);
+  box-shadow: inset 0 0 0 1px var(--g-well-ring);
+  color: var(--g-ink-2);
+  font-size: 11px;
+  transition: transform var(--g-spring-ui-ms) var(--g-spring-ui);
+}
+
+:root[data-style='glass'] .ldi-title {
+  font: 650 14.5px/1.2 var(--g-font);
+  letter-spacing: -0.005em;
+  text-transform: none;
+}
+
+:root[data-style='glass'] .ldi-toggle:hover .ldi-title { color: var(--g-ink); }
+
+:root[data-style='glass'] .ldi-hint {
+  font: 500 13px/1.2 var(--g-font);
+  color: var(--g-ink-2);
+}
+
+:root[data-style='glass'] .ldi-sheet { padding-top: 12px; }
+
+/* The three sheets: a segmented control, one thumb on the open sheet. */
+:root[data-style='glass'] .section-tabs {
+  width: max-content;
+  max-width: 100%;
+  gap: 2px;
+  margin-bottom: 12px;
+  padding: 3px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--g-seg-bg);
+  box-shadow: inset 0 0 0 1px var(--g-well-ring);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+:root[data-style='glass'] .section-tab,
+:root[data-style='glass'] .section-tab.active {
+  margin: 0;
+  padding: 7px 16px 8px;
+  border: 0;
+  border-radius: 999px;
+  font: 600 13px/1.2 var(--g-font);
+  letter-spacing: 0;
+  text-transform: none;
+  white-space: nowrap;
+}
+
+:root[data-style='glass'] .section-tab { color: var(--g-ink-2); }
+
+:root[data-style='glass'] .section-tab.active {
+  background: var(--g-seg-thumb);
+  box-shadow: var(--g-seg-thumb-shadow);
+  color: var(--g-ink);
+}
+
+:root[data-style='glass'] .section-tab:not(.active):hover {
+  transform: none;
+  box-shadow: none;
+  color: var(--g-ink);
+}
+
+:root[data-style='glass'] .section-tab:not(.active):active { transform: scale(0.97); }
+
+:root[data-style='glass'] .section-body { padding: 20px 22px 24px; }
+
+:root[data-style='glass'] .tab-caption {
+  font: 500 14px/1.55 var(--g-font);
+  color: var(--g-ink-2);
+}
+
+:root[data-style='glass'] .tab-caption strong { color: var(--g-ink); font-weight: 650; }
+:root[data-style='glass'] .tab-subhead { font: 650 15px/1.3 var(--g-font); }
+:root[data-style='glass'] .tab-controls { font: 500 13.5px/1.3 var(--g-font); }
+:root[data-style='glass'] .tab-note { font: 500 13px/1.4 var(--g-font); }
+
+:root[data-style='glass'] .grid-scroll table.ledger.grid thead th { background: var(--paper); }
+
+:root[data-style='glass'] .side-scroll {
+  background:
+    linear-gradient(transparent, var(--paper) 50%) 0 100% / 100% 32px no-repeat local,
+    linear-gradient(to top, color-mix(in srgb, var(--g-shadow-tint) 70%, transparent), transparent) 0 100% / 100% 14px no-repeat scroll;
+}
+
+:root[data-style='glass'] table.ledger.grid tbody tr:hover { background: var(--g-hover-wash); }
+:root[data-style='glass'] table.ledger.grid tbody tr.editing { background: var(--g-gold-wash); }
+
+/* Debts: each person a small card with their side marked by a short bar. */
+:root[data-style='glass'] .person-card {
+  position: relative;
+  padding: 12px 14px 12px 20px;
+  border: 0;
+  border-radius: 16px;
+  background: var(--g-field);
+  box-shadow: inset 0 0 0 1px var(--g-field-ring);
+  transition: transform var(--g-spring-lift-ms) var(--g-spring-lift), box-shadow 200ms ease-out;
+}
+
+:root[data-style='glass'] .person-card::before {
+  content: '';
+  position: absolute;
+  left: 8px;
+  top: 13px;
+  bottom: 13px;
+  width: 3px;
+  border-radius: 2px;
+  background: var(--g-ink-3);
+}
+
+:root[data-style='glass'] .person-card.in::before { background: var(--g-in); }
+:root[data-style='glass'] .person-card.out::before { background: var(--g-out); }
+
+@media (hover: hover) and (pointer: fine) {
+  :root[data-style='glass'] .person-card:hover {
+    transform: translateY(-2px);
+    box-shadow: inset 0 0 0 1px var(--g-field-ring-hot), var(--g-shadow-lift);
+  }
+}
+
+:root[data-style='glass'] .person-card:active {
+  transform: scale(0.98);
+  background: var(--g-field-deep);
+  box-shadow: inset 0 0 0 1px var(--g-field-ring);
+  transition-duration: 80ms;
+}
+
+:root[data-style='glass'] .person-name { font-weight: 650; }
+
+:root[data-style='glass'] .person-both,
+:root[data-style='glass'] .pal-here {
+  padding: 1px 7px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--g-gold-wash);
+  color: var(--g-ink);
+  font: 600 11px/1.5 var(--g-font);
+}
+
+:root[data-style='glass'] .person-net { font-size: 16px; font-weight: 650; }
+:root[data-style='glass'] .person-sub { font-size: 12.5px; }
+
+:root[data-style='glass'] .aging {
+  padding: 12px 14px;
+  border: 0;
+  border-radius: 16px;
+  background: var(--g-out-wash);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--g-out) 28%, transparent);
+}
+
+:root[data-style='glass'] .aging-head { font: 650 13.5px/1.3 var(--g-font); }
+:root[data-style='glass'] .aging-row .amt { font-weight: 650; }
+
+/* ------------------------------------------------------------ the month's log */
+:root[data-style='glass'] .table-wrap.log {
+  margin-top: 0;
+  padding: 0 18px;
+  border-top: 0;
+  border-bottom: 0;
+  scrollbar-color: var(--g-scroll) transparent;
+}
+
+:root[data-style='glass'] table.ledger thead th {
+  padding: 15px 6px 10px;
+  border-bottom: 1px solid var(--g-rule);
+  background: var(--paper);
+  font: 600 12.5px/1.2 var(--g-font);
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--g-ink-2);
+}
+
+:root[data-style='glass'] table.ledger tbody td {
+  padding: 10px 6px;
+  border-bottom: 1px solid var(--g-rule);
+  font-size: 14px;
+}
+
+:root[data-style='glass'] table.ledger tbody tr:last-child td { border-bottom: 0; }
+:root[data-style='glass'] td.date { font-size: 13px; color: var(--g-ink-2); }
+:root[data-style='glass'] td.desc { font-style: normal; font-weight: 500; color: var(--g-ink); }
+:root[data-style='glass'] td.cat { font-size: 13px; color: var(--g-ink-2); }
+:root[data-style='glass'] td.amt { font-weight: 600; }
+
+:root[data-style='glass'] table.ledger tbody tr:hover { background: var(--g-hover-wash); }
+:root[data-style='glass'] table.ledger tbody tr.removing { background: var(--g-out-wash); }
+
+:root[data-style='glass'] table.ledger:not(.grid) tbody tr:not(.empty):hover td:first-child,
+:root[data-style='glass'] table.ledger:not(.grid) tbody tr:not(.empty):active td,
+:root[data-style='glass'] table.ledger:not(.grid) tbody tr:not(.empty):active td:first-child { box-shadow: none; }
+
+:root[data-style='glass'] table.ledger:not(.grid) tbody tr:not(.empty):active { background: var(--g-field-deep); }
+
+:root[data-style='glass'] table.ledger tfoot td {
+  padding: 12px 6px 14px;
+  border-top: 1px solid var(--g-rule);
+  border-bottom: 0;
+  background: var(--paper);
+  font: 600 12.5px/1.2 var(--g-font);
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--g-ink-2);
+}
+
+:root[data-style='glass'] table.ledger tfoot td.amt { font-size: 14px; font-weight: 650; }
+
+:root[data-style='glass'] .search-note,
+:root[data-style='glass'] .ledger-empty strong { font-style: normal; }
+
+:root[data-style='glass'] .search-note { font: 500 13.5px/1.4 var(--g-font); margin: 4px 4px 10px; }
+:root[data-style='glass'] .ledger-empty strong { font-weight: 650; }
+
+:root[data-style='glass'] .confirm-row {
+  margin-bottom: 10px;
+  padding: 9px 10px 9px 16px;
+  border: 0;
+  border-radius: 16px;
+  background: linear-gradient(var(--g-out-wash), var(--g-out-wash)), var(--g-pane-solid);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--g-out) 30%, transparent);
+  font: 500 13.5px/1.4 var(--g-font);
+}
+
+/* ------------------------------------------------------------ obligations
+   Three figures in one pane, divided by hairlines; which way the money
+   moves is the arrow by the label, as in the summary. */
+:root[data-style='glass'] .panel.obligations.obligations {
+  gap: 0;
+  padding: 18px 4px;
+}
+
+:root[data-style='glass'] .obligations > div { padding: 2px 20px; min-width: 0; }
+:root[data-style='glass'] .obligations > div + div { box-shadow: inset 1px 0 0 var(--g-rule); }
+
+:root[data-style='glass'] .obligations .k {
+  display: block;
+  margin-bottom: 8px;
+  font: 500 13px/1.3 var(--g-font);
+  letter-spacing: 0;
+  text-transform: lowercase;
+  color: var(--g-ink-2);
+}
+
+:root[data-style='glass'] .obligations .k::first-letter { text-transform: uppercase; }
+
+:root[data-style='glass'] .obligations > div:has(> .v.credit) > .k::after,
+:root[data-style='glass'] .obligations > div:has(> .v.debit) > .k::after {
+  content: '';
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  margin-left: 6px;
+  vertical-align: -3px;
+  -webkit-mask: var(--g-arrow) center / 16px 16px no-repeat;
+  mask: var(--g-arrow) center / 16px 16px no-repeat;
+}
+
+:root[data-style='glass'] .obligations > div:has(> .v.credit) > .k::after { --g-arrow: var(--g-arrow-in); background: var(--g-in); }
+:root[data-style='glass'] .obligations > div:has(> .v.debit) > .k::after { --g-arrow: var(--g-arrow-out); background: var(--g-out); }
+
+:root[data-style='glass'] .obligations .v,
+:root[data-style='glass'] .obligations .v.credit,
+:root[data-style='glass'] .obligations .v.debit {
+  font: 600 20px/1.2 var(--g-font);
+  letter-spacing: -0.015em;
+  color: var(--g-ink);
+  white-space: nowrap;
+}
+
+:root[data-style='glass'] .obligations .note {
+  margin-top: 4px;
+  font: 500 12.5px/1.3 var(--g-font);
+  color: var(--g-ink-2);
+}
+
+/* ------------------------------------------------------------ capacity */
+:root[data-style='glass'] .capacity-track {
+  height: 10px;
+  margin-bottom: 4px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--g-track);
+}
+
+:root[data-style='glass'] .capacity-fill {
+  border-radius: 999px;
+  background: var(--g-in);
+}
+
+:root[data-style='glass'] .capacity-fill.warm { background: var(--g-gold-mark); }
+:root[data-style='glass'] .capacity-fill.over { background: var(--g-out); }
+
+:root[data-style='glass'] .capacity-mark {
+  top: -3px;
+  bottom: -3px;
+  width: 2px;
+  margin-left: -1px;
+  border-radius: 1px;
+  background: var(--g-ink-3);
+  opacity: 0.55;
+}
+
+:root[data-style='glass'] .capacity .panel-note { margin-top: 10px; }
+:root[data-style='glass'] .capacity .panel-note + .panel-note { margin-top: 2px; }
+
+/* ------------------------------------------------------------ where it came from */
+:root[data-style='glass'] .panel:not(.g-load) .platform-share { gap: 18px; align-items: center; }
+
+:root[data-style='glass'] .panel:not(.g-load) .platform-list li {
+  margin: 0 -10px 2px;
+  padding: 6px 10px 7px;
+  border-radius: 12px;
+}
+
+:root[data-style='glass'] .panel:not(.g-load) .platform-list li.hot {
+  background: var(--g-row-hot);
+  box-shadow: none;
+}
+
+:root[data-style='glass'] .panel:not(.g-load) .platform-row {
+  font: 500 13.5px/1.3 var(--g-font);
+  color: var(--g-ink);
+}
+
+:root[data-style='glass'] .panel:not(.g-load) .platform-row > span:last-child { font-weight: 600; }
+
+:root[data-style='glass'] .panel:not(.g-load) .platform-row .swatch {
+  width: 9px;
+  height: 9px;
+  margin-right: 10px;
+}
+
+:root[data-style='glass'] .panel:not(.g-load) .platform-row-note {
+  margin: 3px 0 0 19px;
+  font: 500 12px/1.3 var(--g-font);
+  color: var(--g-ink-2);
+}
+
+/* ------------------------------------------------------------ spending rhythm */
+/* The journal grows its weeks to fill a column stretched by a taller
+   Platform load; rounded, ringed cells grown without limit read as bars.
+   Here a day grows to at most 1.3 times its width (seven days, the week
+   column and the gaps make up the calendar's width), and any height left
+   over sits under the month, with the note at the pane's foot. */
+:root[data-style='glass'] .cal-panel .cal-week { max-height: calc((100cqw - 112px) / 7 * 1.3); }
+
+/* Two columns need a page wide enough for both panes to hold their
+   content; narrower (a laptop with the entry slip open), they stack. */
+@container g-page (max-width: 760px) {
+  :root[data-style='glass'] .panel-cols { grid-template-columns: minmax(0, 1fr); }
+}
+
+:root[data-style='glass'] .cal-dow {
+  margin-bottom: 6px;
+  font: 600 11.5px/1.2 var(--g-font);
+  color: var(--g-ink-2);
+}
+
+:root[data-style='glass'] .cal-dow,
+:root[data-style='glass'] .cal-week { gap: 4px; }
+:root[data-style='glass'] .cal-week { margin-bottom: 4px; }
+
+:root[data-style='glass'] .cal-day {
+  padding: 5px 6px;
+  border-radius: 9px;
+  font: 600 11.5px/1 var(--g-font);
+}
+
+:root[data-style='glass'] .cal-day:not(.future) {
+  border: 0;
+  box-shadow: inset 0 0 0 1px var(--g-rule);
+}
+
+:root[data-style='glass'] .cal-day.future {
+  border: 1px dashed var(--g-rule-solid);
+  color: var(--g-ink-3);
+  opacity: 1;
+}
+
+:root[data-style='glass'] .cal-day.today { box-shadow: inset 0 0 0 2px var(--g-ink); }
+
+:root[data-style='glass'] .cal-day.live {
+  transition: transform var(--g-spring-lift-ms) var(--g-spring-lift), box-shadow 200ms ease-out;
+}
+
+:root[data-style='glass'] .cal-day.live:hover {
+  transform: translateY(-2px);
+  box-shadow: inset 0 0 0 1px var(--g-field-ring-hot), 0 8px 16px -8px var(--g-shadow-tint);
+}
+
+:root[data-style='glass'] .cal-day.live.today:hover {
+  box-shadow: inset 0 0 0 2px var(--g-ink), 0 8px 16px -8px var(--g-shadow-tint);
+}
+
+:root[data-style='glass'] .cal-day.live:active {
+  transform: scale(0.96);
+  box-shadow: inset 0 0 0 1px var(--g-field-ring-hot);
+  transition-duration: 80ms;
+}
+
+:root[data-style='glass'] .cal-day.live:disabled:hover {
+  transform: none;
+  box-shadow: inset 0 0 0 1px var(--g-rule);
+}
+
+:root[data-style='glass'] .cal-week-total {
+  font: 500 12px/1.2 var(--g-font);
+  color: var(--g-ink-2);
+}
+
+:root[data-style='glass'] .day-tile {
+  border: 0;
+  border-radius: 12px;
+  font-weight: 650;
+}
+
+/* The day's card, turned over: a solid pane, since the month is behind it. */
+:root[data-style='glass'] .day-back {
+  padding: 14px 16px 12px;
+  border: 0;
+  border-radius: 18px;
+  background: var(--g-pane-solid);
+  box-shadow:
+    inset 0 0 0 1px var(--g-edge),
+    inset 0 1px 0 0 var(--g-edge-top),
+    0 0 0 1px var(--g-rim),
+    var(--g-shadow-lift);
+}
+
+:root[data-style='glass'] .day-head { border-bottom: 1px solid var(--g-rule); }
+:root[data-style='glass'] .day-when b { font: 650 16px/1.2 var(--g-font); }
+:root[data-style='glass'] .day-when span { font-size: 12px; }
+:root[data-style='glass'] .day-total { font-weight: 650; }
+
+:root[data-style='glass'] .day-row {
+  border-bottom: 1px solid var(--g-rule);
+  font: 500 13px/1.3 var(--g-font);
+}
+
+:root[data-style='glass'] .day-bar { border-radius: 999px; background: var(--g-track); }
+:root[data-style='glass'] .day-bar i { border-radius: inherit; }
+:root[data-style='glass'] .day-pct { font-size: 12px; }
+:root[data-style='glass'] .day-amt { font-weight: 650; }
+:root[data-style='glass'] .day-none { font: 500 14px/1.4 var(--g-font); }
+
+:root[data-style='glass'] .day-close {
+  padding: 5px 0;
+  font: 600 12.5px/1.2 var(--g-font);
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--g-ink-2);
+}
+
+/* ------------------------------------------------------------ recurring */
+:root[data-style='glass'] .recurring-note { margin: -8px 0 14px; }
+
+:root[data-style='glass'] .recurring-list { grid-template-columns: 5.6rem minmax(0, 1fr) auto auto; }
+
+:root[data-style='glass'] .recurring-list li {
+  padding: 10px 0;
+  border-bottom: 1px solid var(--g-rule);
+  font: 500 14px/1.35 var(--g-font);
+}
+
+:root[data-style='glass'] .recurring-list li:last-child { border-bottom: 0; }
+
+:root[data-style='glass'] .recurring-list li.is-editing {
+  margin: 0 -10px;
+  padding: 10px;
+  border-radius: 12px;
+  background: var(--g-gold-wash);
+}
+
+:root[data-style='glass'] .recurring-day {
+  font: 500 12px/1.2 var(--g-font);
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--g-ink-2);
+}
+
+/* The journal's rubber stamp becomes a status chip. */
+:root[data-style='glass'] .recurring-stamp {
+  padding: 3px 8px;
+  border: 0;
+  border-radius: 999px;
+  box-shadow: none;
+  transform: none;
+  font: 600 11.5px/1.2 var(--g-font);
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+:root[data-style='glass'] .recurring-stamp.logged { background: var(--g-in-wash); color: var(--g-in); }
+:root[data-style='glass'] .recurring-stamp.not_logged { background: var(--g-out-wash); color: var(--g-out); }
+:root[data-style='glass'] .recurring-stamp.upcoming { background: var(--g-hover-wash); color: var(--g-ink-2); }
+
+:root[data-style='glass'] .recurring-label small { font-size: 12.5px; color: var(--g-ink-2); }
+:root[data-style='glass'] .recurring-amount { font-weight: 600; }
+:root[data-style='glass'] .recurring-acts .btn-link { padding: 5px 11px; }
+
+/* ------------------------------------------------------------ last 12 months */
+:root[data-style='glass'] .run-legend { margin: 0 0 16px; }
+:root[data-style='glass'] .run-strip { height: 132px; gap: 8px; }
+
+:root[data-style='glass'] .run-bar {
+  border-radius: 8px 8px 4px 4px;
+  background: var(--g-run);
+}
+
+:root[data-style='glass'] .run-col.current .run-bar { background: var(--g-gold-mark); }
+
+:root[data-style='glass'] .run-col:hover .run-bar {
+  transform: none;
+  box-shadow: none;
+  filter: brightness(1.08);
+}
+
+:root[data-style='glass'] .run-short {
+  margin-top: 7px;
+  font: 600 12px/1.2 var(--g-font);
+  color: var(--g-ink-2);
+}
+
+:root[data-style='glass'] .run-closing {
+  font: 500 11.5px/1.3 var(--g-font);
+  color: var(--g-ink-3);
+}
+
+/* ------------------------------------------------------------ the entry slip */
+:root[data-style='glass'] .entry-dock { top: 20px; }
+
+:root[data-style='glass'] .dock-paper {
+  max-height: calc(100vh - 40px);
+  padding: 18px 18px 16px;
+  scrollbar-color: var(--g-scroll) transparent;
+}
+
+:root[data-style='glass'] .dock-head {
+  margin-bottom: 12px;
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+:root[data-style='glass'] .dock-head h2 {
+  font: 650 17px/1.2 var(--g-font);
+  letter-spacing: -0.01em;
+}
+
+:root[data-style='glass'] .dock-fold { width: 30px; height: 30px; font-size: 1rem; }
+:root[data-style='glass'] .dock-field { gap: 5px; }
+
+:root[data-style='glass'] .dock-field > span,
+:root[data-style='glass'] .dock-how legend {
+  font: 500 12.5px/1.2 var(--g-font);
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--g-ink-2);
+}
+
+:root[data-style='glass'] .dock-field .dp-field { padding: 8px 11px; }
+
+:root[data-style='glass'] .dp-glyph { color: var(--g-ink-2); }
+
+:root[data-style='glass'] .dock-how label {
+  padding: 9px 11px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--g-field);
+  box-shadow: inset 0 0 0 1px var(--g-field-ring);
+  transition: transform 160ms var(--g-ease-out), box-shadow 140ms ease-out;
+}
+
+:root[data-style='glass'] .dock-how label:hover {
+  transform: none;
+  box-shadow: inset 0 0 0 1px var(--g-field-ring-hot);
+}
+
+:root[data-style='glass'] .dock-how label:active { transform: scale(0.98); box-shadow: inset 0 0 0 1px var(--g-field-ring-hot); }
+
+:root[data-style='glass'] .dock-how label.picked {
+  background: linear-gradient(var(--g-in-wash), var(--g-in-wash)), var(--g-field);
+  box-shadow: inset 0 0 0 1.5px var(--g-hero-solid);
+}
+
+:root[data-style='glass'] .dock-how label:has(input:focus-visible) { outline-color: var(--g-focus); }
+:root[data-style='glass'] .how-label { font: 600 14px/1.3 var(--g-font); }
+:root[data-style='glass'] .how-effect { font: 500 12.5px/1.4 var(--g-font); }
+
+:root[data-style='glass'] .dock-caption {
+  font: 500 13px/1.5 var(--g-font);
+  color: var(--g-ink-2);
+}
+
+:root[data-style='glass'] .dock-posting {
+  padding: 8px 11px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--g-hover-wash);
+  font: 500 13px/1.3 var(--g-font);
+}
+
+:root[data-style='glass'] .dock-posting-k {
+  font: 600 12px/1.3 var(--g-font);
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+:root[data-style='glass'] .dock-posting.debit { background: var(--g-out-wash); color: var(--g-out); }
+:root[data-style='glass'] .dock-posting.credit { background: var(--g-in-wash); color: var(--g-in); }
+
+:root[data-style='glass'] .dock-submit { padding: 12px 14px; font-size: 14px; }
+
+:root[data-style='glass'] .dock-entered { font: 500 13px/1.4 var(--g-font); }
+
+/* "Entered" is a chip that settles in, not a stamp struck down. */
+:root[data-style='glass'] .dock-stamp {
+  padding: 3px 10px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--g-in-wash);
+  color: var(--g-in);
+  font: 650 12px/1.3 var(--g-font);
+  letter-spacing: 0;
+  text-transform: none;
+  transform: none;
+  animation: g-chip-in var(--g-spring-enter-ms) var(--g-spring-enter) both;
+}
+
+@keyframes g-chip-in {
+  from { opacity: 0; transform: scale(0.9); }
+}
+
+:root[data-style='glass'] .dock-foot {
+  border-top: 1px solid var(--g-rule);
+  font: 500 12.5px/1.45 var(--g-font);
+}
+
+/* Folded: the bookmark tab becomes an emerald pill at the edge of the desk. */
+:root[data-style='glass'] .dock-unfold {
+  gap: 12px;
+  padding: 14px 0;
+  border-radius: 19px;
+  background: var(--g-hero-solid);
+  color: var(--g-hero-ink);
+  box-shadow: inset 0 0 0 1px var(--g-hero-ring), var(--g-hero-shadow);
+  transition: transform 160ms var(--g-ease-out), filter 160ms ease-out;
+}
+
+:root[data-style='glass'] .dock-unfold:hover { transform: none; filter: brightness(1.08); box-shadow: inset 0 0 0 1px var(--g-hero-ring), var(--g-hero-shadow); }
+:root[data-style='glass'] .dock-unfold:active { transform: scale(0.97); filter: none; }
+
+:root[data-style='glass'] .dock-unfold-label {
+  font: 600 12.5px/1 var(--g-font);
+  letter-spacing: 0.01em;
+  text-transform: none;
+}
+
+/* ------------------------------------------------------------ overlays
+   Settings, the command palette, the Finance Bot and the date picker sit
+   over content, so these are the panes that blur what is behind them. Only
+   one is open at a time. */
+:root[data-style='glass'] .modal,
+:root[data-style='glass'] .palette,
+:root[data-style='glass'] .bot-rail,
+:root[data-style='glass'] .dp-pop {
+  border: 0;
+  background: var(--g-chrome);
+  -webkit-backdrop-filter: blur(28px) saturate(160%);
+  backdrop-filter: blur(28px) saturate(160%);
+  box-shadow:
+    inset 0 0 0 1px var(--g-edge),
+    inset 0 1px 0 0 var(--g-edge-top),
+    0 0 0 1px var(--g-rim),
+    var(--g-chrome-shadow);
+  color: var(--g-ink);
+  font-family: var(--g-font);
+}
+
+:root[data-style='glass'] .modal-scrim { background: var(--g-scrim); }
+
+:root[data-style='glass'] .modal {
+  border-radius: 28px;
+  overflow: hidden;
+}
+
+:root[data-style='glass'] .modal-head {
+  padding: 20px 20px 16px 26px;
+  border-bottom: 1px solid var(--g-rule);
+}
+
+:root[data-style='glass'] .modal-head h2,
+:root[data-style='glass'] .bot-head h2 {
+  font: 650 20px/1.2 var(--g-font);
+  letter-spacing: -0.015em;
+}
+
+:root[data-style='glass'] .modal-body { padding: 6px 26px 28px; }
+
+:root[data-style='glass'] .settings-summary { font: 500 14px/1.5 var(--g-font); }
+
+:root[data-style='glass'] .settings-block { border-top: 1px solid var(--g-rule); }
+:root[data-style='glass'] .settings-block h3 { font: 650 15px/1.3 var(--g-font); }
+
+:root[data-style='glass'] .settings-caption {
+  font: 500 13px/1.5 var(--g-font);
+  color: var(--g-ink-2);
+}
+
+:root[data-style='glass'] .settings-row-label,
+:root[data-style='glass'] .settings-block label.check { font: 500 14px/1.35 var(--g-font); }
+
+:root[data-style='glass'] .settings-block select.wide,
+:root[data-style='glass'] .btn-link.wide,
+:root[data-style='glass'] .btn-danger.wide { padding: 9px 14px; }
+
+/* Command palette: used many times a day, so nothing in it animates. */
+:root[data-style='glass'] .palette {
+  border-radius: 24px;
+  overflow: hidden;
+}
+
+:root[data-style='glass'] .pal-input {
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--g-rule);
+  font: 500 17px/1.3 var(--g-font);
+}
+
+:root[data-style='glass'] .pal-list { padding: 6px 8px 8px; }
+
+:root[data-style='glass'] .pal-section {
+  padding: 12px 12px 4px;
+  font: 600 12px/1.2 var(--g-font);
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--g-ink-2);
+}
+
+:root[data-style='glass'] .pal-item {
+  padding: 9px 12px;
+  border-radius: 12px;
+  font: 500 14px/1.35 var(--g-font);
+  transition: none;
+}
+
+:root[data-style='glass'] .pal-item.active { background: var(--g-active-bg); box-shadow: none; }
+:root[data-style='glass'] .pal-item.active .pal-label { color: var(--g-active-ink); }
+:root[data-style='glass'] .pal-item:active { box-shadow: none; }
+:root[data-style='glass'] .pal-hint { font: 500 12.5px/1.35 var(--g-font); }
+:root[data-style='glass'] .pal-empty { font: 500 14px/1.4 var(--g-font); }
+
+:root[data-style='glass'] .pal-foot {
+  padding: 10px 20px;
+  border-top: 1px solid var(--g-rule);
+  font: 500 12px/1.3 var(--g-font);
+}
+
+/* Finance Bot: a floating pane inset from the edge, arriving on the enter
+   spring and leaving the way it came. */
+:root[data-style='glass'] .bot-rail {
+  top: 16px;
+  right: 16px;
+  bottom: 16px;
+  width: 404px;
+  max-width: calc(100vw - 32px);
+  border-radius: 28px;
+  overflow: hidden;
+  animation: g-bot-in var(--g-spring-enter-ms) var(--g-spring-enter);
+}
+
+:root[data-style='glass'] .bot-rail.closing { animation: g-bot-out 260ms cubic-bezier(0.4, 0, 1, 1) forwards; }
+
+@keyframes g-bot-in {
+  from { transform: translateX(calc(100% + 32px)); opacity: 0.6; }
+}
+
+@keyframes g-bot-out {
+  to { transform: translateX(calc(100% + 32px)); opacity: 0.4; }
+}
+
+:root[data-style='glass'] .bot-head {
+  padding: 16px 16px 14px 22px;
+  border-bottom: 1px solid var(--g-rule);
+}
+
+:root[data-style='glass'] .bot-switch { padding: 12px 22px 6px; }
+:root[data-style='glass'] .bot-switch select { flex: 1; }
+
+:root[data-style='glass'] .bot-menu {
+  margin: 4px 22px 6px;
+  padding: 12px;
+  border: 0;
+  border-radius: 16px;
+  background: var(--g-field);
+  box-shadow: inset 0 0 0 1px var(--g-field-ring);
+}
+
+:root[data-style='glass'] .bot-note {
+  margin: 4px 22px;
+  font: 500 12.5px/1.45 var(--g-font);
+}
+
+:root[data-style='glass'] .bot-nokey {
+  margin: 8px 22px;
+  padding: 12px 14px;
+  border: 0;
+  border-radius: 16px;
+  background: var(--g-gold-wash);
+  font: 500 13px/1.45 var(--g-font);
+}
+
+:root[data-style='glass'] .bot-log { padding: 12px 22px; gap: 12px; }
+
+:root[data-style='glass'] .bot-empty-title { font: 650 17px/1.3 var(--g-font); }
+
+:root[data-style='glass'] .legend {
+  padding: 12px 14px;
+  border: 0;
+  border-radius: 16px;
+  background: var(--g-field);
+  box-shadow: inset 0 0 0 1px var(--g-field-ring);
+}
+
+:root[data-style='glass'] .legend-head {
+  font: 600 12.5px/1.3 var(--g-font);
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+:root[data-style='glass'] .legend-row {
+  border-top: 1px solid var(--g-rule);
+  font: 500 13px/1.4 var(--g-font);
+}
+
+:root[data-style='glass'] .legend-row b { font-weight: 650; }
+
+:root[data-style='glass'] .msg { font: 500 14px/1.55 var(--g-font); }
+
+:root[data-style='glass'] .msg.user {
+  padding: 8px 12px;
+  border: 0;
+  border-radius: 18px 18px 6px 18px;
+  background: var(--g-active-bg);
+  color: var(--g-ink);
+}
+
+:root[data-style='glass'] .msg.assistant {
+  padding-left: 0;
+  border-left: 0;
+  font-size: 14.5px;
+}
+
+:root[data-style='glass'] .md th { border-bottom: 1px solid var(--g-rule-solid); }
+:root[data-style='glass'] .md td { border-bottom: 1px solid var(--g-rule); }
+:root[data-style='glass'] .thinking { font-style: normal; }
+:root[data-style='glass'] .thinking .dot { background: var(--g-gold-mark); }
+
+:root[data-style='glass'] .bot-actions { padding: 8px 22px 0; }
+
+:root[data-style='glass'] .starter {
+  padding: 10px 14px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--g-field);
+  box-shadow: inset 0 0 0 1px var(--g-field-ring);
+  color: var(--g-ink);
+  font: 500 14px/1.4 var(--g-font);
+  transition: transform 160ms var(--g-ease-out), box-shadow 140ms ease-out;
+}
+
+:root[data-style='glass'] .starter:hover:not(:disabled) {
+  transform: none;
+  background-color: var(--g-field);
+  color: var(--g-ink);
+  box-shadow: inset 0 0 0 1px var(--g-field-ring-hot), 0 2px 8px -3px var(--g-shadow-tint);
+}
+
+:root[data-style='glass'] .starter:active:not(:disabled) {
+  transform: scale(0.98);
+  background-color: var(--g-field-deep);
+  box-shadow: inset 0 0 0 1px var(--g-field-ring);
+}
+
+:root[data-style='glass'] .bot-composer {
+  padding: 12px 22px 18px;
+  border-top: 1px solid var(--g-rule);
+}
+
+:root[data-style='glass'] .composer-row { gap: 8px; }
+:root[data-style='glass'] .composer-row textarea { border-radius: 16px; padding: 9px 12px; }
+
+:root[data-style='glass'] .chip {
+  padding: 3px 9px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--g-field);
+  box-shadow: inset 0 0 0 1px var(--g-field-ring);
+  font: 500 12px/1.3 var(--g-font);
+}
+
+/* Date picker */
+:root[data-style='glass'] .dp-pop {
+  padding: 12px;
+  border-radius: 20px;
+  animation: g-pop-in 220ms var(--g-ease-out);
+}
+
+@keyframes g-pop-in {
+  from { opacity: 0; transform: translateY(-4px) scale(0.97); }
+}
+
+:root[data-style='glass'] .dp-pop.above { animation-name: g-pop-up; }
+
+@keyframes g-pop-up {
+  from { opacity: 0; transform: translateY(4px) scale(0.97); }
+}
+
+:root[data-style='glass'] .dp-head { padding-bottom: 10px; border-bottom: 1px solid var(--g-rule); }
+:root[data-style='glass'] .dp-title { font: 650 15px/1.2 var(--g-font); }
+:root[data-style='glass'] .dp-title span { font: 500 13px/1.2 var(--g-font); }
+:root[data-style='glass'] .dp-nav { width: 30px; height: 30px; color: var(--g-ink); }
+
+:root[data-style='glass'] .dp-dow span {
+  font: 600 11px/1.2 var(--g-font);
+  letter-spacing: 0;
+}
+
+:root[data-style='glass'] .dp-day {
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  font: 500 13px/1 var(--g-font);
+  transition: transform 160ms var(--g-ease-out), background-color 120ms ease-out;
+}
+
+:root[data-style='glass'] .dp-day.ahead { color: var(--g-ink-3); }
+:root[data-style='glass'] .dp-day.today { box-shadow: inset 0 0 0 1.5px var(--g-ink); font-weight: 650; }
+
+:root[data-style='glass'] .dp-day:hover {
+  transform: none;
+  background: var(--g-hover-wash);
+  color: var(--g-ink);
+  box-shadow: none;
+}
+
+:root[data-style='glass'] .dp-day.today:hover { box-shadow: inset 0 0 0 1.5px var(--g-ink); }
+
+:root[data-style='glass'] .dp-day:active {
+  transform: scale(0.94);
+  background: var(--g-field-deep);
+  box-shadow: none;
+}
+
+:root[data-style='glass'] .dp-day.picked,
+:root[data-style='glass'] .dp-day.picked:hover {
+  background: var(--g-hero-solid);
+  color: var(--g-hero-ink);
+  box-shadow: none;
+  font-weight: 650;
+}
+
+:root[data-style='glass'] .dp-day.picked:hover { filter: brightness(1.1); }
+:root[data-style='glass'] .dp-foot { border-top: 1px solid var(--g-rule); }
+:root[data-style='glass'] .dp-quick { padding: 5px 11px; font-size: 12.5px; }
+
+/* Lock screen */
+:root[data-style='glass'] .auth-gate { background: transparent; }
+:root[data-style='glass'] .auth-card { border-radius: 28px; padding: 36px 28px; }
+:root[data-style='glass'] .auth-word { font: 650 24px/1.2 var(--g-font); }
+:root[data-style='glass'] .auth-dot { color: var(--g-gold-mark); }
+:root[data-style='glass'] .auth-card input { width: 100%; margin-bottom: 12px; padding: 11px 14px; }
+:root[data-style='glass'] .auth-card button { width: 100%; padding: 12px; }
+
+/* Links read as ink with a gold underline, never gold text on glass. */
+:root[data-style='glass'] .md a,
+:root[data-style='glass'] .banner a,
+:root[data-style='glass'] .modal a {
+  color: var(--g-ink);
+  font-weight: 600;
+  text-decoration-color: var(--g-gold-mark);
+}
+
+/* ------------------------------------------------------------ narrow screens
+   Where the entry slip stacks over the page, the rail leaves the left edge
+   and becomes a labelled bar floating at the foot of the screen. */
+@media (max-width: 900px) {
+  :root[data-style='glass'] { scroll-padding-bottom: 96px; }
+
+  /* The journal's column desk clamps the book to its 1280px basis; Glass has
+     a sticky bar and a floating one, so the book must span its content. */
+  :root[data-style='glass'] .book { flex: none; }
+
+  :root[data-style='glass'] .desk {
+    gap: 16px;
+    padding: 16px 16px 120px;
+  }
+
+  :root[data-style='glass'] .g-rail {
+    top: auto;
+    left: 0;
+    right: 0;
+    bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+    width: max-content;
+    max-width: calc(100vw - 16px);
+    margin: 0 auto;
+    flex-direction: row;
+    /* Close to the screen's edge the drop shadow has nowhere to fall but
+       over the rows passing underneath; keep it tight. */
+    box-shadow:
+      inset 0 0 0 1px var(--g-edge),
+      inset 0 1px 0 0 var(--g-edge-top),
+      0 0 0 1px var(--g-rim),
+      0 4px 14px -8px var(--g-shadow-tint);
+    gap: 4px;
+    padding: 6px;
+  }
+
+  :root[data-style='glass'] .g-rail .g-mark,
+  :root[data-style='glass'] .g-rail .g-rail-sep { display: none; }
+
+  :root[data-style='glass'] .g-rail-btn {
+    width: auto;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 16px 0 13px;
+    border-radius: 25px;
+  }
+
+  :root[data-style='glass'] .g-tip,
+  :root[data-style='glass'] .g-rail-btn:focus-visible .g-tip {
+    position: relative;
+    left: auto;
+    top: auto;
+    padding: 0;
+    background: none;
+    color: inherit;
+    box-shadow: none;
+    font: 600 13.5px/1 var(--g-font);
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  :root[data-style='glass'] .g-mark-bar { display: grid; }
+}
+
+@media (max-width: 380px) {
+  :root[data-style='glass'] .g-rail-btn { gap: 6px; padding: 0 11px 0 9px; }
+  :root[data-style='glass'] .g-tip,
+  :root[data-style='glass'] .g-rail-btn:focus-visible .g-tip { font-size: 12.5px; }
+}
+
+@media (max-width: 640px) {
+  :root[data-style='glass'] { scroll-padding-top: 0; }
+  :root[data-style='glass'] .page { padding: 0 0 24px; }
+
+  :root[data-style='glass'] .entry-dock,
+  :root[data-style='glass'] .entry-dock.is-folded { margin: 0; }
+
+  /* A two-row bar would hold a fifth of a phone screen hostage. */
+  :root[data-style='glass'] .g-topbar-wrap {
+    position: relative;
+    margin-top: 0;
+    padding-top: 0;
+  }
+
+  :root[data-style='glass'] .g-topbar-wrap::before { content: none; }
+}
+
+@media (max-height: 560px) {
+  :root[data-style='glass'] { scroll-padding-top: 0; }
+  :root[data-style='glass'] .g-topbar-wrap { position: relative; }
+  :root[data-style='glass'] .g-topbar-wrap::before { content: none; }
+}
+
+/* Touch: the small controls get a 40px target. */
+@media (pointer: coarse) {
+  :root[data-style='glass'] .g-seg-opt label { padding-top: 11px; padding-bottom: 12px; }
+}
+
+/* ------------------------------------------------------------ reduced motion
+   Feedback stays, travel goes: no lift, no sliding thumb, no press scale;
+   a switched view still cross-fades. */
+@media (prefers-reduced-motion: reduce) {
+  :root[data-style='glass'] .summary > .fig,
+  :root[data-style='glass'] .g-seg-thumb,
+  :root[data-style='glass'] .g-rail-btn,
+  :root[data-style='glass'] .g-icon-btn,
+  :root[data-style='glass'] .g-kbd,
+  :root[data-style='glass'] .g-pill-btn,
+  :root[data-style='glass'] .g-tip { transition: none; }
+
+  :root[data-style='glass'] .summary > .fig:hover,
+  :root[data-style='glass'] .g-rail-btn:active,
+  :root[data-style='glass'] .g-icon-btn:active,
+  :root[data-style='glass'] .g-kbd:active,
+  :root[data-style='glass'] .g-pill-btn:active { transform: none; }
+
+  :root[data-style='glass'] .g-load .g-enter { transition: opacity 200ms ease-out; }
+}
+
+/* The column rail's tooltips appear in place, without the 4px slide. */
+@media (prefers-reduced-motion: reduce) and (min-width: 901px) {
+  :root[data-style='glass'] .g-rail-btn:hover .g-tip,
+  :root[data-style='glass'] .g-rail-btn:focus-visible .g-tip {
+    transform: translate(0, -50%);
+    transition: none;
+  }
+}
+
+/* ------------------------------------------------------------ solid fallbacks
+   Without backdrop-filter, or when someone has asked for less transparency,
+   every pane turns solid: same edges, same layout, nothing to read through. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  :root[data-style='glass'] .summary > .fig,
+  :root[data-style='glass'] .g-load { background: var(--g-fill-solid); }
+
+  :root[data-style='glass'] .g-rail,
+  :root[data-style='glass'] .g-topbar { background: var(--g-fill-bar-solid); }
+
+  :root[data-style='glass'] .summary > .fig-carried { background: var(--g-hero-solid); }
+
+  :root[data-style='glass'] .g-topbar-wrap::before { content: none; }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  :root[data-style='glass'] .g-topbar-wrap::before { content: none; }
+
+  :root[data-style='glass'][data-theme] {
+    --g-well: #ffffff;
+    --g-row-hot: #eef2e9;
+  }
+
+  :root[data-style='glass'][data-theme='dark'] {
+    --g-well: #232f27;
+    --g-row-hot: #222d25;
+  }
+
+  :root[data-style='glass'] .g-rail,
+  :root[data-style='glass'] .g-topbar,
+  :root[data-style='glass'] .summary > .fig,
+  :root[data-style='glass'] .g-load {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  :root[data-style='glass'] .summary > .fig,
+  :root[data-style='glass'] .g-load { background: var(--g-fill-solid); }
+
+  :root[data-style='glass'] .g-rail,
+  :root[data-style='glass'] .g-topbar { background: var(--g-fill-bar-solid); }
+
+  :root[data-style='glass'] .summary > .fig-carried { background: var(--g-hero-solid); }
+}
+
+/* Forced colours: shadows are dropped, so give every pane a real edge. */
+@media (forced-colors: active) {
+  :root[data-style='glass'] .g-rail,
+  :root[data-style='glass'] .g-topbar,
+  :root[data-style='glass'] .summary > .fig,
+  :root[data-style='glass'] .g-load,
+  :root[data-style='glass'] .g-period,
+  :root[data-style='glass'] .g-search,
+  :root[data-style='glass'] .g-seg { border: 1px solid CanvasText; }
+
+  :root[data-style='glass'] .g-seg-thumb { border: 2px solid Highlight; }
+
+  /* Keep the colour key: the dots and share bars are the ring's legend. */
+  :root[data-style='glass'] .g-load .swatch,
+  :root[data-style='glass'] .g-load .g-bar > i { forced-color-adjust: none; }
+
+  :root[data-style='glass'] .g-rail-btn[aria-current='true'],
+  :root[data-style='glass'] .g-icon-btn.is-on { outline: 2px solid Highlight; outline-offset: -2px; }
+}
+
+/* ------------------------------------------------------------ the rest, narrow */
+/* A phone-width page: the three obligations become rows, label left and
+   figure right, divided by hairlines. */
+@container g-page (max-width: 560px) {
+  :root[data-style='glass'] .panel.obligations.obligations {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 6px 0;
+  }
+
+  :root[data-style='glass'] .obligations > div {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: baseline;
+    column-gap: 12px;
+    padding: 12px 18px;
+  }
+
+  :root[data-style='glass'] .obligations > div + div { box-shadow: inset 0 1px 0 var(--g-rule); }
+  :root[data-style='glass'] .obligations .k { margin: 0; }
+  :root[data-style='glass'] .obligations .v,
+  :root[data-style='glass'] .obligations .v.credit,
+  :root[data-style='glass'] .obligations .v.debit { grid-column: 2; grid-row: 1; font-size: 17px; text-align: right; }
+  :root[data-style='glass'] .obligations .note { grid-column: 1; margin-top: 2px; }
+
+  :root[data-style='glass'] .banner { padding: 13px 14px 13px 16px; }
+  :root[data-style='glass'] .panel:not(.g-load) { padding: 18px 16px; }
+  :root[data-style='glass'] .table-wrap.log { padding: 0 10px; }
+  :root[data-style='glass'] .section-body { padding: 16px 14px 18px; }
+  :root[data-style='glass'] .folio-heading { margin-top: 32px; }
+}
+
+@media (max-width: 900px) {
+  /* Stacked over the page, the slip's pane needs room for its shadow. */
+  :root[data-style='glass'] .dock-clip { margin: -12px -16px -28px; padding: 12px 16px 28px; }
+  :root[data-style='glass'] .entry-dock.is-folded .dock-clip { padding-bottom: 0; margin-bottom: 0; }
+  :root[data-style='glass'] .dock-unfold { padding: 13px 0; gap: 10px; }
+  :root[data-style='glass'] .dock-unfold-label { font-size: 13.5px; }
+}
+
+@media (max-width: 640px) {
+  :root[data-style='glass'] .bot-rail {
+    top: 8px;
+    right: 8px;
+    bottom: 8px;
+    left: 8px;
+    width: auto;
+    max-width: none;
+    border-radius: 24px;
+  }
+
+  :root[data-style='glass'] .modal-scrim { padding: 8px; }
+  :root[data-style='glass'] .modal { max-height: calc(100vh - 16px); border-radius: 24px; }
+  :root[data-style='glass'] .modal-body { padding: 4px 18px 22px; }
+  :root[data-style='glass'] .modal-head { padding: 16px 14px 12px 18px; }
+}
+
+/* The rest, without motion: no lift, no press scale, no slide; the bot and
+   the date picker simply appear. */
+@media (prefers-reduced-motion: reduce) {
+  :root[data-style='glass'] .bot-rail,
+  :root[data-style='glass'] .bot-rail.closing,
+  :root[data-style='glass'] .dp-pop,
+  :root[data-style='glass'] .dock-stamp { animation: none; }
+
+  :root[data-style='glass'] .btn-link,
+  :root[data-style='glass'] .banner button,
+  :root[data-style='glass'] .confirm-row button,
+  :root[data-style='glass'] .kbd-btn,
+  :root[data-style='glass'] .icon-btn,
+  :root[data-style='glass'] .btn-primary,
+  :root[data-style='glass'] .btn-danger,
+  :root[data-style='glass'] .dock-submit,
+  :root[data-style='glass'] .dock-unfold,
+  :root[data-style='glass'] .dock-how label,
+  :root[data-style='glass'] .ldi-toggle,
+  :root[data-style='glass'] .ldi-chevron,
+  :root[data-style='glass'] .section-tab,
+  :root[data-style='glass'] .person-card,
+  :root[data-style='glass'] .cal-day.live,
+  :root[data-style='glass'] .starter,
+  :root[data-style='glass'] .dp-day { transition: none; }
+
+  :root[data-style='glass'] .btn-link:active:not(:disabled),
+  :root[data-style='glass'] .banner button:active:not(:disabled),
+  :root[data-style='glass'] .confirm-row button:active:not(:disabled),
+  :root[data-style='glass'] .kbd-btn:active:not(:disabled),
+  :root[data-style='glass'] .icon-btn:active:not(:disabled),
+  :root[data-style='glass'] .btn-primary:active:not(:disabled),
+  :root[data-style='glass'] .banner button.primary:active:not(:disabled),
+  :root[data-style='glass'] .btn-danger:active:not(:disabled),
+  :root[data-style='glass'] .dock-submit:active:not(:disabled),
+  :root[data-style='glass'] .dock-unfold:active,
+  :root[data-style='glass'] .dock-how label:active,
+  :root[data-style='glass'] .ldi-toggle:active,
+  :root[data-style='glass'] .section-tab:not(.active):active,
+  :root[data-style='glass'] .person-card:hover,
+  :root[data-style='glass'] .person-card:active,
+  :root[data-style='glass'] .cal-day.live:hover,
+  :root[data-style='glass'] .cal-day.live:active,
+  :root[data-style='glass'] .starter:active:not(:disabled),
+  :root[data-style='glass'] .dp-day:active { transform: none; }
+}
+
+/* The rest, solid: with no backdrop-filter, or less transparency asked for,
+   every pane and overlay is opaque. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  :root[data-style='glass'] {
+    --g-pane: var(--g-pane-solid);
+    --g-chrome: var(--g-chrome-solid);
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  :root[data-style='glass'] {
+    --g-pane: var(--g-pane-solid);
+    --g-chrome: var(--g-chrome-solid);
+  }
+
+  :root[data-style='glass'] .modal,
+  :root[data-style='glass'] .palette,
+  :root[data-style='glass'] .bot-rail,
+  :root[data-style='glass'] .dp-pop {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+@media (forced-colors: active) {
+  :root[data-style='glass'] .panel,
+  :root[data-style='glass'] .banner,
+  :root[data-style='glass'] .ldi-toggle,
+  :root[data-style='glass'] .section-body,
+  :root[data-style='glass'] .table-wrap.log,
+  :root[data-style='glass'] .dock-paper,
+  :root[data-style='glass'] .modal,
+  :root[data-style='glass'] .palette,
+  :root[data-style='glass'] .bot-rail,
+  :root[data-style='glass'] .dp-pop,
+  :root[data-style='glass'] .person-card,
+  :root[data-style='glass'] .btn-link,
+  :root[data-style='glass'] .banner button,
+  :root[data-style='glass'] .starter,
+  :root[data-style='glass'] .recurring-stamp,
+  :root[data-style='glass'] .dock-how label { border: 1px solid CanvasText; }
+
+  :root[data-style='glass'] .section-tab.active,
+  :root[data-style='glass'] .pal-item.active,
+  :root[data-style='glass'] .dock-how label.picked { outline: 2px solid Highlight; outline-offset: -2px; }
+
+  :root[data-style='glass'] .cal-day,
+  :root[data-style='glass'] .day-bar i,
+  :root[data-style='glass'] .run-bar,
+  :root[data-style='glass'] .capacity-fill { forced-color-adjust: none; }
+}

@@ -3,6 +3,7 @@ import type { IncomeTrend, SourceTotal, Currency } from '../api/types'
 import { formatMoney } from '../lib/money'
 import Donut, { tint } from './Donut'
 import Sparkline from './Sparkline'
+import { useUi } from '../state/ui'
 
 export default function IncomeSource({
   bySource, trend, currency,
@@ -12,6 +13,7 @@ export default function IncomeSource({
   currency: Currency
 }) {
   const [hot, setHot] = useState<number | null>(null)
+  const glass = useUi().style === 'glass'
   const total = bySource.reduce((a, r) => a + r.amount, 0)
   if (bySource.length === 0) {
     return (
@@ -28,6 +30,7 @@ export default function IncomeSource({
         <Donut
           values={bySource.map((r) => r.amount)}
           tinted
+          variant={glass ? 'glass' : undefined}
           label="Income by source"
           names={bySource.map((r) => r.source)}
           hot={hot}

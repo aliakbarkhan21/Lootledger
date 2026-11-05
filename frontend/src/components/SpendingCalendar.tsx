@@ -81,7 +81,7 @@ export default function SpendingCalendar({
     if (value <= 0) return undefined
     // sqrt, not linear, so a month with one big day still shows its small ones.
     const pct = Math.min(45, Math.sqrt(value / peak) * 45)
-    return `color-mix(in srgb, var(--gold) ${pct.toFixed(0)}%, var(--paper))`
+    return `color-mix(in srgb, var(--g-heat, var(--gold)) ${pct.toFixed(0)}%, var(--paper))`
   }
 
   function back(day: number) {

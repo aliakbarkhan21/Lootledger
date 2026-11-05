@@ -1,6 +1,9 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useState, type ReactNode } from 'react'
 
 type Theme = 'light' | 'dark'
+/** The visual style, a separate axis from light/dark: the Ledger Journal is
+ * the default and the reference; Glass is the frosted second style. */
+export type Style = 'journal' | 'glass'
 export type LdiTab = 'ledgers' | 'edit' | 'debts' | 'import'
 
 interface UiState {
@@ -8,6 +11,9 @@ interface UiState {
   setPeriod: (p: string) => void
   theme: Theme
   toggleTheme: () => void
+  style: Style
+  setStyle: (s: Style) => void
+  toggleStyle: () => void
   botOpen: boolean
   setBotOpen: (v: boolean) => void
   settingsOpen: boolean
@@ -44,6 +50,20 @@ function initialTheme(): Theme {
   return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
 }
 
+// Same precedence as the theme: the URL wins (so a link can open either
+// style), then what was last chosen on this browser, then the journal.
+function initialStyle(): Style {
+  const fromQuery = new URL(window.location.href).searchParams.get('style')
+  if (fromQuery === 'journal' || fromQuery === 'glass') return fromQuery
+  try {
+    const stored = window.localStorage.getItem('ll-style')
+    if (stored === 'journal' || stored === 'glass') return stored
+  } catch {
+    /* private mode etc. */
+  }
+  return 'journal'
+}
+
 function initialLedgersOpen(): boolean {
   // Folded by default, the way the section always opened: it is reached for,
   // not read on every visit, and open it pushes the month down the page.
@@ -62,6 +82,7 @@ function initialPeriod(): string {
 export function UiProvider({ children }: { children: ReactNode }) {
   const [period, setPeriod] = useState(initialPeriod)
   const [theme, setTheme] = useState<Theme>(initialTheme)
+  const [style, setStyle] = useState<Style>(initialStyle)
   const [botOpen, setBotOpen] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [paletteOpen, setPaletteOpen] = useState(false)
@@ -90,6 +111,20 @@ export function UiProvider({ children }: { children: ReactNode }) {
     window.history.replaceState({}, '', url)
   }, [theme])
 
+  // A layout effect, not a passive one: the attribute must land before the
+  // first paint, or a Glass page would show one frame of the journal's desk.
+  useLayoutEffect(() => {
+    document.documentElement.setAttribute('data-style', style)
+    try {
+      window.localStorage.setItem('ll-style', style)
+    } catch {
+      /* ignore */
+    }
+    const url = new URL(window.location.href)
+    url.searchParams.set('style', style)
+    window.history.replaceState({}, '', url)
+  }, [style])
+
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
@@ -102,14 +137,15 @@ export function UiProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const toggleTheme = useCallback(() => setTheme((t) => (t === 'light' ? 'dark' : 'light')), [])
+  const toggleStyle = useCallback(() => setStyle((s) => (s === 'journal' ? 'glass' : 'journal')), [])
 
   const value = useMemo<UiState>(
     () => ({
-      period, setPeriod, theme, toggleTheme, botOpen, setBotOpen,
+      period, setPeriod, theme, toggleTheme, style, setStyle, toggleStyle, botOpen, setBotOpen,
       settingsOpen, setSettingsOpen, paletteOpen, setPaletteOpen, search, setSearch,
       botDraft, setBotDraft, ledgersOpen, setLedgersOpen, ldiTab, setLdiTab,
     }),
-    [period, theme, toggleTheme, botOpen, settingsOpen, paletteOpen, search, botDraft, ledgersOpen, ldiTab],
+    [period, theme, toggleTheme, style, toggleStyle, botOpen, settingsOpen, paletteOpen, search, botDraft, ledgersOpen, ldiTab],
   )
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>
