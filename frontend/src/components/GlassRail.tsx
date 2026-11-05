@@ -4,9 +4,10 @@ import { BoardIcon, RepeatIcon, ScaleIcon } from './GlassIcons'
 export type RailTarget = 'board' | 'recurring' | 'obligations'
 
 const ITEMS: { id: RailTarget; label: string; icon: ReactNode }[] = [
+  // In the order the sections run down the page: Obligations, then Recurring.
   { id: 'board', label: 'Board', icon: <BoardIcon /> },
-  { id: 'recurring', label: 'Recurring', icon: <RepeatIcon /> },
   { id: 'obligations', label: 'Obligations', icon: <ScaleIcon /> },
+  { id: 'recurring', label: 'Recurring', icon: <RepeatIcon /> },
 ]
 
 /** Which section the reader is in: the last one whose top has passed the
