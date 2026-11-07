@@ -2370,7 +2370,9 @@ html:root[data-style='glass'] {
 :root[data-style='glass'] .entry-dock { top: 20px; }
 
 :root[data-style='glass'] .dock-paper {
-  max-height: calc(100vh - 40px);
+  --dock-max: calc(100vh - 40px);
+  --dock-thumb-room: 0px;
+  max-height: var(--dock-max);
   padding: 18px 18px 16px;
   scrollbar-color: var(--g-scroll) transparent;
 }
@@ -2399,7 +2401,14 @@ html:root[data-style='glass'] {
 
 :root[data-style='glass'] .dock-field .dp-field { padding: 8px 11px; }
 
+/* At least a 40px target for every field in the slip. */
+:root[data-style='glass'] .dock-field input,
+:root[data-style='glass'] .dock-field select,
+:root[data-style='glass'] .dock-field .dp-field { min-height: 40px; }
+
 :root[data-style='glass'] .dp-glyph { color: var(--g-ink-2); }
+
+:root[data-style='glass'] .dock-thumb::before { background: color-mix(in srgb, var(--g-ink) 30%, transparent); }
 
 :root[data-style='glass'] .dock-how label {
   padding: 9px 11px;
@@ -2470,10 +2479,6 @@ html:root[data-style='glass'] {
   from { opacity: 0; transform: scale(0.9); }
 }
 
-:root[data-style='glass'] .dock-foot {
-  border-top: 1px solid var(--g-rule);
-  font: 500 12.5px/1.45 var(--g-font);
-}
 
 /* Folded: the bookmark tab becomes an emerald pill at the edge of the desk. */
 :root[data-style='glass'] .dock-unfold {

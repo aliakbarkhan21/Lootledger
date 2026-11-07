@@ -2561,7 +2561,9 @@ table.ledger .amt-one { display: none; }
 }
 
 .dock-paper {
-  max-height: calc(100vh - 48px);
+  --dock-max: calc(100vh - 48px);
+  --dock-thumb-room: 4px;
+  max-height: var(--dock-max);
   overflow-y: auto;
   background: var(--paper);
   border: 1px solid color-mix(in srgb, var(--rule-green) 70%, transparent);
@@ -2570,6 +2572,50 @@ table.ledger .amt-one { display: none; }
   padding: 16px 18px 14px;
   scrollbar-width: thin;
   scrollbar-color: var(--rule-green) transparent;
+}
+
+/* Most windows fit the whole slip. In a shorter one it scrolls, and the
+   scrollbar is an overlay: the engine's bar is hidden and a 4px thumb rides
+   down the right-hand padding as the slip scrolls (a scroll-driven
+   animation), shown only while the slip can scroll. It takes no width, so
+   the fields never shift. Engines without scroll-state queries keep the
+   thin native bar. */
+.dock-thumb { display: none; }
+
+@supports (container-type: scroll-state) {
+  .dock-paper {
+    container-type: scroll-state;
+    scrollbar-width: none;
+  }
+
+  .dock-thumb {
+    position: sticky;
+    top: 0;
+    z-index: 3;
+    height: 0;
+    pointer-events: none;
+  }
+
+  .dock-thumb::before {
+    content: '';
+    position: absolute;
+    top: 6px;
+    right: calc(-1 * var(--dock-pad-r, 18px) + 5px);
+    width: 4px;
+    height: 48px;
+    border-radius: 2px;
+    background: color-mix(in srgb, var(--ink) 32%, transparent);
+    animation: dock-thumb linear both;
+    animation-timeline: scroll(nearest block);
+  }
+
+  @container scroll-state(scrollable: block) {
+    .dock-thumb { display: block; }
+  }
+}
+
+@keyframes dock-thumb {
+  to { transform: translateY(calc(var(--dock-max) - var(--dock-thumb-room) - 60px)); }
 }
 
 .dock-head {
@@ -2595,8 +2641,18 @@ table.ledger .amt-one { display: none; }
 .dock-form {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
+
+/* Date and amount are short, so they share a line; on a narrow slip they
+   fall back to one under the other. */
+.dock-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.dock-row > .dock-field { flex: 1 1 108px; min-width: 0; }
 
 .dock-field {
   display: flex;
@@ -2616,6 +2672,7 @@ table.ledger .amt-one { display: none; }
 .dock-field input,
 .dock-field select {
   width: 100%;
+  min-height: 40px;
   padding: 6px 2px 5px;
   border: none;
   border-bottom: 1px solid var(--rule-green);
@@ -2710,6 +2767,7 @@ table.ledger .amt-one { display: none; }
 
 .dock-submit {
   width: 100%;
+  min-height: 40px;
   padding: 10px 12px;
   border: none;
   background: var(--gold);
@@ -2752,13 +2810,6 @@ table.ledger .amt-one { display: none; }
   to { transform: rotate(-5deg) scale(1); opacity: 1; }
 }
 
-.dock-foot {
-  margin: 14px 0 0;
-  padding-top: 10px;
-  border-top: 1px dashed var(--rule-green);
-  font-size: 0.72rem;
-  color: var(--ink-soft);
-}
 
 /* Folded away: a single bookmark tab down the edge of the desk. It sits over
    the hinge, so the leaf seems to fold into it. */
@@ -3168,6 +3219,7 @@ table.ledger.grid tbody tr.found td:first-child { box-shadow: inset 3px 0 0 var(
 
 /* In the dock: written on the line, like the fields around it. */
 .dock-field .dp-field {
+  min-height: 40px;
   padding: 6px 2px 5px;
   border: none;
   border-bottom: 1px solid var(--rule-green);

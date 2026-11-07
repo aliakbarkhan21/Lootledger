@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useAddEntry, useBoard, useCategories } from '../api/hooks'
-import { formatDisplayDate, formatMoney, todayIso } from '../lib/money'
+import { formatDisplayDate, todayIso } from '../lib/money'
 import { useUi } from '../state/ui'
 import DatePicker from './DatePicker'
 import { ChevronIcon } from './GlassIcons'
@@ -198,6 +198,10 @@ export default function EntryDock() {
       <div className="dock-leaf" inert={!open}>
         <div className="dock-clip">
           <div className="dock-paper lg lg-chrome">
+            {/* Only shown when the slip is taller than the window: a thin
+                scroll thumb drawn over the padding, so a scrollbar never takes
+                width from the fields (board.css). */}
+            <div className="dock-thumb" aria-hidden="true" />
             <div className="dock-head">
               <h2>Record a movement</h2>
               <button className="icon-btn dock-fold" onClick={() => fold(false)} aria-expanded="true" title="Fold the entry panel away">
@@ -212,11 +216,6 @@ export default function EntryDock() {
                   {(Object.keys(KIND_LABEL) as Kind[]).map((k) => <option key={k} value={k}>{KIND_LABEL[k]}</option>)}
                 </Select>
               </label>
-
-              <div className="dock-field">
-                <span aria-hidden="true">Date</span>
-                <DatePicker value={date} onChange={(iso) => setDate(iso || todayIso())} label="Date" />
-              </div>
 
               <label className="dock-field">
                 <span>{PARTICULARS[kind].label}</span>
@@ -237,15 +236,23 @@ export default function EntryDock() {
                 </label>
               )}
 
-              <label className="dock-field">
-                <span>Amount{currency ? ` (${currency.code})` : ''}</span>
-                <input
-                  type="number" step="0.01" min="0" inputMode="decimal"
-                  placeholder="0.00"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                />
-              </label>
+              {/* Two short fields share a line, so the longest movement still fits
+                  the dock without scrolling. */}
+              <div className="dock-row">
+                <div className="dock-field">
+                  <span aria-hidden="true">Date</span>
+                  <DatePicker value={date} onChange={(iso) => setDate(iso || todayIso())} label="Date" />
+                </div>
+                <label className="dock-field">
+                  <span>Amount{currency ? ` (${currency.code})` : ''}</span>
+                  <input
+                    type="number" step="0.01" min="0" inputMode="decimal"
+                    placeholder="0.00"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                  />
+                </label>
+              </div>
 
               {isDebt && (
                 <fieldset className="dock-how">
@@ -285,12 +292,6 @@ export default function EntryDock() {
                 </div>
               )}
             </form>
-
-            {board && currency && (
-              <p className="dock-foot">
-                {board.period.label}: {formatMoney(board.figures.on_hand, currency, 0)} carried forward
-              </p>
-            )}
           </div>
         </div>
       </div>
