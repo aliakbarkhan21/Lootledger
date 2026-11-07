@@ -4,6 +4,7 @@ import { api, ApiError } from '../api/client'
 import type { Currency } from '../api/types'
 import { useInvalidateBoard } from '../api/hooks'
 import { formatMoney } from '../lib/money'
+import Select from './Select'
 
 const AUTO = '__auto__'
 
@@ -189,10 +190,10 @@ export default function ImportTab({ currency }: { currency: Currency }) {
       <div className="tab-controls">
         <label>
           Import into{' '}
-          <select value={target} onChange={(e) => { setTarget(e.target.value); setReplace(false) }}>
+          <Select value={target} onChange={(e) => { setTarget(e.target.value); setReplace(false) }}>
             <option value={AUTO}>Auto — send each section to its own ledger</option>
             {Object.entries(schemas.schemas).map(([k, s]) => <option key={k} value={k}>{s.label}</option>)}
-          </select>
+          </Select>
         </label>
       </div>
       <p className="tab-caption">
@@ -214,9 +215,9 @@ export default function ImportTab({ currency }: { currency: Currency }) {
         {sheets.length > 1 && (
           <label>
             Sheet{' '}
-            <select value={sheet ?? ''} onChange={(e) => setSheet(e.target.value)}>
+            <Select value={sheet ?? ''} onChange={(e) => setSheet(e.target.value)}>
               {sheets.map((s) => <option key={s} value={s}>{s}</option>)}
-            </select>
+            </Select>
           </label>
         )}
         {busy && <span className="tab-note">Working…</span>}
@@ -275,12 +276,12 @@ export default function ImportTab({ currency }: { currency: Currency }) {
             {Object.entries(schemas.schemas[target].fields).map(([field, spec]) => (
               <label key={field}>
                 <span>{field[0].toUpperCase() + field.slice(1)}{spec.required ? '' : ' (optional)'}</span>
-                <select
+                <Select
                   value={mapping[field] ?? schemas.none_label}
                   onChange={(e) => setMapping({ ...mapping, [field]: e.target.value })}
                 >
                   {[schemas.none_label, ...parsed.columns].map((c) => <option key={c} value={c}>{c}</option>)}
-                </select>
+                </Select>
               </label>
             ))}
           </div>

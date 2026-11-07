@@ -3,6 +3,7 @@ import type { Currency, LedgerRow } from '../api/types'
 import { useCategories, useDeleteRow, useLedger, useUpdateRow } from '../api/hooks'
 import { formatDisplayDate, formatMoney, toDisplay } from '../lib/money'
 import DatePicker from './DatePicker'
+import Select from './Select'
 
 const LEDGER_LABELS = {
   expenses: 'Expenses',
@@ -115,17 +116,17 @@ export default function EditTab({ currency }: { currency: Currency }) {
     if (f === 'category') {
       const opts = categories || []
       return (
-        <select value={String(value)} onChange={(e) => set(e.target.value)}>
+        <Select value={String(value)} onChange={(e) => set(e.target.value)}>
           {!opts.includes(String(value)) && <option value={String(value)}>{String(value)}</option>}
           {opts.map((c) => <option key={c} value={c}>{c}</option>)}
-        </select>
+        </Select>
       )
     }
     if (f === 'kind') {
       return (
-        <select value={String(value)} onChange={(e) => set(e.target.value)}>
+        <Select value={String(value)} onChange={(e) => set(e.target.value)}>
           {KIND_OPTIONS[ledger as 'lent' | 'borrowed'].map((k) => <option key={k} value={k}>{k}</option>)}
-        </select>
+        </Select>
       )
     }
     if (f === 'paid_back') {
@@ -160,12 +161,12 @@ export default function EditTab({ currency }: { currency: Currency }) {
       <div className="tab-controls">
         <label>
           Ledger{' '}
-          <select
+          <Select
             value={ledger}
             onChange={(e) => { setLedger(e.target.value as Ledger); setEditingId(null); setConfirmDeleteId(null); setNote(null) }}
           >
             {(Object.keys(LEDGER_LABELS) as Ledger[]).map((l) => <option key={l} value={l}>{LEDGER_LABELS[l]}</option>)}
-          </select>
+          </Select>
         </label>
         {note && <span className="tab-note">{note}</span>}
       </div>

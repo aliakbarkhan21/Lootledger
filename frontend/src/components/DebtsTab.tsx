@@ -5,6 +5,7 @@ import type { Currency, LedgerRow } from '../api/types'
 import { useDeleteRow, useLedger, usePeople, useSettleDebt, useUpdateRow } from '../api/hooks'
 import { formatDisplayDate, formatMoney } from '../lib/money'
 import { useUi } from '../state/ui'
+import Select from './Select'
 
 type Table = 'lent' | 'borrowed'
 
@@ -136,7 +137,7 @@ function DebtTable({ table, currency, found }: { table: Table; currency: Currenc
                 <td className="desc">{nameOf(row, table)}</td>
                 <td className="amt">{formatMoney(row.amount, currency)}</td>
                 <td>
-                  <select
+                  <Select
                     aria-label={`How the debt with ${nameOf(row, table)} started`}
                     value={KIND_LABELS[table][row.kind || 'cash'] ? row.kind || 'cash' : 'cash'}
                     onChange={(e) => updateRow.mutate({ ledger: table, id: row.id, fields: { kind: e.target.value } })}
@@ -144,7 +145,7 @@ function DebtTable({ table, currency, found }: { table: Table; currency: Currenc
                     {Object.entries(KIND_LABELS[table]).map(([k, label]) => (
                       <option key={k} value={k}>{label}</option>
                     ))}
-                  </select>
+                  </Select>
                 </td>
                 <td className="num-cell">{daysSince(row.date)}</td>
                 <td>

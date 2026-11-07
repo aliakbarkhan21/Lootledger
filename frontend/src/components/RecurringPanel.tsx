@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { Currency, RecurringItem, RecurringStatus } from '../api/types'
 import { useAddRecurring, useCategories, useDeleteRecurring, useRecurringLog, useSettings, useUpdateRecurring } from '../api/hooks'
 import { formatMoney, toDisplay } from '../lib/money'
+import Select from './Select'
 
 type Kind = 'expense' | 'income'
 
@@ -108,19 +109,19 @@ export default function RecurringPanel({ currency }: { currency: Currency }) {
             <label>Label<input value={label} placeholder="Rent" onChange={(e) => setLabel(e.target.value)} /></label>
             <label>
               Kind
-              <select value={kind} onChange={(e) => setKind(e.target.value as Kind)}>
+              <Select value={kind} onChange={(e) => setKind(e.target.value as Kind)}>
                 <option value="expense">Expense</option>
                 <option value="income">Income</option>
-              </select>
+              </Select>
             </label>
             <label>Amount ({currency.code})<input type="number" min={0} step={500} value={amount} onChange={(e) => setAmount(e.target.value)} /></label>
             <label>Day of month<input type="number" min={1} max={28} value={day} onChange={(e) => setDay(e.target.value)} /></label>
             {kind === 'expense' && (
               <label className="wide">
                 Category
-                <select value={cat} onChange={(e) => setCategory(e.target.value)}>
+                <Select value={cat} onChange={(e) => setCategory(e.target.value)}>
                   {cats.map((c) => <option key={c} value={c}>{c}</option>)}
-                </select>
+                </Select>
               </label>
             )}
           </div>

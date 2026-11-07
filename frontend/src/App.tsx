@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom'
 import './styles/board.css'
 // After board.css on purpose: every rule in it is scoped under
 // [data-style='glass'], so the Ledger Journal never matches one.
@@ -112,8 +113,16 @@ function BoardPage() {
       <RunStrip months={board.run_strip} currency={board.currency} />
 
 
-      <CommandPalette months={periods.months} currency={board.currency} periodLabel={board.period.label} />
-      <FinanceBot periodKey={board.period.is_all_time ? 'all' : board.period.key} periodLabel={board.period.label} />
+      {/* Fixed overlays, kept out of the page: the page slides by transform
+          while the entry slip folds, and a fixed box inside a transformed one
+          would ride along with it. */}
+      {createPortal(
+        <>
+          <CommandPalette months={periods.months} currency={board.currency} periodLabel={board.period.label} />
+          <FinanceBot periodKey={board.period.is_all_time ? 'all' : board.period.key} periodLabel={board.period.label} />
+        </>,
+        document.body,
+      )}
 
       <footer style={{ marginTop: 48, fontSize: '0.74rem', color: 'var(--ink-soft)', textAlign: 'center' }}>
         Built by{' '}

@@ -95,7 +95,7 @@ export default function GlassRail({ onGo }: { onGo: (id: RailTarget) => void }) 
     const onScroll = () => { if (!frame) frame = requestAnimationFrame(read) }
     const onScrollEnd = () => { lockUntil.current = 0 }
     window.addEventListener('scroll', onScroll, { passive: true })
-    window.addEventListener('scrollend', onScrollEnd)
+    window.addEventListener('scrollend', onScrollEnd, { passive: true })
     // A wheel, touch or key during a click's scroll hands control back.
     const release = () => { lockUntil.current = 0 }
     window.addEventListener('wheel', release, { passive: true })

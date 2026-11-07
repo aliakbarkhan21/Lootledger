@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 
 /** The Glass style's icon set: one authored family on a 24 grid at 1.6
  * stroke, round caps and joins, drawn in currentColor so every icon takes
@@ -63,10 +63,28 @@ export const CalendarIcon = () => (
   </Icon>
 )
 
-export const ChevronIcon = () => (
-  <Icon size={16}>
-    <path d="M6.5 9.5l5.5 5.5 5.5-5.5" />
-  </Icon>
+/** The one chevron every dropdown and fold button shares: a 12px box at
+ * 1.5 stroke whose ink is centred in the box both ways, so a control can
+ * place the box and know where the mark lands. The same path is the
+ * --g-chevron background on native selects (glass.css). */
+const CHEVRON_PATH = {
+  down: 'M1 3.5 6 8.5l5-5',
+  left: 'M8.5 1 3.5 6l5 5',
+  right: 'M3.5 1l5 5-5 5',
+} as const
+
+export const ChevronIcon = ({ dir = 'down', className = '', style }: {
+  dir?: keyof typeof CHEVRON_PATH
+  className?: string
+  style?: CSSProperties
+}) => (
+  <svg
+    className={`g-chevron ${className}`.trim()} style={style} viewBox="0 0 12 12" width={12} height={12} fill="none" stroke="currentColor"
+    strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"
+    aria-hidden="true" focusable="false"
+  >
+    <path d={CHEVRON_PATH[dir]} />
+  </svg>
 )
 
 export const MoonIcon = () => (

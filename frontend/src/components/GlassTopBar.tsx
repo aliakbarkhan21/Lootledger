@@ -2,6 +2,7 @@ import type { Currency, PeriodOption } from '../api/types'
 import { formatMoney } from '../lib/money'
 import { useSeedDemo } from '../api/hooks'
 import { useUi } from '../state/ui'
+import { withOpenFlag } from '../lib/selectOpen'
 import {
   BookIcon, CalendarIcon, ChevronIcon, MoonIcon, SearchIcon, SlidersIcon, SparkIcon, SunIcon,
 } from './GlassIcons'
@@ -49,13 +50,16 @@ export default function GlassTopBar({
 
         <div className="g-controls">
           {/* The real control is the native select, laid invisibly over a face
-              that can show the month and its outflow on two lines. */}
+              that can show the month and its outflow on two lines; the face's
+              chevron turns up while the list is open. */}
           <div className="g-period">
             <select
-              value={period}
-              onChange={(e) => setPeriod(e.target.value)}
-              aria-label="Period"
-              disabled={!months || !currency}
+              {...withOpenFlag({
+                value: period,
+                onChange: (e: React.ChangeEvent<HTMLSelectElement>) => setPeriod(e.target.value),
+                'aria-label': 'Period',
+                disabled: !months || !currency,
+              })}
             >
               {months && currency && months.map((m) => (
                 <option key={m.key} value={m.key}>

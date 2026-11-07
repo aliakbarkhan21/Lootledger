@@ -5,6 +5,7 @@ import LedgersTab from './LedgersTab'
 import EditTab from './EditTab'
 import DebtsTab from './DebtsTab'
 import ImportTab from './ImportTab'
+import { ChevronIcon } from './GlassIcons'
 
 const TABS: { id: LdiTab; label: string }[] = [
   { id: 'ledgers', label: 'Ledgers' },
@@ -84,7 +85,8 @@ export default function LedgersDebtsImport({
         aria-controls="ldi-body"
         onClick={() => setOpen(!open)}
       >
-        <span className="ldi-chevron" aria-hidden="true">▸</span>
+        {/* Glass draws the shared chevron, centred in its well, turning up while open; the journal keeps its gold mark. */}
+        <span className="ldi-chevron" aria-hidden="true">{glass ? <ChevronIcon /> : '▸'}</span>
         <span className="ldi-title">Ledgers, debts and import</span>
         <span className="ldi-hint">{open ? 'Fold away' : 'Edit rows, settle debts, import a sheet'}</span>
       </button>

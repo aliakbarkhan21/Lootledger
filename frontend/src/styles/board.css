@@ -1547,6 +1547,8 @@ td.row-actions .btn-link + .btn-link { margin-left: 6px; }
   padding: 48px 16px;
   z-index: 50;
   overflow-y: auto;
+  /* A wheel over the dim area outside a dialog goes nowhere. */
+  overscroll-behavior: contain;
 }
 
 .modal {
@@ -1558,14 +1560,27 @@ td.row-actions .btn-link + .btn-link { margin-left: 6px; }
   border: 1px solid var(--rule-green);
   box-shadow: 0 30px 70px var(--shadow);
   position: relative;
+  /* The dialog is the one scroller, edge to edge, so a wheel anywhere over
+     it (the header, the padding, a field) scrolls it; at either end the
+     scroll stops there instead of carrying on into the page. */
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
+.modal:focus { outline: none; }
+
+/* Held at the top of the dialog while its contents scroll under it. */
 .modal-head {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  flex: none;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 18px 24px 14px;
   border-bottom: 2px solid var(--ink);
+  background: var(--paper);
 }
 
 .modal-head h2 {
@@ -1578,9 +1593,22 @@ td.row-actions .btn-link + .btn-link { margin-left: 6px; }
 
 .modal-body {
   padding: 8px 24px 28px;
-  overflow-y: auto;
-  min-height: 0;
+  flex: none;
 }
+
+/* Settings is a short stack of independent sections: each is laid out and
+   painted on its own, so scrolling never re-lays out its neighbours. The
+   clip margin keeps focus rings that sit at a section's edge. */
+.modal .settings-block {
+  contain: layout paint style;
+  overflow-clip-margin: 8px;
+}
+
+/* While a dialog is open the page under it does not scroll (SettingsDialog
+   restores the exact position on close); where the scrollbar took room, the
+   gutter keeps it, so nothing beneath shifts sideways. */
+:root[data-modal-open] { overflow: hidden; }
+:root[data-modal-open][data-modal-gutter] { scrollbar-gutter: stable; }
 
 .settings-summary {
   font-size: 0.84rem;
@@ -2507,26 +2535,29 @@ table.ledger .amt-one { display: none; }
   min-width: 0;
   display: flex;
   justify-content: flex-end;
-  transition: flex-basis 460ms var(--ease-leaf);
+  transition: flex-basis var(--dock-ms) var(--dock-ease);
 }
 
 .entry-dock.is-folded {
   flex-basis: 38px;
-  transition: flex-basis 380ms var(--ease-shut) 150ms;
 }
+
+/* While EntryDock slides the slip (lib/dockSlide.ts), the slip's width is
+   animated there and the page inside the book holds still. */
+.desk[data-dock-slide] .entry-dock { transition: none; }
 
 .dock-leaf {
   flex: 0 0 var(--dock-w);
   width: var(--dock-w);
   transform-origin: 100% 50%;
-  transition: transform 600ms var(--ease-leaf) 40ms, opacity 220ms ease 40ms, visibility 0s;
+  transition: transform var(--dock-ms) var(--dock-ease), opacity 200ms ease, visibility 0s;
 }
 
 .entry-dock.is-folded .dock-leaf {
   transform: perspective(1400px) rotateY(84deg);
   opacity: 0;
   visibility: hidden;
-  transition: transform 380ms var(--ease-in), opacity 200ms ease 180ms, visibility 0s linear 380ms;
+  transition: transform var(--dock-ms) var(--dock-ease), opacity 200ms ease 180ms, visibility 0s linear var(--dock-ms);
 }
 
 .dock-paper {

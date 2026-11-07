@@ -3,6 +3,9 @@ import { useAddEntry, useBoard, useCategories } from '../api/hooks'
 import { formatDisplayDate, formatMoney, todayIso } from '../lib/money'
 import { useUi } from '../state/ui'
 import DatePicker from './DatePicker'
+import { ChevronIcon } from './GlassIcons'
+import { createDockSlide } from '../lib/dockSlide'
+import Select from './Select'
 
 // No "Transport" here: a bare fare with no description was a second, thinner
 // way to write an expense, and the Transportation platform already says it.
@@ -98,8 +101,9 @@ export default function EntryDock() {
   const [entered, setEntered] = useState<string | null>(null)
   const firstField = useRef<HTMLInputElement>(null)
   const unfoldButton = useRef<HTMLButtonElement>(null)
-  // Glass: where the book's left edge was before a fold, for the slide below.
-  const bookFrom = useRef<number | null>(null)
+  // The fold's motion (lib/dockSlide): measured before the state changes,
+  // started after it is committed and before it is painted.
+  const [slide] = useState(createDockSlide)
 
   const currency = board?.currency
   const cats = categories || []
@@ -111,28 +115,10 @@ export default function EntryDock() {
     try { window.localStorage.setItem(STORE_KEY, open ? 'open' : 'closed') } catch { /* ignore */ }
   }, [open])
 
-  // Glass: the desk takes its new widths at once (animating them re-lays out
-  // the whole board and resizes every pane of glass on it, every frame), and
-  // the book then slides from where it was to where it now is, by transform
-  // alone. The journal keeps its own animated fold (board.css).
-  useLayoutEffect(() => {
-    const from = bookFrom.current
-    bookFrom.current = null
-    if (from == null) return
-    const book = document.querySelector<HTMLElement>('.book')
-    if (!book) return
-    const dx = from - book.getBoundingClientRect().left
-    if (Math.abs(dx) < 1) return
-    const root = getComputedStyle(document.documentElement)
-    const easing = (open ? root.getPropertyValue('--g-spring-enter') : root.getPropertyValue('--g-ease-out')).trim()
-    const frames = [{ transform: `translateX(${dx}px)` }, { transform: 'translateX(0)' }]
-    const duration = open ? 500 : 320
-    try {
-      book.animate(frames, { duration, easing: easing || 'ease-out' })
-    } catch {
-      book.animate(frames, { duration, easing: 'cubic-bezier(0.22, 0.85, 0.3, 1)' })
-    }
-  }, [open])
+  useLayoutEffect(() => { slide.start() }, [open, slide])
+
+  // A slide never outlives the dock, or carries across a change of style.
+  useEffect(() => () => slide.stop(), [style, slide])
 
   useEffect(() => {
     if (!entered) return
@@ -154,14 +140,8 @@ export default function EntryDock() {
   // Folding moves focus to whichever control is left showing, so the keyboard
   // never ends up on something that has just been put away.
   function fold(next: boolean) {
-    bookFrom.current = null
-    if (
-      style === 'glass'
-      && window.matchMedia('(min-width: 901px)').matches
-      && !window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    ) {
-      bookFrom.current = document.querySelector('.book')?.getBoundingClientRect().left ?? null
-    }
+    if (next === open) return
+    slide.prepare(next, style === 'glass')
     setMoved(true)
     setOpen(next)
     requestAnimationFrame(() => {
@@ -221,16 +201,16 @@ export default function EntryDock() {
             <div className="dock-head">
               <h2>Record a movement</h2>
               <button className="icon-btn dock-fold" onClick={() => fold(false)} aria-expanded="true" title="Fold the entry panel away">
-                ‹
+                {style === 'glass' ? <ChevronIcon dir="left" /> : '‹'}
               </button>
             </div>
 
             <form onSubmit={submit} className="dock-form" noValidate>
               <label className="dock-field">
                 <span>Movement</span>
-                <select value={kind} onChange={(e) => { setKind(e.target.value as Kind); setWarning(null) }}>
+                <Select value={kind} onChange={(e) => { setKind(e.target.value as Kind); setWarning(null) }}>
                   {(Object.keys(KIND_LABEL) as Kind[]).map((k) => <option key={k} value={k}>{KIND_LABEL[k]}</option>)}
-                </select>
+                </Select>
               </label>
 
               <div className="dock-field">
@@ -251,9 +231,9 @@ export default function EntryDock() {
               {kind === 'expense' && (
                 <label className="dock-field">
                   <span>Platform</span>
-                  <select value={platform} onChange={(e) => setCategory(e.target.value)}>
+                  <Select value={platform} onChange={(e) => setCategory(e.target.value)}>
                     {cats.map((c) => <option key={c} value={c}>{c}</option>)}
-                  </select>
+                  </Select>
                 </label>
               )}
 

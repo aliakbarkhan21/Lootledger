@@ -18,7 +18,8 @@ import { createPortal } from 'react-dom'
  *    drawn (data-lg-refract), so it never shows an unmapped frame.
  *
  * 3. Light that follows the pointer: one pointermove listener, throttled to
- *    a frame, writes --mx/--my on the glass card under the pointer. And a
+ *    a frame, writes --mx/--my on the glass card under the pointer (and
+ *    rests while a dialog is open). And a
  *    data-lg-scrolled flag on the root once the page has moved, so the
  *    scroll-edge veil above the top bar only blurs when there is something
  *    under it. */
@@ -204,7 +205,11 @@ function usePointerLight() {
       card.style.setProperty('--mx', `${Math.round(x - r.left)}px`)
       card.style.setProperty('--my', `${Math.round(y - r.top)}px`)
     }
+    const root = document.documentElement
     const onMove = (e: PointerEvent) => {
+      // Under an open dialog the page is still and the light holds where it
+      // was: no per-move style writes while the dialog scrolls.
+      if (root.hasAttribute('data-modal-open')) return
       x = e.clientX
       y = e.clientY
       target = e.target

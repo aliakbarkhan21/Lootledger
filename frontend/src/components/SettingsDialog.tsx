@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { api, ApiError } from '../api/client'
 import type { Currency, SettingsResponse } from '../api/types'
@@ -11,6 +11,7 @@ import {
 import { formatMoney, toDisplay } from '../lib/money'
 import { platformColor } from '../lib/platforms'
 import { useUi } from '../state/ui'
+import Select from './Select'
 
 function errText(e: unknown): string {
   return e instanceof ApiError || e instanceof Error ? e.message : 'Something went wrong.'
@@ -84,9 +85,9 @@ function Budgets({ settings, categories }: { settings: SettingsResponse; categor
       <Caption>A monthly cap per category. Platform load shows spent-vs-cap once one is set.</Caption>
       {uncapped.length > 0 ? (
         <div className="settings-row">
-          <select value={picked} onChange={(e) => setCat(e.target.value)} aria-label="Category">
+          <Select value={picked} onChange={(e) => setCat(e.target.value)} aria-label="Category">
             {uncapped.map((c) => <option key={c} value={c}>{c}</option>)}
-          </select>
+          </Select>
           <input
             type="number" min={0} step={500} placeholder={`Cap (${currency.code})`}
             value={amount} onChange={(e) => setAmount(e.target.value)} aria-label={`Monthly cap (${currency.code})`}
@@ -130,13 +131,13 @@ function MergeCategory({ categories }: { categories: string[] }) {
       ) : (
         <>
           <div className="settings-row">
-            <select value={src} onChange={(e) => { setFrom(e.target.value); setDone(null) }} aria-label="From">
+            <Select value={src} onChange={(e) => { setFrom(e.target.value); setDone(null) }} aria-label="From">
               {used.map((c) => <option key={c} value={c}>{c}</option>)}
-            </select>
+            </Select>
             <span className="settings-arrow">→</span>
-            <select value={dst} onChange={(e) => setInto(e.target.value)} aria-label="Into">
+            <Select value={dst} onChange={(e) => setInto(e.target.value)} aria-label="Into">
               {targets.map((c) => <option key={c} value={c}>{c}</option>)}
-            </select>
+            </Select>
             <button
               className="btn-link"
               disabled={!movable || merge.isPending}
@@ -180,7 +181,7 @@ function Snapshots({ totalRows }: { totalRows: number }) {
             {list.length} available. One is taken automatically before anything that erases records, and
             restoring backs up the current file first, so this is reversible too.
           </Caption>
-          <select
+          <Select
             className="wide" value={picked?.name}
             onChange={(e) => { setChosen(e.target.value); setArmed(false) }} aria-label="Snapshot"
           >
@@ -190,7 +191,7 @@ function Snapshots({ totalRows }: { totalRows: number }) {
                 {'  ·  '}{b.total} records{'  ·  '}{b.automatic ? 'auto' : 'manual'}
               </option>
             ))}
-          </select>
+          </Select>
           {picked && (
             <Caption>
               {Object.keys(picked.counts).map((k) => `${k}: ${picked.counts[k] ?? 0}`).join('  ·  ')}
@@ -291,11 +292,62 @@ export default function SettingsDialog() {
     if (settings && currency) setOpeningDraft(toDisplay(settings.opening_balance, currency).toFixed(2))
   }, [settings?.opening_balance, currency?.code, currency?.rate])
 
-  useEffect(() => {
+  const dialog = useRef<HTMLDivElement>(null)
+
+  // While Settings is open the page under it holds still: the document stops
+  // scrolling (data-modal-open, board.css/glass.css), keeps its scrollbar's
+  // room so nothing shifts, and comes back to exactly where it was. Focus
+  // moves into the dialog, Tab and Shift+Tab go round its controls only, and
+  // on close focus returns to whatever opened it.
+  useLayoutEffect(() => {
     if (!settingsOpen) return
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setSettingsOpen(false) }
+    const root = document.documentElement
+    const y = window.scrollY
+    const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null
+    // A classic scrollbar takes room the page loses when it is hidden; keep
+    // that room. Overlay scrollbars take none, so nothing is reserved.
+    if (window.innerWidth - root.clientWidth > 0) root.setAttribute('data-modal-gutter', '')
+    root.setAttribute('data-modal-open', '')
+    dialog.current?.focus({ preventScroll: true })
+
+    const focusables = () => [...(dialog.current?.querySelectorAll<HTMLElement>(
+      'a[href], button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex="-1"])',
+    ) ?? [])].filter((el) => el.offsetParent !== null || el.getClientRects().length > 0)
+
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') { setSettingsOpen(false); return }
+      if (e.key !== 'Tab' || !dialog.current) return
+      const list = focusables()
+      if (!list.length) { e.preventDefault(); return }
+      const first = list[0]
+      const last = list[list.length - 1]
+      const active = document.activeElement
+      const inside = active instanceof Node && dialog.current.contains(active)
+      if (e.shiftKey && (active === first || active === dialog.current || !inside)) {
+        e.preventDefault()
+        last.focus()
+      } else if (!e.shiftKey && (active === last || !inside)) {
+        e.preventDefault()
+        first.focus()
+      }
+    }
+    // Focus that lands outside (a click on the page, a stray programmatic
+    // focus) is brought back in.
+    const onFocusIn = (e: FocusEvent) => {
+      if (dialog.current && e.target instanceof Node && !dialog.current.contains(e.target)) {
+        dialog.current.focus({ preventScroll: true })
+      }
+    }
     window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
+    document.addEventListener('focusin', onFocusIn)
+    return () => {
+      window.removeEventListener('keydown', onKey)
+      document.removeEventListener('focusin', onFocusIn)
+      root.removeAttribute('data-modal-open')
+      root.removeAttribute('data-modal-gutter')
+      window.scrollTo({ top: y, left: window.scrollX, behavior: 'instant' })
+      opener?.focus({ preventScroll: true })
+    }
   }, [settingsOpen, setSettingsOpen])
 
   if (!settingsOpen) return null
@@ -307,7 +359,16 @@ export default function SettingsDialog() {
 
   return (
     <div className="modal-scrim" onMouseDown={(e) => { if (e.target === e.currentTarget) setSettingsOpen(false) }}>
-      <div className="modal settings lg lg-overlay" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+      {/* The dialog is its own scroller, edge to edge with its header held at
+          the top, so a wheel anywhere over it scrolls it and nothing else. */}
+      <div
+        ref={dialog}
+        className="modal settings lg lg-overlay"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="settings-title"
+        tabIndex={-1}
+      >
         <div className="modal-head">
           <h2 id="settings-title">Settings</h2>
           <button className="icon-btn" aria-label="Close settings" onClick={() => setSettingsOpen(false)}>✕</button>
@@ -325,14 +386,14 @@ export default function SettingsDialog() {
                 changes — never a figure.
               </Caption>
               <div className="settings-row">
-                <select
+                <Select
                   value={style}
                   onChange={(e) => setStyle(e.target.value === 'glass' ? 'glass' : 'journal')}
                   aria-label="Style"
                 >
                   <option value="journal">Ledger Journal</option>
                   <option value="glass">Glass</option>
-                </select>
+                </Select>
               </div>
             </Block>
 
@@ -386,11 +447,11 @@ export default function SettingsDialog() {
                 converts on display only, so switching back restores the original figures precisely.
               </Caption>
               <div className="settings-row">
-                <select value={currency.code} onChange={(e) => setCurrency.mutate(e.target.value)} aria-label="Display currency">
+                <Select value={currency.code} onChange={(e) => setCurrency.mutate(e.target.value)} aria-label="Display currency">
                   {Object.entries(settings.currencies).map(([code, c]) => (
                     <option key={code} value={code}>{code} — {c.label}</option>
                   ))}
-                </select>
+                </Select>
                 <button className="btn-link" disabled={refreshRates.isPending} onClick={() => refreshRates.mutate()}>
                   {refreshRates.isPending ? 'Refreshing…' : 'Refresh rates'}
                 </button>

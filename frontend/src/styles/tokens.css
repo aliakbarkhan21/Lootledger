@@ -86,6 +86,11 @@
   --ease-shut: cubic-bezier(0.65, 0, 0.35, 1);
   --ease-in: cubic-bezier(0.55, 0, 0.8, 0.25);
 
+  /* The entry slip opens and folds on one curve and one duration, both ways
+     (lib/dockSlide.ts carries the same pair for the parts it drives). */
+  --dock-ease: cubic-bezier(0.32, 0.72, 0, 1);
+  --dock-ms: 380ms;
+
   /* Native parts (scrollbars, select lists) follow the theme, and every
      scrollbar is drawn in the book's green rather than the system grey. */
   color-scheme: light;

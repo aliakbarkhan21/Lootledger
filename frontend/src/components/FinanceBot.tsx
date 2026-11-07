@@ -8,6 +8,7 @@ import {
   useInvalidateBoard, useRenameChat,
 } from '../api/hooks'
 import { useUi } from '../state/ui'
+import Select from './Select'
 
 // Two rotating starter prompts; clicking one sends it and refills only that
 // slot from further down the pool, so the other one does not move under the
@@ -213,12 +214,12 @@ export default function FinanceBot({ periodKey, periodLabel }: { periodKey: stri
       </div>
 
       <div className="bot-switch">
-        <select
+        <Select
           value={currentId ?? ''} aria-label="Chat" disabled={!!pending}
           onChange={(e) => switchTo(e.target.value)}
         >
           {chats.map((c) => <option key={c.id} value={c.id}>{c.title}</option>)}
-        </select>
+        </Select>
         <button
           className="icon-btn" title="Start a new chat" aria-label="Start a new chat" disabled={!!pending}
           onClick={() => createChat.mutate(undefined, { onSuccess: (c) => { setChatId(c.id); setMenuOpen(false) } })}

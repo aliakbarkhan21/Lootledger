@@ -31,6 +31,8 @@
   --g-spring-ui-ms: 380ms;
   --g-spring-enter: cubic-bezier(0.22, 0.85, 0.3, 1);
   --g-spring-enter-ms: 460ms;
+  /* A chevron turning to show its dropdown or section is open. */
+  --g-flip-ms: 180ms;
 
   /* Film grain over the ambient field: dithers the long, low-contrast
      gradients so they never band. A 180px tile, drawn once. */
@@ -131,6 +133,12 @@
   --g-in-wash: rgba(25, 105, 60, 0.1);
   --g-arrow-in: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M17 7 7 17'/%3E%3Cpath d='M7 9.5V17h7.5'/%3E%3C/svg%3E");
   --g-arrow-out: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7 17 17 7'/%3E%3Cpath d='M9.5 7H17v7.5'/%3E%3C/svg%3E");
+  /* The dropdown chevron (ChevronIcon's path) in --g-ink: a data image
+     cannot read a custom property, so the ink is written in and these two
+     lines change with --g-ink. Resting a little dimmer than the text, full
+     ink under the pointer or focus. */
+  --g-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' fill='none' stroke='%23132018' stroke-opacity='0.62' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M1 3.5 6 8.5l5-5'/%3E%3C/svg%3E");
+  --g-chevron-hot: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' fill='none' stroke='%23132018' stroke-opacity='1' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M1 3.5 6 8.5l5-5'/%3E%3C/svg%3E");
 }
 
 /* --- dark: the same desk at night, under the lamp ---
@@ -178,6 +186,8 @@
   --g-ink: #edf3e8;
   --g-ink-2: #c3cfbc;
   --g-ink-3: #a3b19c;
+  --g-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' fill='none' stroke='%23edf3e8' stroke-opacity='0.62' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M1 3.5 6 8.5l5-5'/%3E%3C/svg%3E");
+  --g-chevron-hot: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' fill='none' stroke='%23edf3e8' stroke-opacity='1' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M1 3.5 6 8.5l5-5'/%3E%3C/svg%3E");
   --g-in: #86d7a2;
   --g-out: #f4a395;
   --g-gold-mark: #d9b25e;
@@ -672,6 +682,30 @@ html:root[data-style='glass'] {
   font-variant-numeric: tabular-nums;
 }
 
+/* The shared chevron (GlassIcons): a block box, so it centres exactly in
+   a flex or grid well with no baseline gap under it. */
+:root[data-style='glass'] .g-chevron { display: block; flex: none; }
+
+:root[data-style='glass'] .g-period-face > .g-chevron {
+  color: color-mix(in srgb, var(--g-ink) 62%, transparent);
+  transition: transform var(--g-flip-ms) var(--dock-ease), color 140ms ease-out;
+}
+
+:root[data-style='glass'] .g-period select[data-open] + .g-period-face > .g-chevron {
+  color: var(--g-ink);
+  transform: rotate(180deg);
+}
+
+:root[data-style='glass'] .g-period select:open + .g-period-face > .g-chevron {
+  color: var(--g-ink);
+  transform: rotate(180deg);
+}
+
+:root[data-style='glass'] .g-period:hover .g-period-face > .g-chevron,
+:root[data-style='glass'] .g-period select:focus-visible + .g-period-face > .g-chevron { color: var(--g-ink); }
+
+:root[data-style='glass'] .g-period select:disabled + .g-period-face > .g-chevron { color: color-mix(in srgb, var(--g-ink) 62%, transparent); }
+
 :root[data-style='glass'] .g-period select:focus-visible + .g-period-face {
   outline: 2px solid var(--g-focus);
   outline-offset: 2px;
@@ -807,7 +841,7 @@ html:root[data-style='glass'] {
   :root[data-style='glass'] .g-kbd,
   :root[data-style='glass'] .g-now { display: none; }
   :root[data-style='glass'] .g-search { gap: 6px; padding: 0 10px 0 12px; }
-  :root[data-style='glass'] .g-period-face { gap: 8px; padding: 0 12px; }
+  :root[data-style='glass'] .g-period-face { gap: 8px; padding: 0 14px 0 12px; }
   :root[data-style='glass'] .g-period-face > svg:first-child { display: none; }
 }
 
@@ -972,10 +1006,23 @@ html:root[data-style='glass'] {
 
 :root[data-style='glass'] .summary .fig-carried .v.debit { color: var(--g-hero-neg); }
 
-/* Four across holds down to a ~760px page (a laptop with the entry slip
-   open is ~990px); below that, two by two. */
-@container g-page (max-width: 760px) {
-  :root[data-style='glass'] .summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+/* Four across holds down to a 640px page, so the entry slip opening or
+   folding never changes the band's shape on a laptop (the page is ~990px
+   with the slip open at 1440 wide, ~684px at 1100). Between an 860px and a
+   684px page the gaps and padding narrow continuously, giving the figures
+   room without a step. Below 640, two by two. */
+:root[data-style='glass'] .summary { gap: clamp(10px, calc(10px + (100cqi - 684px) * 0.02273), 14px); }
+
+:root[data-style='glass'] .summary > .fig {
+  padding:
+    clamp(16px, calc(16px + (100cqi - 684px) * 0.01136), 18px)
+    clamp(15px, calc(15px + (100cqi - 684px) * 0.02841), 20px)
+    clamp(17px, calc(17px + (100cqi - 684px) * 0.01705), 20px);
+}
+
+@container g-page (max-width: 640px) {
+  :root[data-style='glass'] .summary { gap: 14px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  :root[data-style='glass'] .summary > .fig { padding: 18px 20px 20px; }
 }
 
 /* A phone: the answer first and full width, then the three terms as rows
@@ -1594,6 +1641,78 @@ html:root[data-style='glass'] {
   box-shadow: inset 0 0 0 1.5px var(--g-focus), 0 0 0 3px color-mix(in srgb, var(--g-focus) 18%, transparent);
 }
 
+/* Every dropdown: one chevron, 12px, its box 14px in from the right and
+   centred down the field, with 40px of padding so the chosen text stops
+   short of it. It is an inline SVG placed after the select (Select.tsx) and
+   anchored to it, so it can turn: it points down while the list is shut and
+   up while it is open. The :is() list matches the field rules above at
+   their own specificity; the bare select catches any other. The period
+   select is invisible over its face, which draws the same chevron. */
+:root[data-style='glass'] select,
+:root[data-style='glass'] :is(.tab-controls, .map-grid, table.ledger.grid, .settings-block, .recurring-panel, .bot-switch, .dock-field) select {
+  -webkit-appearance: none;
+  appearance: none;
+  padding-right: 40px;
+  text-overflow: ellipsis;
+}
+
+:root[data-style='glass'] .g-select-chev {
+  position: absolute;
+  z-index: 0;
+  right: calc(anchor(right) + 14px);
+  top: calc(anchor(center) - 6px);
+  pointer-events: none;
+  color: color-mix(in srgb, var(--g-ink) 62%, transparent);
+  transition: transform var(--g-flip-ms) var(--dock-ease), color 140ms ease-out;
+}
+
+/* The table grids scroll; their chevrons are placed inside them, so they
+   scroll and clip with their rows. */
+:root[data-style='glass'] .grid-scroll { position: relative; }
+
+:root[data-style='glass'] select:not(:disabled):hover + .g-select-chev,
+:root[data-style='glass'] select:focus-visible + .g-select-chev,
+:root[data-style='glass'] select[data-open] + .g-select-chev { color: var(--g-ink); }
+
+:root[data-style='glass'] select[data-open] + .g-select-chev { transform: rotate(180deg); }
+
+/* Kept apart from the rule above: an engine that does not know :open drops
+   the whole rule it appears in. */
+:root[data-style='glass'] select:open + .g-select-chev {
+  color: var(--g-ink);
+  transform: rotate(180deg);
+}
+
+:root[data-style='glass'] select:disabled + .g-select-chev { opacity: 0.5; }
+
+/* Without anchor positioning the SVG cannot be placed, so the select draws
+   a fixed chevron itself, as before. */
+@supports not (anchor-name: --a) {
+  :root[data-style='glass'] .g-select-chev { display: none; }
+
+  :root[data-style='glass'] select,
+  :root[data-style='glass'] :is(.tab-controls, .map-grid, table.ledger.grid, .settings-block, .recurring-panel, .bot-switch, .dock-field) select {
+    background-image: var(--g-chevron);
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    background-size: 12px 12px;
+  }
+
+  :root[data-style='glass'] select:not(:disabled):hover,
+  :root[data-style='glass'] select:focus-visible { background-image: var(--g-chevron-hot); }
+}
+
+@media (forced-colors: active) {
+  :root[data-style='glass'] select,
+  :root[data-style='glass'] :is(.tab-controls, .map-grid, table.ledger.grid, .settings-block, .recurring-panel, .bot-switch, .dock-field) select {
+    -webkit-appearance: auto;
+    appearance: auto;
+    padding-right: 11px;
+    background-image: none;
+  }
+  :root[data-style='glass'] .g-select-chev { display: none; }
+}
+
 :root[data-style='glass'] input::placeholder,
 :root[data-style='glass'] textarea::placeholder,
 :root[data-style='glass'] .dp-placeholder {
@@ -1726,8 +1845,12 @@ html:root[data-style='glass'] {
   box-shadow: inset 0 0 0 1px var(--g-well-ring);
   color: var(--g-ink-2);
   font-size: 11px;
-  transition: transform var(--g-spring-ui-ms) var(--g-spring-ui);
+  transition: transform var(--g-flip-ms) var(--dock-ease);
 }
+
+/* Down while the section is folded, up while it is open (the journal turns
+   its own mark a quarter turn instead). */
+:root[data-style='glass'] .ldi.open .ldi-chevron { transform: rotate(180deg); }
 
 :root[data-style='glass'] .ldi-title {
   font: 650 14.5px/1.2 var(--g-font);
@@ -2389,12 +2512,15 @@ html:root[data-style='glass'] {
 
 :root[data-style='glass'] .modal {
   border-radius: 28px;
-  overflow: hidden;
+  overflow: hidden auto;
 }
 
+/* The header stays put over the scrolling sections, so it is solid: the
+   pane's own tone, without the frost a second blur would cost. */
 :root[data-style='glass'] .modal-head {
   padding: 20px 20px 16px 26px;
   border-bottom: 1px solid var(--g-rule);
+  background: var(--lg-dialog-head);
 }
 
 :root[data-style='glass'] .modal-head h2,
@@ -2421,6 +2547,9 @@ html:root[data-style='glass'] {
 :root[data-style='glass'] .settings-block select.wide,
 :root[data-style='glass'] .btn-link.wide,
 :root[data-style='glass'] .btn-danger.wide { padding: 9px 14px; }
+
+/* Centred text, so the chevron's 40px is matched on the left. */
+:root[data-style='glass'] .settings-block select.wide { padding-left: 40px; }
 
 /* Command palette: used many times a day, so nothing in it animates. */
 :root[data-style='glass'] .palette {
@@ -3064,6 +3193,7 @@ html:root[data-style='glass'] {
   --lg-tint-chrome: rgb(255 255 255 / 0.22);
   --lg-tint-overlay: rgb(248 250 245 / 0.84);
   --lg-head: rgb(243 247 239);
+  --lg-dialog-head: rgb(240 244 237);
   --lg-scrim: rgb(244 248 240 / 0.78);
   --lg-veil: rgb(236 243 232 / 0.94);
   --lg-tint-cal: rgb(255 255 255 / 0.34);
@@ -3124,6 +3254,7 @@ html:root[data-style='glass'] {
   --lg-tint-chrome: rgb(6 18 12 / 0.3);
   --lg-tint-overlay: rgb(12 24 18 / 0.76);
   --lg-head: rgb(14 29 21);
+  --lg-dialog-head: rgb(14 25 19);
   --lg-scrim: rgb(5 15 10 / 0.72);
   --lg-veil: rgb(6 16 11 / 0.94);
   --lg-tint-cal: rgb(7 19 13 / 0.46);
@@ -3477,6 +3608,23 @@ html:root[data-style='glass'] {
    (32 - 9 = 23) already hold; the segmented controls' thumbs sit 3px
    inside a pill and stay pills. */
 :root[data-style='glass'] .modal.lg { border-radius: 28px; }
+
+/* Settings scrolls inside its own pane, and a ring or a pool of light drawn
+   by a pseudo-element would scroll away with the sections (as on the
+   month's log): its rim is box-shadow, which stays on the pane's edge. */
+:root[data-style='glass'] .modal.lg::before,
+:root[data-style='glass'] .modal.lg::after { content: none; }
+
+:root[data-style='glass'] .modal.lg-overlay {
+  box-shadow:
+    inset 1px 1px 0 0 var(--lg-rim-mid),
+    inset 0 1px 0 0 var(--lg-hi),
+    inset -1px -1px 0 0 var(--lg-rim-lo),
+    inset 0 0 24px 0 var(--lg-glow),
+    0 0 0 1px var(--lg-hairline),
+    0 2px 6px var(--lg-sh-tight),
+    0 40px 80px -30px var(--lg-sh-wide);
+}
 :root[data-style='glass'] .modal-head .icon-btn { border-radius: 50%; }
 
 /* Text set straight on the scene (the section titles and the service line)
@@ -3773,12 +3921,14 @@ html:root[data-style='glass'] {
 }
 
 @media (min-width: 901px) {
-  /* The column snaps to its new width; EntryDock slides the book across by
-     transform. The leaf stays anchored at the desk's edge while it folds,
-     and the desk clips the book's slide rather than scrolling sideways. */
+  /* EntryDock drives the fold here (lib/dockSlide.ts): the desk takes its
+     resting widths at once and the leaf slides by transform while its pane
+     fades, so nothing transitions on its own. The leaf is pinned to the
+     slip's right edge, so it slides out from beside the rail and back, and
+     shows while it does. */
   :root[data-style='glass'] .entry-dock,
   :root[data-style='glass'] .entry-dock.is-folded {
-    justify-content: flex-start;
+    justify-content: flex-end;
     transition: none;
   }
 
@@ -3786,15 +3936,13 @@ html:root[data-style='glass'] {
 
   :root[data-style='glass'] .entry-dock.is-folded.moved .dock-unfold { animation-delay: 180ms; }
 
-  :root[data-style='glass'] .dock-leaf {
-    transform-origin: 0 0;
-    transition: transform var(--g-spring-enter-ms) var(--g-spring-enter) 40ms, visibility 0s;
-  }
+  :root[data-style='glass'] .dock-leaf,
+  :root[data-style='glass'] .entry-dock.is-folded .dock-leaf { transform: none; transition: none; }
 
-  :root[data-style='glass'] .entry-dock.is-folded .dock-leaf {
-    transform: translateX(-20px) scale(0.94);
-    transition: transform 280ms var(--g-ease-out), visibility 0s linear 280ms;
-  }
+  :root[data-style='glass'] .dock-paper,
+  :root[data-style='glass'] .entry-dock.is-folded .dock-paper { transition: none; }
+
+  :root[data-style='glass'] .desk[data-dock-slide] .dock-leaf { visibility: visible; }
 }
 
 @media (max-width: 900px) {
@@ -3934,4 +4082,40 @@ html:root[data-style='glass'] {
   from { --lg-fade: 36px; }
   96% { --lg-fade: 36px; }
   to { --lg-fade: 0px; }
+}
+
+/* ------------------------------------------------------------ under an open dialog
+   Settings scrolls over a page that does not move, so the page needs none
+   of its live glass while it is open. One blur on the dim layer frosts
+   everything behind the dialog at once; the dialog is its tint over that
+   (a second blur on it, or on every pane under it, was redrawn for each
+   scrolled frame), the panes keep their tints, the drifting light holds
+   still and gives up its layers, and the refracting rims rest. */
+:root[data-style='glass'][data-modal-open] .modal-scrim:not(.palette-scrim) {
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  backdrop-filter: blur(18px) saturate(140%);
+}
+
+:root[data-style='glass'][data-modal-open] .modal.lg-overlay,
+:root[data-style='glass'][data-modal-open] .lg:not(.lg-overlay),
+:root[data-style='glass'][data-modal-open] .lg[data-lg-refract]:not(.lg-overlay) {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+:root[data-style='glass'][data-modal-open] .lg-orb {
+  animation-play-state: paused;
+  will-change: auto;
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  :root[data-style='glass'][data-modal-open] .modal-scrim:not(.palette-scrim) {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root[data-style='glass'] .g-select-chev,
+  :root[data-style='glass'] .g-period-face > .g-chevron { transition: none; }
 }

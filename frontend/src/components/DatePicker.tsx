@@ -108,11 +108,11 @@ export default function DatePicker({
     }
     window.addEventListener('pointerdown', onDown, true)
     window.addEventListener('resize', place)
-    window.addEventListener('scroll', place, true)
+    window.addEventListener('scroll', place, { capture: true, passive: true })
     return () => {
       window.removeEventListener('pointerdown', onDown, true)
       window.removeEventListener('resize', place)
-      window.removeEventListener('scroll', place, true)
+      window.removeEventListener('scroll', place, { capture: true })
     }
   }, [open, place])
 
