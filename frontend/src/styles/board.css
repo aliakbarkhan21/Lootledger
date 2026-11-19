@@ -131,6 +131,17 @@
   color: #f6e9df;
 }
 
+/* Everything on the page below the masthead: the journal lays it out as if
+   this box were not there (Glass gives it a box of its own, glass.css). */
+.board-body,
+.board-scroll { display: contents; }
+.board-tail { display: none; }
+
+/* The month's log and its neighbour: Glass sets Platform Load beside the log
+   (glass.css); here the two boxes are not there. */
+.log-row,
+.log-main { display: contents; }
+
 .page {
   flex: 1;
   margin-left: 40px;

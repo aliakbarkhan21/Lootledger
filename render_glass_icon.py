@@ -14,9 +14,11 @@ The page is screenshotted at 512px with a transparent background and filtered
 down with Lanczos. The .ico container is make_icon.write_ico's, entry by entry,
 so the 16px slot gets the 16px drawing rather than the 256px one squeezed.
 
-The Windows shortcut's icon goes to a NEW file name, glass-icon.ico, for the
-reason make_icon.py gives: the shell caches a shortcut's icon against its
-(path, index) and will not notice the file underneath changing. Chrome keeps
+The Windows shortcut's icon goes to a NEW file name each time the mark
+changes (now glass-icon-mono.ico, the black glass mark; glass-icon.ico was the
+emerald one), for the reason make_icon.py gives: the shell caches a shortcut's
+icon against its (path, index) and will not notice the file underneath
+changing. Chrome keeps
 its own favicon cache keyed by URL in the same way, so frontend/index.html
 and the manifest link the icons with a ?v= tag; change that tag whenever the
 mark changes.
@@ -35,7 +37,7 @@ HERE = Path(__file__).parent
 SOURCE = HERE / "static" / "glass-icon-source.html"
 STATIC = HERE / "static"
 PUBLIC = HERE / "frontend" / "public"
-ICO = STATIC / "glass-icon.ico"
+ICO = STATIC / "glass-icon-mono.ico"
 
 ICO_SIZES = (16, 20, 24, 32, 40, 48, 64, 96, 128, 256)
 
