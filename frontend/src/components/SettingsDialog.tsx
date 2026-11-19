@@ -382,7 +382,7 @@ export default function SettingsDialog() {
             <Block title="Style">
               <Caption>
                 How the board is drawn. Ledger Journal is the ruled book on its desk; Glass sets the same
-                figures on frosted panes over a lamplit desk. Each works in light and dark, and only the look
+                figures on clean panes over one neutral sheet. Each works in light and dark, and only the look
                 changes — never a figure.
               </Caption>
               <div className="settings-row">

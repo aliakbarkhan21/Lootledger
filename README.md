@@ -4,6 +4,10 @@ A personal cash tracker kept as a **ledger journal**: every movement of money
 written into one ruled double-entry page — debits and credits side by side —
 with each month opening on the balance the last one carried forward.
 
+It comes in two looks over the same figures: **Ledger Journal**, a ruled book
+on a desk, and **Glass**, clean neutral panes on one sheet. Pick either in
+Settings; only the look changes, never a number.
+
 FastAPI + SQLite behind a React + TypeScript page, hand-authored SVG charts,
 and a Gemini-backed Finance Bot that can write to the ledgers from a plain
 sentence, a spreadsheet, or a photo of a receipt.
@@ -17,10 +21,57 @@ on screen. No real records appear in any of them.</sub>
 
 ---
 
-## What's new in v3
+## What's new
 
-Version 3 moves the board off Streamlit onto its own FastAPI + React page and
-rebuilds it as the **Ledger Journal**: a book on a desk, a paper page by day
+### The Glass style
+
+A second way to read the board, chosen in Settings (or with `?style=glass`)
+and remembered per browser. Ledger Journal stays the default.
+
+![The Glass style by night: the entry slip and icon rail on the left, the floating top bar, the four figures, and the month's log with Platform Load beside it](docs/glass.png)
+
+- **One calm sheet.** Every pane sits on a single neutral sheet: white glass by
+  day, dark grey by night, with no tint or cast. Carried forward is the one
+  coloured pane, so the figure that matters most is the first one you see.
+- **A floating top bar.** The greeting, the month picker, search and the theme,
+  journal, bot and settings buttons share one bar that stays put as you
+  scroll. The board passes under it, and nothing shows in the gap above it,
+  however fast you scroll.
+- **Platform Load beside the log.** On a wide screen, the month's ledger and its
+  breakdown by platform open side by side, so you see where the money went as
+  soon as the board loads. Capacity and Where It Came From sit beside Spending
+  Rhythm below. On a narrower screen they stack.
+- **An icon rail.** Board, Obligations and Recurring as icons down the left
+  edge, with a highlight that slides to the section you jump to.
+- **Pills, not rules.** The log's column heads and its Totals row are rounded
+  pills that stay pinned as the rows scroll beneath them. Totals is a shade
+  apart, so the month's sums stand out.
+- **Things that lift.** Cards rise a few pixels under the pointer, and a soft light
+  follows the cursor across them. Calendar days lift and turn over in place.
+- **Thin, quiet scrollbars** inset from each pane's edge, with no arrows.
+- **A Glass icon.** The LL mark as a black glass tile, for the browser tab, the home
+  screen and the Windows shortcut.
+
+It works in light and dark, at every width down to a phone. It respects
+reduced motion, reduced transparency and forced colours, and keeps text at
+WCAG AA contrast.
+
+![The same board in Glass by day](docs/glass-light.png)
+
+![Obligations, Capacity, Where It Came From, Spending Rhythm and Recurring in Glass](docs/glass-panels.png)
+
+### Recurring, on the board
+
+Recurring templates moved out of Settings into their own panel on the board.
+Each one carries a **Logged**, **Not logged** or **Upcoming** stamp, read from
+the ledgers themselves, and a **Log now** button. When templates fall due, a
+banner lists them with a checkbox each: **Log selected**, **Log all**, or
+**Not this month**.
+
+### v3: the Ledger Journal
+
+Version 3 moved the board off Streamlit onto its own FastAPI + React page and
+rebuilt it as the **Ledger Journal**: a book on a desk, a paper page by day
 and a lamplit one by night.
 
 - **An entry slip that stays on the desk.** *Record a movement* is docked
@@ -86,8 +137,9 @@ headline totals rather than inflating each by its value — a toggle in Settings
 restores both legs. Outstanding obligations are reported separately from
 spendable cash.
 
-**Light and dark.** A paper page by day and a lamplit one by night — the same
-book, not a different product. The choice is remembered and carried in the URL.
+**Light and dark, in either style.** A paper page by day and a lamplit one by
+night in the journal; white and dark grey glass in Glass. Both the theme and the
+style are remembered and carried in the URL (`?theme=dark&style=glass`).
 
 ![The same page by day](docs/board-light.png)
 
@@ -133,7 +185,8 @@ setting is filled.
 platform, or open Settings and the bot.
 
 **Recurring entries.** Rent, subscriptions and salary are logged from a template
-once their day arrives, or skipped for the month.
+once their day arrives, or skipped for the month. The Recurring panel shows each
+template's status this month and logs one on demand.
 
 ![The Finance Bot open beside the journal](docs/finance-bot.png)
 
@@ -275,7 +328,7 @@ sample deployment needs a host that runs a Python web server, with
 |---|---|
 | `start.py` | The one command: build the page if needed, serve everything. |
 | `api/` | FastAPI app. Thin JSON routes over the modules below, which it calls unchanged. |
-| `frontend/` | The React + TypeScript page (Vite). Tokens in `src/styles/tokens.css`. |
+| `frontend/` | The React + TypeScript page (Vite). Tokens in `src/styles/tokens.css`; the journal in `board.css`, Glass in `glass.css`. |
 | `finance.py` | The money model. Carryover, debt cash movement, formatting. |
 | `db.py` | SQLite schema, migrations, queries. |
 | `bot.py` | Gemini streaming, tool definitions, system context, model fallback. |
@@ -284,10 +337,27 @@ sample deployment needs a host that runs a Python web server, with
 | `demo.py` | Labelled sample data. |
 | `tests/` | API tests against a throwaway database. |
 | `concepts/` | The three design directions the Ledger Journal was chosen from. |
-| `static/icon-source.html` | The source of the LL mark; the shipped icons are cut from it. |
+| `static/icon-source.html` | The source of the journal's LL mark. |
+| `static/glass-icon-source.html` | The source of the Glass icon; the shipped icons are cut from it. |
 | `make_icon.py` | Builds every app icon from one source image, and holds the ICO writer. |
+| `render_glass_icon.py` | Renders the Glass icon at every size, plus the Windows shortcut's ICO. |
 | `PRODUCT.md` | Product truth: users, constraints, principles. |
 | `DESIGN.md` | The previous (Departure Board) design system, kept for reference. |
+
+---
+
+## How it got here
+
+- **August 2026:** started as a Streamlit app: the ledgers, carryover, debt
+  maths and the Gemini Finance Bot.
+- **September 2026, v3:** the board moved to FastAPI + React and became the
+  Ledger Journal, with the docked entry slip, the command palette and an
+  installable phone app. The Python core came across unchanged.
+- **October 2026:** the Recurring panel, the choose-what-to-log banner and
+  status stamps.
+- **November 2026:** the Glass style. It started as frosted panes over a
+  coloured backdrop and was then pared back to one neutral sheet. Platform
+  Load moved up beside the log, and Glass got its own icon.
 
 ---
 
@@ -302,5 +372,7 @@ sample deployment needs a host that runs a Python web server, with
   Credit columns into one signed amount and the Finance Bot opens as a
   full-width drawer.
 - Every animation honours the system's reduce-motion setting.
+- The Glass style adds nothing to the journal: switching styles never changes
+  a figure, and the journal looks exactly as it did before Glass existed.
 - Transport is both its own ledger and a spending category; the two are summed
   into one "Transportation" platform for charts.
